@@ -1,11 +1,12 @@
-'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isAuthenticated, getUserFromToken, removeToken } from '@/lib/auth';
-import api from '@/lib/api';
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { isAuthenticated, getUserFromToken, removeToken } from "@/lib/auth";
+import api from "@/lib/api";
 
 interface User {
   id: string;
@@ -41,45 +42,53 @@ export default function DashboardPage() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
-
     const fetchDashboardData = async () => {
       try {
         const userToken = getUserFromToken();
         if (!userToken) {
-          router.push('/login');
+          router.push("/login");
           return;
         }
-
-        // Fetch user profile, pets, and bookings
         const [profileResponse, petsResponse, bookingsResponse] = await Promise.all([
-          api.get('/users/profile'),
-          api.get('/pets'),
-          api.get('/bookings')
+          api.get("/users/profile"),
+          api.get("/pets"),
+          api.get("/bookings"),
         ]);
-
         setUser(profileResponse.data);
         setPets(petsResponse.data);
         setBookings(bookingsResponse.data);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchDashboardData();
   }, [router]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     removeToken();
-    router.push('/login');
+    router.push("/login");
   };
 
   if (isLoading) {
@@ -90,165 +99,124 @@ export default function DashboardPage() {
     );
   }
 
+  // Images for cards (replace with real images or URLs as needed)
+  const petImg = "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80";
+  const bookingImg = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80";
+  const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Flying Duchess Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user?.firstName}</span>
-              <Button onClick={handleLogout} variant="outline">
-                Logout
-              </Button>
+      {/* Header/Nav */}
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-lg"> <span className="mr-2"> <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#111"/><path d="M7 7h10v10H7V7z" fill="#fff"/></svg></span>PetPal</span>
+          </div>
+          <nav className="hidden md:flex gap-8 text-sm text-gray-700">
+            <a href="/dashboard" className="hover:underline font-semibold">Dashboard</a>
+            <a href="/services" className="hover:underline">Services</a>
+            <a href="/bookings" className="hover:underline">Bookings</a>
+            <a href="/messages" className="hover:underline">Messages</a>
+          </nav>
+          <div className="flex items-center gap-4">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
+              >
+                <span className="text-xs font-bold text-gray-600">{user?.firstName?.[0]}</span>
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={() => {
+                      router.push('/profile');
+                      setIsDropdownOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsDropdownOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button 
-                  className="w-full" 
-                  onClick={() => router.push('/service-inquiry')}
-                >
-                  New Service Inquiry
-                </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => router.push('/pets/add')}
-                >
-                  Add New Pet
-                </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => router.push('/bookings')}
-                >
-                  Book Service
-                </Button>
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  onClick={() => router.push('/reports')}
-                >
-                  View Reports
-                </Button>
-              </CardContent>
-            </Card>
+      <main className="max-w-5xl mx-auto py-10 px-4">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.firstName || "User"}</h1>
 
-            {/* Profile Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p><strong>Name:</strong> {user?.firstName} {user?.lastName}</p>
-                  <p><strong>Email:</strong> {user?.email}</p>
-                  <p><strong>Phone:</strong> {user?.phone || 'Not provided'}</p>
-                  <p><strong>Role:</strong> {user?.role}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Stats</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p><strong>Pets:</strong> {pets.length}</p>
-                  <p><strong>Active Bookings:</strong> {bookings.filter(b => b.status === 'confirmed').length}</p>
-                  <p><strong>Total Bookings:</strong> {bookings.length}</p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Quick Actions */}
+        <section className="mb-8">
+          <h2 className="font-semibold text-lg mb-2">Quick Actions</h2>
+          <div className="flex flex-wrap gap-4">
+            <Button className="rounded-full bg-blue-100 text-blue-900 px-4 py-2 shadow-none" onClick={() => router.push('/service-inquiry')}>New Service Inquiry</Button>
+            <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/pets/add')}>Add New Pet</Button>
+            <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/bookings')}>Book Service</Button>
+            <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/reports')}>View Reports</Button>
           </div>
+        </section>
 
-          {/* Pets Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Pets</h2>
-            {pets.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pets.map((pet) => (
-                  <Card key={pet.id}>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{pet.name}</CardTitle>
-                      <CardDescription>{pet.species} • {pet.breed}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {pet.photoUrl && (
-                        <img 
-                          src={pet.photoUrl} 
-                          alt={pet.name}
-                          className="w-full h-48 object-cover rounded-md mb-2"
-                        />
-                      )}
-                      <p className="text-sm text-gray-600">Age: {pet.age} years</p>
-                      <p className="text-sm text-gray-600 mt-2">{pet.careInstructions}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+        {/* Overview */}
+        <section className="mb-8">
+          <h2 className="font-semibold text-lg mb-4">Overview</h2>
+          <div className="space-y-6">
+            {/* Pets Card */}
+            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
+              <div className="flex-1">
+                <div className="font-semibold">Pets</div>
+                <div className="text-sm text-gray-500 mb-2">You have {pets.length} pet{pets.length !== 1 ? "s" : ""} registered</div>
+                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/pets')}>View Pets &rarr;</Button>
               </div>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No pets added yet</p>
-                  <Button onClick={() => router.push('/pets/add')}>
-                    Add Your First Pet
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+              <img src={petImg} alt="Pets" className="w-40 h-24 object-cover rounded-lg ml-6" />
+            </Card>
 
-          {/* Recent Bookings */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Bookings</h2>
-            {bookings.length > 0 ? (
-              <Card>
-                <CardContent>
-                  <div className="space-y-4">
-                    {bookings.slice(0, 5).map((booking) => (
-                      <div key={booking.id} className="flex justify-between items-center border-b pb-2">
-                        <div>
-                          <p className="font-medium">{booking.serviceType}</p>
-                          <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {booking.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No bookings yet</p>
-                  <Button onClick={() => router.push('/bookings')}>
-                    Book Your First Service
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            {/* Bookings Card */}
+            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
+              <div className="flex-1">
+                <div className="font-semibold">Bookings</div>
+                <div className="text-sm text-gray-500 mb-2">You have {bookings.length} bookings</div>
+                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/bookings')}>View Bookings &rarr;</Button>
+              </div>
+              <img src={bookingImg} alt="Bookings" className="w-40 h-24 object-cover rounded-lg ml-6" />
+            </Card>
+
+            {/* Upcoming Services Card */}
+            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
+              <div className="flex-1">
+                <div className="font-semibold">Upcoming Services</div>
+                <div className="text-sm text-gray-500 mb-2">You have 3 upcoming services</div>
+                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/services')}>View Services &rarr;</Button>
+              </div>
+              <img src={serviceImg} alt="Upcoming Services" className="w-40 h-24 object-cover rounded-lg ml-6" />
+            </Card>
           </div>
-        </div>
+        </section>
+
+        {/* Service Areas */}
+        <section className="mb-8">
+          <h2 className="font-semibold text-lg mb-4">Service Areas</h2>
+          <div className="rounded-xl overflow-hidden border bg-white">
+            <img src="https://maps.googleapis.com/maps/api/staticmap?center=Toronto,ON&zoom=12&size=800x400&maptype=roadmap&key=YOUR_GOOGLE_MAPS_API_KEY" alt="Service Area Map" className="w-full h-80 object-cover" />
+          </div>
+        </section>
       </main>
     </div>
   );
