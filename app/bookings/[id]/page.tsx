@@ -60,6 +60,9 @@ interface Booking {
   };
   createdAt: string;
   updatedAt: string;
+  totalAmount?: number;
+  paidAmount?: number;
+  paymentStatus?: string;
 }
 
 interface Comment {
@@ -470,6 +473,32 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span role="img" aria-label="payment" className="h-5 w-5">💳</span>
+                  Payment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-700">Total Amount:</span>
+                    <span className="text-gray-900">${booking.totalAmount?.toFixed(2) ?? '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-700">Paid Amount:</span>
+                    <span className="text-gray-900">${booking.paidAmount?.toFixed(2) ?? '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-700">Payment Status:</span>
+                    <span className="text-gray-900">{booking.paymentStatus ?? 'pending'}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

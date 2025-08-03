@@ -43,13 +43,19 @@ interface Sitter {
 
 interface Booking {
   _id: string;
-  date: string;
+  date?: string;
+  startDate?: string;
+  endDate?: string;
   serviceType: string;
   status: string;
   clientName: string;
   pets: Array<{ name: string; }>;
   assignedSitter?: string | null;
-  sitterId?: string | null;
+  sitterId?: string | {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | null;
   sitterName?: string | null;
 }
 
@@ -284,10 +290,26 @@ export default function AdminPage() {
 
   const updateBookingStatus = async (bookingId: string, status: string) => {
     try {
-      await api.patch(`/admin/bookings/${bookingId}/status`, {
+      // Get current user info (assumes JWT is stored and getUserFromToken is available)
+      const token = localStorage.getItem('token');
+      let userId = '';
+      let role = '';
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userId = payload.userId;
+          role = payload.role;
+        } catch (e) {}
+      }
+
+      await api.put(`/bookings/${bookingId}`, {
         status
+      }, {
+        params: {
+          userId,
+          role
+        }
       });
-      
       setSuccess('Booking status updated successfully');
       fetchData(); // Refresh data
     } catch (error: any) {
@@ -598,7 +620,10 @@ export default function AdminPage() {
                           <h3 className="text-lg font-semibold">{booking.serviceType}</h3>
                           <p className="text-gray-600">Client: {booking.clientName}</p>
                           <p className="text-sm text-gray-500">
-                            Date: {new Date(booking.date).toLocaleDateString()}
+                            Start: {booking.startDate ? new Date(booking.startDate).toLocaleString() : 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            End: {booking.endDate ? new Date(booking.endDate).toLocaleString() : 'N/A'}
                           </p>
                           <p className="text-sm text-gray-500">
                             Pets: {(booking.pets ?? []).map(pet => pet.name).join(', ')}
@@ -606,7 +631,13 @@ export default function AdminPage() {
                           {/* Show assigned sitter info if available */}
                           {(booking.assignedSitter || booking.sitterName || booking.sitterId) ? (
                             <p className="text-sm text-blue-600">
-                              Assigned Sitter: {booking.assignedSitter || booking.sitterName || `Sitter ID: ${booking.sitterId}`}
+                              Assigned Sitter: {
+                                booking.assignedSitter ? booking.assignedSitter :
+                                booking.sitterName ? booking.sitterName :
+                                (typeof booking.sitterId === 'object' && booking.sitterId !== null)
+                                  ? `${booking.sitterId.firstName || ''} ${booking.sitterId.lastName || ''} (${booking.sitterId.email || ''})`
+                                  : `Sitter ID: ${booking.sitterId}`
+                              }
                             </p>
                           ) : (
                             <p className="text-sm text-red-600">
@@ -644,7 +675,11 @@ export default function AdminPage() {
                         )}
 
                         {/* Show unassign button if sitter is assigned */}
-                        {(booking.assignedSitter || booking.sitterName || booking.sitterId) && (
+                        {(
+                          booking.assignedSitter ||
+                          booking.sitterName ||
+                          (typeof booking.sitterId === 'string' ? booking.sitterId : (booking.sitterId && typeof booking.sitterId === 'object'))
+                        ) && (
                           <Button
                             variant="outline"
                             size="sm"
