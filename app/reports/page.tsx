@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, getUserRole } from '@/lib/auth';
+import { Loading } from '@/components/ui/loading';
 
 interface Report {
   id: string;
@@ -50,7 +51,7 @@ export default function ReportsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading reports...</div>
+        <Loading message="Loading reports..." />
       </div>
     );
   }

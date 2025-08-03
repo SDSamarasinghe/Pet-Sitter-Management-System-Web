@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { isAuthenticated, getUserFromToken } from "@/lib/auth";
+import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 
 interface User {
@@ -114,7 +115,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
+        <Loading message="Loading profile..." />
       </div>
     );
   }

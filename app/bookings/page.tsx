@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '@/components/ui/spinner';
+import Header from '@/components/Header';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -41,9 +44,8 @@ export default function BookingsPage() {
     petIds: [] as string[],
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const fetchData = async () => {
     try {
@@ -101,8 +103,6 @@ export default function BookingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setSuccess('');
 
     // Map formData to backend DTO
     const allowedPetTypes = [
@@ -132,7 +132,12 @@ export default function BookingsPage() {
 
     try {
       await api.post('/bookings', payload);
-      setSuccess('Booking created successfully!');
+      
+      toast({
+        title: "Booking created successfully!",
+        description: "Your booking has been submitted and is pending confirmation.",
+      });
+      
       setShowCreateForm(false);
       setFormData({
         date: '',
@@ -145,7 +150,11 @@ export default function BookingsPage() {
       // Refresh bookings
       fetchData();
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create booking');
+      toast({
+        variant: "destructive",
+        title: "Booking failed",
+        description: error.response?.data?.message || 'Failed to create booking',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -153,12 +162,15 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center gap-4">
-              <span className="font-semibold text-gray-700">{userEmail}</span>
-            </div>
+      <Header />
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Spinner size="lg" />
+        </div>
+      ) : (
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {/* Page Header with Actions */}
+          <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
             <div className="flex space-x-4">
               <Button 
@@ -172,148 +184,150 @@ export default function BookingsPage() {
               </Button>
             </div>
           </div>
-        </div>
-      </header>
+          {/* Create Booking Form */}
+          {showCreateForm && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Book New Service</CardTitle>
+                <CardDescription>
+                  Schedule a pet-sitting service for your furry friends.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Date *</Label>
+                      <Input
+                        id="date"
+                        name="date"
+                        type="date"
+                        value={formData.date}
+                        onChange={handleInputChange}
+                        min={new Date().toISOString().split('T')[0]}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="startTime">Start Time *</Label>
+                      <Input
+                        id="startTime"
+                        name="startTime"
+                        type="time"
+                        value={formData.startTime}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="endTime">End Time *</Label>
+                      <Input
+                        id="endTime"
+                        name="endTime"
+                        type="time"
+                        value={formData.endTime}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert className="mb-4 border-green-400 bg-green-50 text-green-800">
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Create Booking Form */}
-        {showCreateForm && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Book New Service</CardTitle>
-              <CardDescription>
-                Schedule a pet-sitting service for your furry friends.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date">Date *</Label>
-                    <Input
-                      id="date"
-                      name="date"
-                      type="date"
-                      value={formData.date}
+                    <Label htmlFor="serviceType">Service Type *</Label>
+                    <select
+                      id="serviceType"
+                      name="serviceType"
+                      value={formData.serviceType}
                       onChange={handleInputChange}
-                      min={new Date().toISOString().split('T')[0]}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       required
+                    >
+                      <option value="pet-sitting">Pet Sitting</option>
+                      <option value="dog-walking">Dog Walking</option>
+                      <option value="feeding">Feeding Visit</option>
+                      <option value="overnight">Overnight Care</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Select Pets *</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {pets.map((pet) => (
+                        <label key={pet.id} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.petIds.includes(pet.id)}
+                            onChange={() => handlePetSelection(pet.id)}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm">{pet.name} ({pet.species})</span>
+                        </label>
+                      ))}
+                    </div>
+                    {pets.length === 0 && (
+                      <p className="text-sm text-gray-500">
+                        No pets found. <button type="button" onClick={() => router.push('/pets/add')} className="text-blue-500 underline">Add a pet first</button>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Special Instructions</Label>
+                    <Textarea
+                      id="notes"
+                      name="notes"
+                      placeholder="Any special instructions for the sitter..."
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      rows={3}
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time *</Label>
-                    <Input
-                      id="startTime"
-                      name="startTime"
-                      type="time"
-                      value={formData.startTime}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time *</Label>
-                    <Input
-                      id="endTime"
-                      name="endTime"
-                      type="time"
-                      value={formData.endTime}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="serviceType">Service Type *</Label>
-                  <select
-                    id="serviceType"
-                    name="serviceType"
-                    value={formData.serviceType}
-                    onChange={handleInputChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    required
+                  <Button 
+                    type="submit" 
+                    className="w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    disabled={isLoading || formData.petIds.length === 0}
                   >
-                    <option value="pet-sitting">Pet Sitting</option>
-                    <option value="dog-walking">Dog Walking</option>
-                    <option value="feeding">Feeding Visit</option>
-                    <option value="overnight">Overnight Care</option>
-                  </select>
-                </div>
+                    {isLoading ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        Booking...
+                      </>
+                    ) : (
+                      'Book Service'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
-                <div className="space-y-2">
-                  <Label>Select Pets *</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {pets.map((pet) => (
-                      <label key={pet.id} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.petIds.includes(pet.id)}
-                          onChange={() => handlePetSelection(pet.id)}
-                          className="rounded border-gray-300"
-                        />
-                        <span className="text-sm">{pet.name} ({pet.species})</span>
-                      </label>
-                    ))}
-                  </div>
-                  {pets.length === 0 && (
-                    <p className="text-sm text-gray-500">
-                      No pets found. <button type="button" onClick={() => router.push('/pets/add')} className="text-blue-500 underline">Add a pet first</button>
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Special Instructions</Label>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    placeholder="Any special instructions for the sitter..."
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    rows={3}
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isLoading || formData.petIds.length === 0}
-                >
-                  {isLoading ? 'Booking...' : 'Book Service'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Bookings List */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
-          
-          {bookings.length > 0 ? (
-            <div className="grid gap-4">
-              {bookings.map((booking) => (
-                <Card key={booking.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-semibold">{booking.serviceType}</h3>
-                        <p className="text-gray-600">
+          {/* Bookings List */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Bookings</h2>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Spinner size="lg" />
+              </div>
+            ) : (bookings.length > 0 && !isLoading) ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border rounded-lg">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Service</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date & Time</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Pets</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Notes</th>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map((booking) => (
+                      <tr key={booking.id} className="border-b">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{booking.serviceType}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
                           {(() => {
                             const start = booking.startDate ? new Date(booking.startDate) : null;
                             const end = booking.endDate ? new Date(booking.endDate) : null;
@@ -328,42 +342,50 @@ export default function BookingsPage() {
                               return 'Invalid Date';
                             }
                           })()}
-                        </p>
-                        {booking.pets && booking.pets.length > 0 && (
-                          <p className="text-sm text-gray-500">
-                            Pets: {booking.pets.map(pet => pet.name).join(', ')}
-                          </p>
-                        )}
-                        {booking.notes && (
-                          <p className="text-sm text-gray-600">{booking.notes}</p>
-                        )}
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                        booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {booking.status}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
-                <p className="text-gray-500 mb-4">Book your first pet-sitting service to get started.</p>
-                <Button onClick={() => setShowCreateForm(true)}>
-                  Book Service
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </main>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {booking.pets && booking.pets.length > 0
+                            ? booking.pets.map(pet => pet.name).join(', ')
+                            : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {booking.notes || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {booking.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+            //   <Card>
+            //     <CardContent className="text-center py-12">
+            //       <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
+            //       <p className="text-gray-500 mb-4">Book your first pet-sitting service to get started.</p>
+            //       <Button onClick={() => setShowCreateForm(true)}>
+            //         Book Service
+            //       </Button>
+            //     </CardContent>
+            //   </Card>
+             <div className="flex items-center justify-center py-12">
+                <>
+                 <Spinner size="lg" className="mr-2" />
+                    Bookings...
+                </>
+              </div>
+            )}
+          </div>
+        </main>
+      )}
     </div>
   );
 }

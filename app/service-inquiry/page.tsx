@@ -9,11 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import Header from '@/components/Header';
 import api from '@/lib/api';
-import { isAuthenticated } from '@/lib/auth';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function ServiceInquiryPage() {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     customerType: '',
     firstName: '',
@@ -28,16 +30,8 @@ export default function ServiceInquiryPage() {
     additionalDetails: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  // Remove error/success state, use toast instead
   const router = useRouter();
-
-  // Check authentication on component mount
-  useState(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -66,15 +60,20 @@ export default function ServiceInquiryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    // No error/success state
 
     try {
       // Validate required fields
       if (!formData.customerType || !formData.firstName || !formData.lastName || 
           !formData.address || !formData.numberOfPets || formData.petTypes.length === 0 ||
           !formData.startDate || !formData.endDate || !formData.phoneNumber || !formData.email) {
-        throw new Error('Please fill in all required fields');
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Please fill in all required fields',
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Submit service inquiry
@@ -83,7 +82,10 @@ export default function ServiceInquiryPage() {
         petTypes: formData.petTypes.join(', ')
       });
 
-      setSuccess('Service inquiry submitted successfully! We will contact you soon to discuss details and availability.');
+      toast({
+        title: 'Service inquiry submitted successfully!',
+        description: 'We will contact you soon to discuss details and availability.',
+      });
       
       // Reset form
       setFormData({
@@ -102,7 +104,11 @@ export default function ServiceInquiryPage() {
 
     } catch (error: any) {
       console.error('Service inquiry error:', error);
-      setError(error.response?.data?.message || error.message || 'Failed to submit service inquiry');
+      toast({
+        variant: 'destructive',
+        title: 'Service inquiry failed',
+        description: error.response?.data?.message || error.message || 'Failed to submit service inquiry',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +125,14 @@ export default function ServiceInquiryPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <main className="container mx-auto max-w-2xl py-8">
+    <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
+      <Header />
+      
+      <main className="flex-1 container mx-auto max-w-2xl py-8 px-4">
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Flying Duchess Pet Service Inquiry
+              Pet Service Inquiry
             </CardTitle>
             <CardDescription className="text-gray-600">
               After you fill out this service request, we will contact you to go over details and availability. 
@@ -286,25 +294,22 @@ export default function ServiceInquiryPage() {
                 />
               </div>
 
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {success && (
-                <Alert className="border-green-400 bg-green-50 text-green-800">
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
+
 
               <div className="flex gap-4">
                 <Button 
                   type="submit" 
-                  className="flex-1"
+                  className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Submitting...' : 'Submit Service Inquiry'}
+                  {isLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Service Inquiry'
+                  )}
                 </Button>
                 <Button 
                   type="button" 

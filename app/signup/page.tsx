@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import Header from '@/components/Header';
+import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '@/components/ui/spinner';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
 import api from '@/lib/api';
 
@@ -56,9 +58,8 @@ export default function SignupPage() {
     role: 'sitter'
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -90,22 +91,38 @@ export default function SignupPage() {
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Passwords do not match",
+      });
       return false;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      toast({
+        variant: "destructive",
+        title: "Validation Error", 
+        description: "Password must be at least 6 characters long",
+      });
       return false;
     }
     // Validate profilePicture as URL if provided
     if (formData.profilePicture && !/^https?:\/\/.+\..+/.test(formData.profilePicture)) {
-      setError('Profile picture must be a valid URL');
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Profile picture must be a valid URL",
+      });
       return false;
     }
     // Validate petTypesServiced
     const allowedPetTypes = ['Cat', 'Dog', 'Bird', 'Rabbit'];
     if (formData.petTypesServiced.some((type: string) => !allowedPetTypes.includes(type))) {
-      setError('Each value in Pet Types Serviced must be one of: Cat, Dog, Bird, Rabbit');
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Each value in Pet Types Serviced must be one of: Cat, Dog, Bird, Rabbit",
+      });
       return false;
     }
     return true;
@@ -114,8 +131,6 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setSuccess('');
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -130,7 +145,12 @@ export default function SignupPage() {
         petTypesServiced: formData.petTypesServiced,
       };
       await api.post('/users', submitData);
-      setSuccess('Registration successful! Your application is pending approval. You will be notified once approved.');
+      
+      toast({
+        title: "Registration successful!",
+        description: "Your application is pending approval. You will be notified once approved.",
+      });
+      
       setFormData({
         email: '',
         password: '',
@@ -153,7 +173,11 @@ export default function SignupPage() {
         role: 'sitter'
       });
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Registration failed');
+      toast({
+        variant: "destructive", 
+        title: "Registration failed",
+        description: error.response?.data?.message || 'Registration failed',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -161,20 +185,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      {/* Header/Nav */}
-      <header className="w-full flex items-center justify-between px-8 py-4 bg-white rounded-b-xl border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-xl tracking-tight flex items-center gap-2">
-            <span className="inline-block w-6 h-6 bg-black rounded-full mr-1" /> PetPal
-          </span>
-        </div>
-        <nav className="flex items-center gap-4">
-          <button className="text-gray-700 hover:text-black text-sm font-medium" onClick={() => router.push('/find-care')}>Find Care</button>
-          <button className="text-gray-700 hover:text-black text-sm font-medium" onClick={() => router.push('/service-inquiry')}>Service Inquiry</button>
-          <button className="bg-[#5b9cf6] text-white px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-[#357ae8]" onClick={() => router.push('/login')}>Log in</button>
-          <button className="bg-[#f5f6fa] text-gray-900 px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-gray-200" onClick={() => router.push('/signup')}>Sign up</button>
-        </nav>
-      </header>
+      <Header />
 
       {/* Signup Form */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">
@@ -187,18 +198,6 @@ export default function SignupPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {error && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {success && (
-                <Alert className="mb-4 border-green-400 bg-green-50 text-green-800">
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
@@ -309,10 +308,17 @@ export default function SignupPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-[#5b9cf6] hover:bg-[#357ae8]"
+                  className="w-full bg-[#5b9cf6] hover:bg-[#357ae8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating Account...' : 'Create Sitter Account'}
+                  {isLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    'Create Sitter Account'
+                  )}
                 </Button>
               </form>
 

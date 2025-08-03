@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
+import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 
 interface User {
@@ -112,7 +113,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
+        <Loading message="Loading dashboard..." />
       </div>
     );
   }

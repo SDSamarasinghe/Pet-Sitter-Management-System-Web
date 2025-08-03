@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
+import { Spinner } from '@/components/ui/spinner';
 import { uploadToCloudinary, testCloudinaryConnection } from '@/lib/cloudinary';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -399,10 +400,17 @@ export default function AddPetPage() {
               <div className="flex gap-4">
                 <Button 
                   type="submit" 
-                  className="flex-1"
+                  className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Adding Pet...' : 'Add Pet'}
+                  {isLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Adding Pet...
+                    </>
+                  ) : (
+                    'Add Pet'
+                  )}
                 </Button>
                 <Button 
                   type="button" 

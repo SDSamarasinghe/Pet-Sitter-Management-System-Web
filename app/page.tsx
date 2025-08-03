@@ -1,129 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
+import Header from "@/components/Header";
 
 export default function HomePage() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is logged in
-    if (isAuthenticated()) {
-      const userToken = getUserFromToken();
-      if (userToken) {
-        // In a real app, you'd fetch user data here
-        setUser({ firstName: userToken.firstName || "User" });
-      }
-    }
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    removeToken();
-    setUser(null);
-    setIsDropdownOpen(false);
-    router.push("/login");
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Nav */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-lg">
-              <span className="mr-2">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <rect width="24" height="24" rx="6" fill="#111"/>
-                  <path d="M7 7h10v10H7V7z" fill="#fff"/>
-                </svg>
-              </span>
-              PetPal
-            </span>
-          </div>
-          <nav className="hidden md:flex gap-8 text-sm text-gray-700">
-            <a href="/" className="hover:underline font-semibold">Home</a>
-            <a href="/services" className="hover:underline">Services</a>
-            <a href="/bookings" className="hover:underline">Bookings</a>
-            <a href="/messages" className="hover:underline">Messages</a>
-          </nav>
-          <div className="flex items-center gap-4">
-            {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
-                >
-                  <span className="text-xs font-bold text-gray-600">{user.firstName?.[0]}</span>
-                </button>
-                
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
-                    <button
-                      onClick={() => {
-                        router.push('/profile');
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        const userRole = getUserRole();
-                        if (userRole === 'admin') {
-                          router.push('/admin');
-                        } else {
-                          router.push('/dashboard');
-                        }
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                      </svg>
-                      {getUserRole() === 'admin' ? 'Admin Panel' : 'Dashboard'}
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Button variant="outline" onClick={() => router.push('/login')}>Login</Button>
-                <Button onClick={() => router.push('/service-inquiry')}>Book Now</Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-7xl mx-auto py-20 px-4 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6">

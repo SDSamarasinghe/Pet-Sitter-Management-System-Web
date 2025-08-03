@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Booking {
   id: string;
@@ -290,8 +291,15 @@ export default function SitterPage() {
                 </div>
 
                 <div className="flex space-x-4">
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Submitting...' : 'Submit Report'}
+                  <Button type="submit" disabled={isLoading} className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                    {isLoading ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit Report'
+                    )}
                   </Button>
                   <Button 
                     type="button" 
