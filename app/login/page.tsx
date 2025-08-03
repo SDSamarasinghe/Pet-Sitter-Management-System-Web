@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
-import { setToken, isAuthenticated } from '@/lib/auth';
+import { setToken, isAuthenticated, getUserRole } from '@/lib/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      router.replace('/dashboard');
+      const userRole = getUserRole();
+      if (userRole === 'admin') {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
     }
   }, [router]);
 
@@ -26,7 +32,14 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', { email, password });
       const { access_token } = response.data;
       setToken(access_token);
-      router.push('/dashboard');
+      
+      // Redirect based on user role
+      const userRole = getUserRole();
+      if (userRole === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       setError(error.response?.data?.message || 'Invalid credentials');
     } finally {
@@ -83,7 +96,9 @@ export default function LoginPage() {
               <a href="/forgot-password" className="text-[#5b9cf6] text-sm hover:underline">Forgot password?</a>
             </div>
             {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
             <button 
               type="submit" 

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -286,11 +287,15 @@ export default function ServiceInquiryPage() {
               </div>
 
               {error && (
-                <div className="text-red-500 text-sm">{error}</div>
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               
               {success && (
-                <div className="text-green-500 text-sm">{success}</div>
+                <Alert className="border-green-400 bg-green-50 text-green-800">
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
               )}
 
               <div className="flex gap-4">

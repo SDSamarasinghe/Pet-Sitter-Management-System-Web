@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isAuthenticated } from '@/lib/auth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { isAuthenticated, getUserRole } from '@/lib/auth';
 import api from '@/lib/api';
 
 export default function SignupPage() {
@@ -61,7 +62,12 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      router.replace('/dashboard');
+      const userRole = getUserRole();
+      if (userRole === 'admin') {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
     }
   }, [router]);
 
@@ -182,15 +188,15 @@ export default function SignupPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                  {error}
-                </div>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               
               {success && (
-                <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                  {success}
-                </div>
+                <Alert className="mb-4 border-green-400 bg-green-50 text-green-800">
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">

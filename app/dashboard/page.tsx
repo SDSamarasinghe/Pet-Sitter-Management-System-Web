@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { isAuthenticated, getUserFromToken, removeToken } from "@/lib/auth";
+import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
 import api from "@/lib/api";
 
 interface User {
@@ -51,6 +51,14 @@ export default function DashboardPage() {
       router.push("/login");
       return;
     }
+
+    // Redirect admin users to admin page
+    const userRole = getUserRole();
+    if (userRole === 'admin') {
+      router.push('/admin');
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         const userToken = getUserFromToken();
@@ -62,20 +70,14 @@ export default function DashboardPage() {
         const profileResponse = await api.get("/users/profile");
         const userId = profileResponse.data._id;
         const userRole = profileResponse.data.role;
-        let petsResponse;
-        if (userRole === 'admin') {
-          petsResponse = await api.get('/pets');
-          setPets(petsResponse?.data ?? []);
-        } else {
-          petsResponse = await api.get(`/pets/user/${userId}`);
-          setPets(petsResponse?.data ?? []);
-        }
+        
+        // Fetch user's pets
+        const petsResponse = await api.get(`/pets/user/${userId}`);
+        setPets(petsResponse?.data ?? []);
        
-        // Fetch bookings as before
+        // Fetch bookings based on user role
         let bookingsResponse;
-        if (userRole === 'admin') {
-          bookingsResponse = await api.get('/bookings');
-        } else if (userRole === 'sitter') {
+        if (userRole === 'sitter') {
           bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
         } else {
           bookingsResponse = await api.get(`/bookings/user/${userId}`);

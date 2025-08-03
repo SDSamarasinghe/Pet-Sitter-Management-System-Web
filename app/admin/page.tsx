@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { TableBody,Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog,DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
 
@@ -40,7 +41,7 @@ interface Sitter {
 }
 
 interface Booking {
-  id: string;
+  _id: string;
   date: string;
   serviceType: string;
   status: string;
@@ -108,7 +109,12 @@ export default function AdminPage() {
     const userRole = getUserRole();
     console.log('AdminPage useEffect: userRole', userRole);
     if (userRole !== 'admin') {
-      router.push('/dashboard');
+      // Redirect non-admin users to their appropriate dashboard
+      if (userRole === 'sitter') {
+        router.push('/sitter');
+      } else {
+        router.push('/dashboard');
+      }
       return;
     }
 
@@ -125,19 +131,19 @@ export default function AdminPage() {
   const fetchData = async () => {
     try {
       console.log('fetchData: fetching admin data...');
-      const [usersResponse, bookingsResponse, sittersResponse, petsResponse] = await Promise.all([
-        api.get('/bookings'),
+      const [clientsResponse, bookingsResponse, sittersResponse, petsResponse] = await Promise.all([
+        api.get('/users/admin/clients'), // Fetch clients for Users tab
         api.get('/bookings'),
         api.get('/users/admin/sitters'),
         api.get('/pets')
       ]);
-      
-      console.log('fetchData: usersResponse', usersResponse.data);
+
+      console.log('fetchData: clientsResponse', clientsResponse.data);
       console.log('fetchData: bookingsResponse', bookingsResponse.data);
       console.log('fetchData: sittersResponse', sittersResponse.data);
       console.log('fetchData: petsResponse', petsResponse.data);
-      
-      setUsers(usersResponse.data || []);
+
+      setUsers(clientsResponse.data || []);
       setBookings(bookingsResponse.data || []);
       setSitters(sittersResponse.data || []);
       setPets(petsResponse.data || []);
@@ -251,7 +257,7 @@ export default function AdminPage() {
 
   const assignSitter = async (bookingId: string, sitterId: string) => {
     try {
-      await api.patch(`/admin/bookings/${bookingId}/assign`, {
+      await api.put(`/bookings/${bookingId}/assign-sitter`, {
         sitterId
       });
       
@@ -291,8 +297,11 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Back to Dashboard
+            <Button onClick={() => {
+              localStorage.removeItem('token');
+              router.push('/login');
+            }} variant="outline">
+              Logout
             </Button>
           </div>
         </div>
@@ -300,15 +309,15 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         {success && (
-          <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-            {success}
-          </div>
+          <Alert className="mb-4 border-green-400 bg-green-50 text-green-800">
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         )}
 
         {/* Tab Navigation */}
@@ -454,7 +463,7 @@ export default function AdminPage() {
                             {sitter.firstName} {sitter.lastName}
                           </TableCell>
                           <TableCell>{sitter.email}</TableCell>
-                          <TableCell>{sitter.phone || 'N/A'}</TableCell>
+                          <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
                           <TableCell>{getStatusBadge(sitter.status)}</TableCell>
                           <TableCell>
                             {new Date(sitter.createdAt).toLocaleDateString()}
@@ -509,35 +518,56 @@ export default function AdminPage() {
 
         {/* Users Tab */}
         {activeTab === 'users' && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-            <div className="grid gap-4">
-              {users.map((user) => (
-                <Card key={user.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-semibold">
-                          {user.firstName} {user.lastName}
-                        </h3>
-                        <p className="text-gray-600">{user.email}</p>
-                        <p className="text-sm text-gray-500">Role: {user.role}</p>
-                        {user.phone && <p className="text-sm text-gray-500">Phone: {user.phone}</p>}
-                        {user.address && <p className="text-sm text-gray-500">Address: {user.address}</p>}
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                        user.role === 'sitter' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {user.role}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Clients ({users.length})</CardTitle>
+              <CardDescription>
+                List of all clients in the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Role</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.length > 0 ? (
+                      users.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.firstName} {user.lastName}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.phone || 'N/A'}</TableCell>
+                          <TableCell>{user.address || 'N/A'}</TableCell>
+                          <TableCell>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                              user.role === 'sitter' ? 'bg-blue-100 text-blue-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {user.role}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          No clients found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Bookings Tab */}
@@ -546,7 +576,7 @@ export default function AdminPage() {
             <h2 className="text-2xl font-bold text-gray-900">Booking Management</h2>
             <div className="grid gap-4">
               {bookings.map((booking) => (
-                <Card key={booking.id}>
+                <Card key={booking._id}>
                   <CardContent className="pt-6">
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
@@ -557,7 +587,7 @@ export default function AdminPage() {
                             Date: {new Date(booking.date).toLocaleDateString()}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Pets: {booking.pets.map(pet => pet.name).join(', ')}
+                            Pets: {(booking.pets ?? []).map(pet => pet.name).join(', ')}
                           </p>
                           {booking.assignedSitter && (
                             <p className="text-sm text-blue-600">
@@ -579,7 +609,7 @@ export default function AdminPage() {
                         {!booking.assignedSitter && sitters.length > 0 && (
                           <div className="flex items-center space-x-2">
                             <select 
-                              onChange={(e) => assignSitter(booking.id, e.target.value)}
+                              onChange={(e) => assignSitter(booking._id, e.target.value)}
                               className="text-sm border rounded px-2 py-1"
                               defaultValue=""
                             >
@@ -595,7 +625,7 @@ export default function AdminPage() {
                         
                         <select 
                           value={booking.status}
-                          onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                          onChange={(e) => updateBookingStatus(booking._id, e.target.value)}
                           className="text-sm border rounded px-2 py-1"
                         >
                           <option value="pending">Pending</option>
@@ -729,9 +759,9 @@ export default function AdminPage() {
             </div>
 
             {error && (
-              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </div>
 

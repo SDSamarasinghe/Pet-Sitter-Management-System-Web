@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { isAuthenticated, getUserFromToken, removeToken } from "@/lib/auth";
+import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
 
 export default function HomePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -88,7 +88,12 @@ export default function HomePage() {
                     </button>
                     <button
                       onClick={() => {
-                        router.push('/dashboard');
+                        const userRole = getUserRole();
+                        if (userRole === 'admin') {
+                          router.push('/admin');
+                        } else {
+                          router.push('/dashboard');
+                        }
                         setIsDropdownOpen(false);
                       }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -96,7 +101,7 @@ export default function HomePage() {
                       <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                       </svg>
-                      Dashboard
+                      {getUserRole() === 'admin' ? 'Admin Panel' : 'Dashboard'}
                     </button>
                     <button
                       onClick={handleLogout}
