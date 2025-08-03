@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TableBody,Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Dialog,DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import api from '@/lib/api';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
 
@@ -22,6 +26,19 @@ interface User {
   pendingAddressChange?: string;
 }
 
+interface Sitter {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  address?: string;
+  emergencyContact?: string;
+  homeCareInfo?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+}
+
 interface Booking {
   id: string;
   date: string;
@@ -32,47 +49,190 @@ interface Booking {
   assignedSitter?: string;
 }
 
+interface Pet {
+  _id?: string;
+  id?: string;
+  name: string;
+  type: string;
+  breed?: string;
+  age?: string;
+  weight?: number;
+  allergies?: string;
+  medications?: string;
+  emergencyContact?: string;
+  veterinarianInfo?: string;
+  createdAt?: string;
+  userId?: {
+    _id: string;
+    email: string;
+  };
+}
+
+interface ApprovalFormData {
+  password: string;
+  confirmPassword: string;
+  notes?: string;
+}
+
+
+
+
 export default function AdminPage() {
+  console.log('AdminPage component rendered');
   const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [sitters, setSitters] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'users' | 'bookings' | 'address-changes'>('users');
+  const [sitters, setSitters] = useState<Sitter[]>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [selectedSitter, setSelectedSitter] = useState<Sitter | null>(null);
+  const [activeTab, setActiveTab] = useState<'users' | 'bookings' | 'address-changes' | 'sitters' | 'pets'>('users');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
+  const [formData, setFormData] = useState<ApprovalFormData>({
+    password: '',
+    confirmPassword: '',
+    notes: ''
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    console.log('AdminPage useEffect: isAuthenticated', isAuthenticated());
     if (!isAuthenticated()) {
       router.push('/login');
       return;
     }
 
     const userRole = getUserRole();
+    console.log('AdminPage useEffect: userRole', userRole);
     if (userRole !== 'admin') {
       router.push('/dashboard');
       return;
     }
 
+    console.log('AdminPage useEffect: calling fetchData');
     fetchData();
   }, [router]);
 
+  // Log data changes
+  useEffect(() => {
+    console.log('Data updated - Users:', users.length, 'Bookings:', bookings.length, 'Sitters:', sitters.length, 'Pets:', pets.length);
+    console.log('Pets data:', pets);
+  }, [users, bookings, sitters, pets]);
+
   const fetchData = async () => {
     try {
-      const [usersResponse, bookingsResponse, sittersResponse] = await Promise.all([
-        api.get('/admin/users'),
-        api.get('/admin/bookings'),
-        api.get('/admin/sitters')
+      console.log('fetchData: fetching admin data...');
+      const [usersResponse, bookingsResponse, sittersResponse, petsResponse] = await Promise.all([
+        api.get('/bookings'),
+        api.get('/bookings'),
+        api.get('/users/admin/sitters'),
+        api.get('/pets')
       ]);
       
-      setUsers(usersResponse.data);
-      setBookings(bookingsResponse.data);
-      setSitters(sittersResponse.data);
+      console.log('fetchData: usersResponse', usersResponse.data);
+      console.log('fetchData: bookingsResponse', bookingsResponse.data);
+      console.log('fetchData: sittersResponse', sittersResponse.data);
+      console.log('fetchData: petsResponse', petsResponse.data);
+      
+      setUsers(usersResponse.data || []);
+      setBookings(bookingsResponse.data || []);
+      setSitters(sittersResponse.data || []);
+      setPets(petsResponse.data || []);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       setError('Failed to load admin data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const validateForm = () => {
+    if (actionType === 'approve') {
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return false;
+      }
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters long');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSitterAction = async () => {
+    if (!selectedSitter || !selectedSitter._id) {
+      setError('Sitter ID is missing. Cannot process approval/rejection.');
+      return;
+    }
+    setIsSubmitting(true);
+    setError('');
+    setSuccess('');
+
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      if (actionType === 'approve') {
+        await api.put(`/users/${selectedSitter._id}/approve`, {
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        });
+        setSuccess(`Sitter ${selectedSitter.firstName} ${selectedSitter.lastName} has been approved`);
+      } else {
+        await api.put(`/users/${selectedSitter._id}/reject`, {});
+        setSuccess(`Sitter ${selectedSitter.firstName} ${selectedSitter.lastName} has been rejected`);
+      }
+
+      // Refresh the sitters list
+      await fetchData();
+      
+      // Close dialog and reset form
+      setIsDialogOpen(false);
+      setSelectedSitter(null);
+      setFormData({ password: '', confirmPassword: '', notes: '' });
+    } catch (error: any) {
+      setError(error.response?.data?.message || `Failed to ${actionType} sitter`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openSitterDialog = (sitter: Sitter, action: 'approve' | 'reject') => {
+    // Ensure sitter has an id property
+    setSelectedSitter({
+      ...sitter,
+      _id: sitter._id || (sitter as any)._id || ''
+    });
+    setActionType(action);
+    setFormData({ password: '', confirmPassword: '', notes: '' });
+    setError('');
+    setIsDialogOpen(true);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -165,6 +325,16 @@ export default function AdminPage() {
               Users ({users.length})
             </button>
             <button
+              onClick={() => setActiveTab('sitters')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sitters' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Sitters ({sitters.length})
+            </button>
+            <button
               onClick={() => setActiveTab('bookings')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'bookings' 
@@ -184,8 +354,158 @@ export default function AdminPage() {
             >
               Address Changes ({pendingAddressChanges.length})
             </button>
+            <button
+              onClick={() => setActiveTab('pets')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'pets' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Pets ({pets.length})
+            </button>
           </nav>
         </div>
+
+        {/* Sitters Tab */}
+        {/* Pets Tab */}
+        {activeTab === 'pets' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>All Pets ({pets.length})</CardTitle>
+              <CardDescription>
+                View all pets registered in the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Breed</TableHead>
+                      <TableHead>Age</TableHead>
+                      <TableHead>Weight</TableHead>
+                      <TableHead>Allergies</TableHead>
+                      <TableHead>Medications</TableHead>
+                      <TableHead>Owner Email</TableHead>
+                      <TableHead>Emergency Contact</TableHead>
+                      <TableHead>Veterinarian Info</TableHead>
+                      <TableHead>Created At</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pets.length > 0 ? (
+                      pets.map((pet, index) => (
+                        <TableRow key={pet._id || pet.id || `pet-${index}`}>
+                          <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
+                          <TableCell>{pet.type || 'N/A'}</TableCell>
+                          <TableCell>{pet.breed || 'N/A'}</TableCell>
+                          <TableCell>{pet.age || 'N/A'}</TableCell>
+                          <TableCell>{pet.weight ? pet.weight.toString() : 'N/A'}</TableCell>
+                          <TableCell>{pet.allergies || 'N/A'}</TableCell>
+                          <TableCell>{pet.medications || 'N/A'}</TableCell>
+                          <TableCell>{pet.userId?.email || 'N/A'}</TableCell>
+                          <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
+                          <TableCell>{pet.veterinarianInfo || 'N/A'}</TableCell>
+                          <TableCell>{pet.createdAt ? new Date(pet.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={11} className="text-center py-8">
+                          No pets found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {activeTab === 'sitters' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sitter Applications</CardTitle>
+              <CardDescription>
+                Manage pending sitter applications and view all registered sitters
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Applied Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sitters.length > 0 ? (
+                      sitters.map((sitter) => (
+                        <TableRow key={sitter._id || (sitter as any)._id}>
+                          <TableCell className="font-medium">
+                            {sitter.firstName} {sitter.lastName}
+                          </TableCell>
+                          <TableCell>{sitter.email}</TableCell>
+                          <TableCell>{sitter.phone || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(sitter.status)}</TableCell>
+                          <TableCell>
+                            {new Date(sitter.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              {sitter.status === 'pending' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openSitterDialog({ ...sitter, _id: sitter._id || (sitter as any)._id }, 'approve')}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => openSitterDialog({ ...sitter, _id: sitter._id || (sitter as any)._id }, 'reject')}
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  // View details logic
+                                  alert(`Name: ${sitter.firstName} ${sitter.lastName}\nEmail: ${sitter.email}\nPhone: ${sitter.phone}\nAddress: ${sitter.address}\nEmergency Contact: ${sitter.emergencyContact}\nExperience: ${sitter.homeCareInfo}`);
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          No sitter applications found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
@@ -265,7 +585,7 @@ export default function AdminPage() {
                             >
                               <option value="">Assign Sitter</option>
                               {sitters.map((sitter) => (
-                                <option key={sitter.id} value={sitter.id}>
+                                <option key={sitter._id} value={sitter._id}>
                                   {sitter.firstName} {sitter.lastName}
                                 </option>
                               ))}
@@ -350,6 +670,93 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* Approval/Rejection Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {actionType === 'approve' ? 'Approve' : 'Reject'} Sitter Application
+            </DialogTitle>
+            <DialogDescription>
+              {actionType === 'approve' 
+                ? `Approve ${selectedSitter?.firstName} ${selectedSitter?.lastName} as a sitter. A temporary password will be set for their account.`
+                : `Reject ${selectedSitter?.firstName} ${selectedSitter?.lastName}'s sitter application.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {actionType === 'approve' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Temporary Password *</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter temporary password"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    placeholder="Confirm temporary password"
+                    required
+                  />
+                </div>
+              </>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                placeholder={`Add any notes about this ${actionType}...`}
+                rows={3}
+              />
+            </div>
+
+            {error && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                {error}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSitterAction}
+              disabled={isSubmitting}
+              className={actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+              variant={actionType === 'reject' ? 'destructive' : 'default'}
+            >
+              {isSubmitting 
+                ? `${actionType === 'approve' ? 'Approving' : 'Rejecting'}...` 
+                : `${actionType === 'approve' ? 'Approve' : 'Reject'} Sitter`
+              }
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

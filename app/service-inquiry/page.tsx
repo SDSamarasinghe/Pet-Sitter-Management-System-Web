@@ -187,7 +187,7 @@ export default function ServiceInquiryPage() {
               {/* Number of Pets */}
               <div className="space-y-2">
                 <Label htmlFor="numberOfPets">Number of pets *</Label>
-                <Select onValueChange={(value: string) => handleSelectChange('numberOfPets', value)} required>
+                <Select onValueChange={(value) => handleSelectChange('numberOfPets', value)} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select number of pets" />
                   </SelectTrigger>
@@ -208,7 +208,7 @@ export default function ServiceInquiryPage() {
                       <Checkbox
                         id={petType}
                         checked={formData.petTypes.includes(petType)}
-                        onCheckedChange={(checked: boolean) => handlePetTypeChange(petType, checked)}
+                        onCheckedChange={(checked) => handlePetTypeChange(petType, checked as boolean)}
                       />
                       <Label htmlFor={petType} className="text-sm">{petType}</Label>
                     </div>

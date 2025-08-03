@@ -45,7 +45,7 @@ export default function LoginPage() {
         </div>
         <nav className="flex items-center gap-4">
           <button className="text-gray-700 hover:text-black text-sm font-medium" onClick={() => router.push('/find-care')}>Find Care</button>
-          <button className="text-gray-700 hover:text-black text-sm font-medium" onClick={() => router.push('/service-inquiry')}>Become a Sitter</button>
+          <button className="text-gray-700 hover:text-black text-sm font-medium" onClick={() => router.push('/service-inquiry')}>Service Inquiry</button>
           <button className="bg-[#5b9cf6] text-white px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-[#357ae8]" onClick={() => router.push('/login')}>Log in</button>
           <button className="bg-[#f5f6fa] text-gray-900 px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-gray-200" onClick={() => router.push('/signup')}>Sign up</button>
         </nav>

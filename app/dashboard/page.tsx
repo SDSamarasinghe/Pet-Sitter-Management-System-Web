@@ -135,6 +135,7 @@ export default function DashboardPage() {
             <a href="/dashboard" className="hover:underline font-semibold">Dashboard</a>
             <a href="/services" className="hover:underline">Services</a>
             <a href="/bookings" className="hover:underline">Bookings</a>
+            <a href="/service-inquiry" className="hover:underline">Service Inquiry</a>
             <a href="/messages" className="hover:underline">Messages</a>
           </nav>
           <div className="flex items-center gap-4">
@@ -180,15 +181,19 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-10 px-4">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.email || "User"}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}</h1>
 
         {/* Quick Actions */}
         <section className="mb-8">
           <h2 className="font-semibold text-lg mb-2">Quick Actions</h2>
           <div className="flex flex-wrap gap-4">
             <Button className="rounded-full bg-blue-100 text-blue-900 px-4 py-2 shadow-none" onClick={() => router.push('/service-inquiry')}>New Service Inquiry</Button>
-            <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/pets/add')}>Add New Pet</Button>
-            <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/bookings')}>Book Service</Button>
+            {user?.role !== 'sitter' && (
+              <>
+                <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/pets/add')}>Add New Pet</Button>
+                <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/bookings')}>Book Service</Button>
+              </>
+            )}
             <Button className="rounded-full bg-gray-100 text-gray-900 px-4 py-2 shadow-none" onClick={() => router.push('/reports')}>View Reports</Button>
           </div>
         </section>
