@@ -12,9 +12,8 @@ import { isAuthenticated } from '@/lib/auth';
 
 interface Booking {
   id: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  startDate: string;
+  endDate: string;
   serviceType: string;
   status: string;
   notes?: string;
@@ -30,6 +29,7 @@ interface Pet {
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
+  const [userEmail, setUserEmail] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     date: '',
@@ -44,28 +44,41 @@ export default function BookingsPage() {
   const [success, setSuccess] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
-    fetchData();
-  }, [router]);
-
   const fetchData = async () => {
     try {
-      const [bookingsResponse, petsResponse] = await Promise.all([
-        api.get('/bookings'),
-        api.get('/pets')
-      ]);
-      
+      // Get user profile to determine role and id
+      const profileResponse = await api.get('/users/profile');
+      const userId = profileResponse.data._id;
+      const userRole = profileResponse.data.role;
+      setUserEmail(profileResponse.data.email || '');
+      // Fetch pets based on role
+      let petsResponse;
+      if (userRole === 'admin') {
+        petsResponse = await api.get('/pets');
+      } else {
+        petsResponse = await api.get(`/pets/user/${userId}`);
+      }
+      // Fetch bookings based on role
+      let bookingsResponse;
+      if (userRole === 'admin') {
+        bookingsResponse = await api.get('/bookings');
+      } else {
+        bookingsResponse = await api.get(`/bookings/user/${userId}`);
+      }
       setBookings(bookingsResponse.data);
       setPets(petsResponse.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    fetchData();
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -90,9 +103,34 @@ export default function BookingsPage() {
     setError('');
     setSuccess('');
 
+    // Map formData to backend DTO
+    const allowedPetTypes = [
+      'Cat(s)', 'Dog(s)', 'Rabbit(s)', 'Bird(s)', 'Guinea pig(s)', 'Ferret(s)', 'Other'
+    ];
+    const speciesMap: Record<string, string> = {
+      'Cat': 'Cat(s)',
+      'Dog': 'Dog(s)',
+      'Rabbit': 'Rabbit(s)',
+      'Bird': 'Bird(s)',
+      'Guinea pig': 'Guinea pig(s)',
+      'Ferret': 'Ferret(s)',
+      'Other': 'Other'
+    };
+    const petTypes = pets
+      .filter(pet => formData.petIds.includes(pet.id))
+      .map(pet => speciesMap[pet.species] || 'Other')
+      .filter(type => allowedPetTypes.includes(type));
+    const payload = {
+      startDate: `${formData.date}T${formData.startTime}`,
+      endDate: `${formData.date}T${formData.endTime}`,
+      serviceType: formData.serviceType,
+      numberOfPets: formData.petIds.length,
+      petTypes,
+      notes: formData.notes,
+    };
+
     try {
-      await api.post('/bookings', formData);
-      
+      await api.post('/bookings', payload);
       setSuccess('Booking created successfully!');
       setShowCreateForm(false);
       setFormData({
@@ -103,7 +141,6 @@ export default function BookingsPage() {
         notes: '',
         petIds: [],
       });
-      
       // Refresh bookings
       fetchData();
     } catch (error: any) {
@@ -118,6 +155,9 @@ export default function BookingsPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
+            <div className="flex items-center gap-4">
+              <span className="font-semibold text-gray-700">{userEmail}</span>
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
             <div className="flex space-x-4">
               <Button 
@@ -273,10 +313,20 @@ export default function BookingsPage() {
                       <div className="space-y-2">
                         <h3 className="text-lg font-semibold">{booking.serviceType}</h3>
                         <p className="text-gray-600">
-                          {new Date(booking.date).toLocaleDateString()} 
-                          {booking.startTime && booking.endTime && 
-                            ` • ${booking.startTime} - ${booking.endTime}`
-                          }
+                          {(() => {
+                            const start = booking.startDate ? new Date(booking.startDate) : null;
+                            const end = booking.endDate ? new Date(booking.endDate) : null;
+                            if (start && end) {
+                              const dateStr = start.toLocaleDateString();
+                              const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              const endTime = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              return `${dateStr} • ${startTime} - ${endTime}`;
+                            } else if (start) {
+                              return start.toLocaleString();
+                            } else {
+                              return 'Invalid Date';
+                            }
+                          })()}
                         </p>
                         {booking.pets && booking.pets.length > 0 && (
                           <p className="text-sm text-gray-500">

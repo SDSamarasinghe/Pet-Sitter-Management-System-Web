@@ -11,7 +11,7 @@ import { isAuthenticated, getUserFromToken } from "@/lib/auth";
 import api from "@/lib/api";
 
 interface User {
-  id: string;
+  _id: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -304,7 +304,7 @@ export default function ProfilePage() {
               <div>
                 <Label>User ID</Label>
                 <div className="mt-1 p-2 bg-gray-50 rounded border font-mono text-sm">
-                  {user?.id}
+                  {user?._id}
                 </div>
               </div>
             </div>

@@ -58,13 +58,29 @@ export default function DashboardPage() {
           router.push("/login");
           return;
         }
-        const [profileResponse, petsResponse, bookingsResponse] = await Promise.all([
-          api.get("/users/profile"),
-          api.get("/pets"),
-          api.get("/bookings"),
-        ]);
+        // Fetch user profile first
+        const profileResponse = await api.get("/users/profile");
+        const userId = profileResponse.data._id;
+        const userRole = profileResponse.data.role;
+        let petsResponse;
+        if (userRole === 'admin') {
+          petsResponse = await api.get('/pets');
+          setPets(petsResponse?.data ?? []);
+        } else {
+          petsResponse = await api.get(`/pets/user/${userId}`);
+          setPets(petsResponse?.data ?? []);
+        }
+       
+        // Fetch bookings as before
+        let bookingsResponse;
+        if (userRole === 'admin') {
+          bookingsResponse = await api.get('/bookings');
+        } else if (userRole === 'sitter') {
+          bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
+        } else {
+          bookingsResponse = await api.get(`/bookings/user/${userId}`);
+        }
         setUser(profileResponse.data);
-        setPets(petsResponse.data);
         setBookings(bookingsResponse.data);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -111,6 +127,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <span className="font-bold text-lg"> <span className="mr-2"> <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#111"/><path d="M7 7h10v10H7V7z" fill="#fff"/></svg></span>PetPal</span>
+            {user?.email && (
+              <span className="ml-4 text-sm text-gray-600">{user.email}</span>
+            )}
           </div>
           <nav className="hidden md:flex gap-8 text-sm text-gray-700">
             <a href="/dashboard" className="hover:underline font-semibold">Dashboard</a>
@@ -161,7 +180,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto py-10 px-4">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.firstName || "User"}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.email || "User"}</h1>
 
         {/* Quick Actions */}
         <section className="mb-8">
