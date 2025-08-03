@@ -45,6 +45,7 @@ export default function BookingsPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number>(0);
+  const [userRole, setUserRole] = useState<string>('');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -92,6 +93,7 @@ export default function BookingsPage() {
       const userId = profileResponse.data._id;
       const userRole = profileResponse.data.role;
       setUserEmail(profileResponse.data.email || '');
+      setUserRole(profileResponse.data.role || '');
       // Fetch pets based on role
       let petsResponse;
       if (userRole === 'admin') {
@@ -234,19 +236,21 @@ export default function BookingsPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
             <div className="flex space-x-4">
-              <Button 
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                variant={showCreateForm ? "outline" : "default"}
-              >
-                {showCreateForm ? 'Cancel' : 'Book Service'}
-              </Button>
+              {userRole !== 'sitter' && (
+                <Button 
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  variant={showCreateForm ? "outline" : "default"}
+                >
+                  {showCreateForm ? 'Cancel' : 'Book Service'}
+                </Button>
+              )}
               <Button onClick={() => router.push('/dashboard')} variant="outline">
                 Back to Dashboard
               </Button>
             </div>
           </div>
           {/* Create Booking Form */}
-          {showCreateForm && (
+          {showCreateForm && userRole !== 'sitter' && (
             <Card className="mb-8">
               <CardHeader>
                 <CardTitle>Book New Service</CardTitle>
@@ -256,139 +260,7 @@ export default function BookingsPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date *</Label>
-                      <Input
-                        id="date"
-                        name="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={handleInputChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="startTime">Start Time *</Label>
-                      <Input
-                        id="startTime"
-                        name="startTime"
-                        type="time"
-                        value={formData.startTime}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="endTime">End Time *</Label>
-                      <Input
-                        id="endTime"
-                        name="endTime"
-                        type="time"
-                        value={formData.endTime}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="serviceType">Service Type *</Label>
-                    <select
-                      id="serviceType"
-                      name="serviceType"
-                      value={formData.serviceType}
-                      onChange={handleInputChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
-                    >
-                      <option value="pet-sitting">Pet Sitting</option>
-                      <option value="dog-walking">Dog Walking</option>
-                      <option value="feeding">Feeding Visit</option>
-                      <option value="overnight">Overnight Care</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Select Pets *</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {pets.map((pet) => (
-                        <label key={pet._id} className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.petIds.includes(pet._id)}
-                            onChange={() => handlePetSelection(pet._id)}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm">{pet.name} ({pet.species})</span>
-                        </label>
-                      ))}
-                    </div>
-                    {pets.length === 0 && (
-                      <p className="text-sm text-gray-500">
-                        No pets found. <button type="button" onClick={() => router.push('/pets/add')} className="text-blue-500 underline">Add a pet first</button>
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Special Instructions</Label>
-                    <Textarea
-                      id="notes"
-                      name="notes"
-                      placeholder="Any special instructions for the sitter..."
-                      value={formData.notes}
-                      onChange={handleInputChange}
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Estimated Cost Display */}
-                  {estimatedCost > 0 && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-blue-900">Estimated Cost</h4>
-                          <p className="text-sm text-blue-700">
-                            {formData.serviceType} • {formData.petIds.length} pet(s)
-                            {formData.startTime && formData.endTime && (
-                              <>
-                                {(() => {
-                                  const startTime = new Date(`2000-01-01T${formData.startTime}`);
-                                  const endTime = new Date(`2000-01-01T${formData.endTime}`);
-                                  let hours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-                                  if (hours <= 0) hours = 24 + hours;
-                                  return ` • ${Math.max(1, Math.round(hours * 10) / 10)} hour(s)`;
-                                })()}
-                              </>
-                            )}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-blue-900">${estimatedCost}</p>
-                          <p className="text-xs text-blue-600">Final cost may vary</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button 
-                    type="submit" 
-                    className="w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    disabled={isLoading || formData.petIds.length === 0}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner size="sm" className="mr-2" />
-                        Booking...
-                      </>
-                    ) : (
-                      'Book Service'
-                    )}
-                  </Button>
+                  {/* ...existing code... */}
                 </form>
               </CardContent>
             </Card>
@@ -477,15 +349,9 @@ export default function BookingsPage() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
-                  <p className="text-gray-500 mb-4">Book your first pet-sitting service to get started.</p>
-                  <Button onClick={() => setShowCreateForm(true)}>
-                    Book Service
-                  </Button>
-                </CardContent>
-              </Card>
+               <div className="flex items-center justify-center min-h-[60vh]">
+                 <Spinner size="lg" />
+                </div>
             )}
           </div>
         </main>
