@@ -48,7 +48,9 @@ interface Booking {
   status: string;
   clientName: string;
   pets: Array<{ name: string; }>;
-  assignedSitter?: string;
+  assignedSitter?: string | null;
+  sitterId?: string | null;
+  sitterName?: string | null;
 }
 
 interface Pet {
@@ -266,6 +268,17 @@ export default function AdminPage() {
       fetchData(); // Refresh data
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to assign sitter');
+    }
+  };
+
+  const unassignSitter = async (bookingId: string) => {
+    try {
+      await api.delete(`/bookings/${bookingId}/assign-sitter`);
+      
+      setSuccess('Sitter unassigned successfully');
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to unassign sitter');
     }
   };
 
@@ -590,9 +603,14 @@ export default function AdminPage() {
                           <p className="text-sm text-gray-500">
                             Pets: {(booking.pets ?? []).map(pet => pet.name).join(', ')}
                           </p>
-                          {booking.assignedSitter && (
+                          {/* Show assigned sitter info if available */}
+                          {(booking.assignedSitter || booking.sitterName || booking.sitterId) ? (
                             <p className="text-sm text-blue-600">
-                              Assigned Sitter: {booking.assignedSitter}
+                              Assigned Sitter: {booking.assignedSitter || booking.sitterName || `Sitter ID: ${booking.sitterId}`}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-red-600">
+                              No sitter assigned
                             </p>
                           )}
                         </div>
@@ -607,14 +625,15 @@ export default function AdminPage() {
                       </div>
                       
                       <div className="flex space-x-2">
-                        {!booking.assignedSitter && sitters.length > 0 && (
+                        {/* Show assign sitter dropdown only if no sitter is assigned */}
+                        {(!booking.assignedSitter && !booking.sitterName && !booking.sitterId) && sitters.length > 0 && (
                           <div className="flex items-center space-x-2">
                             <select 
                               onChange={(e) => assignSitter(booking._id, e.target.value)}
                               className="text-sm border rounded px-2 py-1"
                               defaultValue=""
                             >
-                              <option value="">Assign Sitter</option>
+                              <option value="">Select Sitter</option>
                               {sitters.map((sitter) => (
                                 <option key={sitter._id} value={sitter._id}>
                                   {sitter.firstName} {sitter.lastName}
@@ -622,6 +641,18 @@ export default function AdminPage() {
                               ))}
                             </select>
                           </div>
+                        )}
+
+                        {/* Show unassign button if sitter is assigned */}
+                        {(booking.assignedSitter || booking.sitterName || booking.sitterId) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => unassignSitter(booking._id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Unassign Sitter
+                          </Button>
                         )}
                         
                         <select 

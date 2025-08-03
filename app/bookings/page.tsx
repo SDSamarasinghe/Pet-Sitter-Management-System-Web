@@ -15,17 +15,17 @@ import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 
 interface Booking {
-  id: string;
+  _id: string;
   startDate: string;
   endDate: string;
   serviceType: string;
   status: string;
   notes?: string;
-  pets: Array<{ id: string; name: string; }>;
+  pets: Array<{ _id: string; name: string; }>;
 }
 
 interface Pet {
-  id: string;
+  _id: string;
   name: string;
   species: string;
 }
@@ -44,8 +44,46 @@ export default function BookingsPage() {
     petIds: [] as string[],
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [estimatedCost, setEstimatedCost] = useState<number>(0);
   const router = useRouter();
   const { toast } = useToast();
+
+  const calculateEstimatedCost = () => {
+    if (!formData.startTime || !formData.endTime || formData.petIds.length === 0) {
+      return 0;
+    }
+
+    const baseRates: Record<string, number> = {
+      'pet-sitting': 25,
+      'dog-walking': 20,
+      'feeding': 15,
+      'overnight': 75
+    };
+    
+    const baseRate = baseRates[formData.serviceType] || 25;
+    const petMultiplier = Math.max(1, formData.petIds.length);
+    
+    // Calculate hours between start and end time
+    const startTime = new Date(`2000-01-01T${formData.startTime}`);
+    const endTime = new Date(`2000-01-01T${formData.endTime}`);
+    let hours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+    
+    // Handle overnight bookings or if end time is before start time (next day)
+    if (hours <= 0) {
+      hours = 24 + hours; // Assume next day
+    }
+    
+    // Minimum 1 hour charge
+    hours = Math.max(1, hours);
+    
+    return Math.round(baseRate * hours * petMultiplier * 100) / 100; // Round to 2 decimal places
+  };
+
+  // Update estimated cost when form data changes
+  useEffect(() => {
+    const cost = calculateEstimatedCost();
+    setEstimatedCost(cost);
+  }, [formData.startTime, formData.endTime, formData.serviceType, formData.petIds]);
 
   const fetchData = async () => {
     try {
@@ -65,6 +103,8 @@ export default function BookingsPage() {
       let bookingsResponse;
       if (userRole === 'admin') {
         bookingsResponse = await api.get('/bookings');
+      } else if (userRole === 'sitter') {
+        bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
       } else {
         bookingsResponse = await api.get(`/bookings/user/${userId}`);
       }
@@ -104,6 +144,22 @@ export default function BookingsPage() {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate times
+    if (formData.startTime && formData.endTime) {
+      const startTime = new Date(`2000-01-01T${formData.startTime}`);
+      const endTime = new Date(`2000-01-01T${formData.endTime}`);
+      
+      if (endTime <= startTime) {
+        toast({
+          variant: "destructive",
+          title: "Invalid time range",
+          description: "End time must be after start time. For overnight services, the end time should be on the next day.",
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
     // Map formData to backend DTO
     const allowedPetTypes = [
       'Cat(s)', 'Dog(s)', 'Rabbit(s)', 'Bird(s)', 'Guinea pig(s)', 'Ferret(s)', 'Other'
@@ -118,9 +174,13 @@ export default function BookingsPage() {
       'Other': 'Other'
     };
     const petTypes = pets
-      .filter(pet => formData.petIds.includes(pet.id))
+      .filter(pet => formData.petIds.includes(pet._id))
       .map(pet => speciesMap[pet.species] || 'Other')
       .filter(type => allowedPetTypes.includes(type));
+
+    // Calculate total amount based on service type and duration
+    const totalAmount = calculateEstimatedCost();
+
     const payload = {
       startDate: `${formData.date}T${formData.startTime}`,
       endDate: `${formData.date}T${formData.endTime}`,
@@ -128,6 +188,7 @@ export default function BookingsPage() {
       numberOfPets: formData.petIds.length,
       petTypes,
       notes: formData.notes,
+      totalAmount: totalAmount
     };
 
     try {
@@ -255,11 +316,11 @@ export default function BookingsPage() {
                     <Label>Select Pets *</Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {pets.map((pet) => (
-                        <label key={pet.id} className="flex items-center space-x-2 cursor-pointer">
+                        <label key={pet._id} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={formData.petIds.includes(pet.id)}
-                            onChange={() => handlePetSelection(pet.id)}
+                            checked={formData.petIds.includes(pet._id)}
+                            onChange={() => handlePetSelection(pet._id)}
                             className="rounded border-gray-300"
                           />
                           <span className="text-sm">{pet.name} ({pet.species})</span>
@@ -284,6 +345,35 @@ export default function BookingsPage() {
                       rows={3}
                     />
                   </div>
+
+                  {/* Estimated Cost Display */}
+                  {estimatedCost > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-blue-900">Estimated Cost</h4>
+                          <p className="text-sm text-blue-700">
+                            {formData.serviceType} • {formData.petIds.length} pet(s)
+                            {formData.startTime && formData.endTime && (
+                              <>
+                                {(() => {
+                                  const startTime = new Date(`2000-01-01T${formData.startTime}`);
+                                  const endTime = new Date(`2000-01-01T${formData.endTime}`);
+                                  let hours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+                                  if (hours <= 0) hours = 24 + hours;
+                                  return ` • ${Math.max(1, Math.round(hours * 10) / 10)} hour(s)`;
+                                })()}
+                              </>
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-blue-900">${estimatedCost}</p>
+                          <p className="text-xs text-blue-600">Final cost may vary</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <Button 
                     type="submit" 
@@ -312,76 +402,90 @@ export default function BookingsPage() {
                 <Spinner size="lg" />
               </div>
             ) : (bookings.length > 0 && !isLoading) ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border rounded-lg">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Service</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date & Time</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Pets</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Notes</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.map((booking) => (
-                      <tr key={booking.id} className="border-b">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{booking.serviceType}</td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {(() => {
-                            const start = booking.startDate ? new Date(booking.startDate) : null;
-                            const end = booking.endDate ? new Date(booking.endDate) : null;
-                            if (start && end) {
-                              const dateStr = start.toLocaleDateString();
-                              const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                              const endTime = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                              return `${dateStr} • ${startTime} - ${endTime}`;
-                            } else if (start) {
-                              return start.toLocaleString();
-                            } else {
-                              return 'Invalid Date';
-                            }
-                          })()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {booking.pets && booking.pets.length > 0
-                            ? booking.pets.map(pet => pet.name).join(', ')
-                            : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {booking.notes || '—'}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {booking.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bookings.map((booking) => (
+                  <Card 
+                    key={booking._id} 
+                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-blue-500"
+                    onClick={() => router.push(`/bookings/${booking._id}`)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          {booking.serviceType}
+                        </CardTitle>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                      <CardDescription className="text-sm text-gray-600">
+                        {(() => {
+                          const start = booking.startDate ? new Date(booking.startDate) : null;
+                          const end = booking.endDate ? new Date(booking.endDate) : null;
+                          if (start && end) {
+                            const dateStr = start.toLocaleDateString();
+                            const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const endTime = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            return `${dateStr} • ${startTime} - ${endTime}`;
+                          } else if (start) {
+                            return start.toLocaleString();
+                          } else {
+                            return 'Invalid Date';
+                          }
+                        })()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Pets:</p>
+                          <p className="text-sm text-gray-600">
+                            {booking.pets && booking.pets.length > 0
+                              ? booking.pets.map(pet => pet.name).join(', ')
+                              : 'No pets listed'}
+                          </p>
+                        </div>
+                        {booking.notes && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Notes:</p>
+                            <p className="text-sm text-gray-600 line-clamp-2">
+                              {booking.notes}
+                            </p>
+                          </div>
+                        )}
+                        <div className="pt-2 border-t">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/bookings/${booking._id}`);
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : (
-            //   <Card>
-            //     <CardContent className="text-center py-12">
-            //       <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
-            //       <p className="text-gray-500 mb-4">Book your first pet-sitting service to get started.</p>
-            //       <Button onClick={() => setShowCreateForm(true)}>
-            //         Book Service
-            //       </Button>
-            //     </CardContent>
-            //   </Card>
-             <div className="flex items-center justify-center py-12">
-                <>
-                 <Spinner size="lg" className="mr-2" />
-                    Bookings...
-                </>
-              </div>
+              <Card>
+                <CardContent className="text-center py-12">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
+                  <p className="text-gray-500 mb-4">Book your first pet-sitting service to get started.</p>
+                  <Button onClick={() => setShowCreateForm(true)}>
+                    Book Service
+                  </Button>
+                </CardContent>
+              </Card>
             )}
           </div>
         </main>
