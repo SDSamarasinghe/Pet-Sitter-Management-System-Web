@@ -57,7 +57,7 @@ interface Booking {
     name: string;
     phone: string;
     address: string;
-  };
+  };//ss
   createdAt: string;
   updatedAt: string;
   totalAmount?: number;
