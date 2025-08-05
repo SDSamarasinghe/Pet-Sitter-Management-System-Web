@@ -734,11 +734,11 @@ export default function DashboardPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="font-medium text-gray-900">
-                                {note.senderId?.firstName ? `${note.senderId.firstName} ${note.senderId.lastName}` : note.author}
+                                {note.senderId?._id === user?._id || note.senderId?.id === user?.id ? 'You' : (note.senderId?.firstName ? `${note.senderId.firstName} ${note.senderId.lastName}` : note.author)}
                               </span>
                               <span className="text-sm text-gray-500">added a note for</span>
                               <span className="font-medium text-blue-600">
-                                {note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}` : note.clientName}
+                                {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}` : note.clientName)}
                               </span>
                               <span className="text-sm text-gray-400">
                                 {new Date(note.createdAt || note.timestamp).toLocaleDateString()} - {new Date(note.createdAt || note.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -781,9 +781,9 @@ export default function DashboardPage() {
                                 {note.replies.map((reply: any) => (
                                   <div key={reply._id || reply.id} className="border-t pt-2">
                                     <div className="flex items-center space-x-2 mb-1">
-                                      <span className="font-medium text-gray-900">
-                                        {reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}` : reply.author}
-                                      </span>
+                      <span className="font-medium text-gray-900">
+                        {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}` : reply.author)}
+                      </span>
                                       <span className="text-sm text-gray-400">
                                         {new Date(reply.createdAt || reply.timestamp).toLocaleDateString()} - {new Date(reply.createdAt || reply.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                       </span>
