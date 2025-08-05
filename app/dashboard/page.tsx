@@ -9,6 +9,152 @@ import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/l
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 
+// Client row component with expandable pets
+const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [petTabs, setPetTabs] = useState<{[key: string]: string}>({});
+
+  return (
+    <div className="border-b pb-2">
+      <div className="flex justify-between items-center py-2">
+        <div>
+          <span className="font-semibold">{client.firstName} {client.lastName}</span>
+          <span className="ml-2 text-red-600">Note to Self</span>
+          <div
+            className="text-green-700 text-sm cursor-pointer mt-1"
+            onClick={() => setExpanded((prev) => !prev)}
+          >
+            {expanded ? "- Hide" : "+ View Pets"}
+          </div>
+        </div>
+        <div>
+          <Button size="sm" variant="outline" className="mr-2">View Details</Button>
+          <Button size="sm" variant="outline">Add Note</Button>
+        </div>
+      </div>
+      {expanded && client.pets && client.pets.length > 0 && (
+        <div className="bg-gray-50 rounded p-4 mt-2">
+          {client.pets.map((pet) => {
+            const currentTab = petTabs[pet.id] || "basic";
+            return (
+            <div key={pet.id} className="mb-6 bg-white rounded-lg p-4 border">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-bold text-lg">{pet.name}</h4>
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline">+ Add Note</Button>
+                  <Button size="sm" variant="outline">Profile Preview</Button>
+                  <Button size="sm" variant="outline">PDF Info Sheet</Button>
+                </div>
+              </div>
+              
+              {/* Tab Navigation for Pet Details */}
+              <div className="border-b border-gray-200 mb-4">
+                <nav className="flex space-x-4">
+                  <button
+                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "basic"}))}
+                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                      currentTab === "basic"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Basic
+                  </button>
+                  <button
+                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "care"}))}
+                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                      currentTab === "care"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Care
+                  </button>
+                  <button
+                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "medical"}))}
+                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                      currentTab === "medical"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Medical
+                  </button>
+                  <button
+                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "insurance"}))}
+                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                      currentTab === "insurance"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Insurance
+                  </button>
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              {currentTab === "basic" && (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">Type:</span>
+                    <div>{pet.species || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Breed:</span>
+                    <div>{pet.breed || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Age:</span>
+                    <div>{pet.age} years old</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Gender:</span>
+                    <div>Not specified</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Date of Birth:</span>
+                    <div>Not specified</div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Spayed/Neutered:</span>
+                    <div>Not specified</div>
+                  </div>
+                </div>
+              )}
+
+              {currentTab === "care" && (
+                <div className="text-sm">
+                  <div className="mb-2">
+                    <span className="font-medium text-gray-600">Care Instructions:</span>
+                    <div className="mt-1">{pet.careInstructions || 'No special care instructions provided.'}</div>
+                  </div>
+                </div>
+              )}
+
+              {currentTab === "medical" && (
+                <div className="text-sm">
+                  <div className="text-gray-500">Medical information not available.</div>
+                </div>
+              )}
+
+              {currentTab === "insurance" && (
+                <div className="text-sm">
+                  <div className="text-gray-500">Insurance information not available.</div>
+                </div>
+              )}
+            </div>
+            );
+          })}
+        </div>
+      )}
+      {expanded && (!client.pets || client.pets.length === 0) && (
+        <div className="bg-gray-50 rounded p-3 mt-2 text-gray-500">No pets found for this client.</div>
+      )}
+    </div>
+  );
+};
+
 interface User {
   id: string;
   email: string;
@@ -19,6 +165,7 @@ interface User {
   address?: string;
   emergencyContact?: string;
   homeCareInfo?: string;
+  pets?: Pet[];
 }
 
 interface Pet {
@@ -42,9 +189,11 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [clients, setClients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("communication");
+  const [clientSearch, setClientSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -80,11 +229,18 @@ export default function DashboardPage() {
         // Fetch bookings based on user role
         let bookingsResponse;
         if (userRole === 'sitter') {
+          console.log("User is sitter, fetching clients...");
           bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
+          // Fetch all clients with their pets for sitters
+          const clientsResponse = await api.get('/users/admin/clients-with-pets');
+          console.log("🚀 ~ fetchDashboardData ~ clientsResponse:", clientsResponse)
+          setClients(clientsResponse.data ?? []);
         } else {
+          console.log("User is not sitter, role:", userRole);
           bookingsResponse = await api.get(`/bookings/user/${userId}`);
         }
         setUser(profileResponse.data);
+        console.log("🚀 ~ User set:", profileResponse.data);
         setBookings(bookingsResponse.data);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -326,33 +482,35 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">My Users</h2>
               <div className="bg-white p-6 rounded-lg border">
-                {/* Search bar placeholder */}
-                <input type="text" placeholder="Search users..." className="mb-4 w-full border rounded px-3 py-2" />
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-left py-2 px-2 font-semibold">Name</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Example static client list, replace with real data */}
-                    {["Adam Scarth","Adelaide Wong","Adrian Tsang","Adriana Peternel","Adriana Pullia","Ahrum Lee","Alana Campbell","Alexis Linkert","Alison Park"].map((name, idx) => (
-                      <tr key={name} className="border-b">
-                        <td className="py-2 px-2">
-                          <span className="font-semibold">{name}</span>
-                          <span className="ml-2 text-red-600">Note to Self</span>
-                          <div className="text-green-700 text-sm cursor-pointer">+ View Pets</div>
-                        </td>
-                        <td className="py-2 px-2 text-right">
-                          <Button size="sm" variant="outline" className="mr-2">View Details</Button>
-                          <Button size="sm" variant="outline">Add Note</Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <input 
+                  type="text" 
+                  placeholder="Search users..." 
+                  className="mb-4 w-full border rounded px-3 py-2" 
+                  value={clientSearch}
+                  onChange={e => setClientSearch(e.target.value)}
+                />
+                <div className="space-y-2">
+                  {(clients.filter(c =>
+                    c.firstName?.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                    c.lastName?.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                    c.email?.toLowerCase().includes(clientSearch.toLowerCase())
+                  )).map((client) => (
+                    <ClientWithPetsRow key={client.id} client={client} />
+                  ))}
+                </div>
+                {clients.length === 0 && (
+                  <div className="text-center text-gray-500 py-6">No clients found.</div>
+                )}
               </div>
+            </div>
+          )}
+          
+          {/* Debug info - remove this after testing */}
+          {user?.role === "sitter" && (
+            <div className="bg-yellow-100 p-4 rounded mb-4">
+              <p>Debug: User role: {user?.role}</p>
+              <p>Active tab: {activeTab}</p>
+              <p>Clients count: {clients.length}</p>
             </div>
           )}
 
