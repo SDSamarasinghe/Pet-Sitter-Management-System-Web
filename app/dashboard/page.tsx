@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
@@ -274,6 +275,88 @@ interface Booking {
 }
 
 export default function DashboardPage() {
+  // Helper: Status badge for sitters/bookings
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Rejected</Badge>;
+      case 'confirmed':
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Confirmed</Badge>;
+      case 'in-progress':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">In Progress</Badge>;
+      case 'completed':
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800">Completed</Badge>;
+      case 'cancelled':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Sitter approval/rejection dialog (simplified: just call API and refresh sitters)
+  const openSitterDialog = async (sitter: any, action: 'approve' | 'reject') => {
+    if (!sitter._id) return;
+    try {
+      if (action === 'approve') {
+        await api.put(`/users/${sitter._id}/approve`, { password: 'changeme', confirmPassword: 'changeme' });
+        toast({ title: 'Sitter approved', description: `${sitter.firstName} ${sitter.lastName} approved.` });
+      } else {
+        await api.put(`/users/${sitter._id}/reject`, {});
+        toast({ title: 'Sitter rejected', description: `${sitter.firstName} ${sitter.lastName} rejected.` });
+      }
+      // Refresh sitters
+      const res = await api.get('/users/admin/sitters');
+      setAdminSitters(res.data ?? []);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update sitter.' });
+    }
+  };
+
+  // Assign sitter to booking
+  const assignSitter = async (bookingId: string, sitterId: string) => {
+    if (!bookingId || !sitterId) return;
+    try {
+      await api.put(`/bookings/${bookingId}/assign-sitter`, { sitterId });
+      toast({ title: 'Sitter assigned', description: 'Sitter assigned successfully.' });
+      // Refresh bookings
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to assign sitter.' });
+    }
+  };
+
+  // Unassign sitter from booking
+  const unassignSitter = async (bookingId: string) => {
+    if (!bookingId) return;
+    try {
+      await api.delete(`/bookings/${bookingId}/assign-sitter`);
+      toast({ title: 'Sitter unassigned', description: 'Sitter unassigned successfully.' });
+      // Refresh bookings
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to unassign sitter.' });
+    }
+  };
+
+  // Update booking status
+  const updateBookingStatus = async (bookingId: string, status: string) => {
+    if (!bookingId || !status) return;
+    try {
+      await api.put(`/bookings/${bookingId}`, { status });
+      toast({ title: 'Status updated', description: `Booking status changed to ${status}` });
+      // Refresh bookings
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update status.' });
+    }
+  };
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -1030,28 +1113,34 @@ export default function DashboardPage() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Applied Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {adminSitters.length > 0 ? (
                         adminSitters.map((sitter, index) => (
                           <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
-                            <TableCell className="font-medium">
-                              {sitter.firstName} {sitter.lastName}
-                            </TableCell>
+                            <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
                             <TableCell>{sitter.email}</TableCell>
-                            <TableCell>{sitter.phone || 'N/A'}</TableCell>
-                            <TableCell className="capitalize">{sitter.status || 'pending'}</TableCell>
+                            <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
+                            <TableCell>{getStatusBadge ? getStatusBadge(sitter.status) : sitter.status}</TableCell>
+                            <TableCell>{sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell>
-                              {sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}
+                              <div className="flex space-x-2">
+                                {sitter.status === 'pending' && (
+                                  <>
+                                    <Button size="sm" onClick={() => openSitterDialog(sitter, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                    <Button size="sm" variant="destructive" onClick={() => openSitterDialog(sitter, 'reject')}>Reject</Button>
+                                  </>
+                                )}
+                                <Button size="sm" variant="outline" onClick={() => alert(`Name: ${sitter.firstName} ${sitter.lastName}\nEmail: ${sitter.email}\nPhone: ${sitter.phone}\nAddress: ${sitter.address}\nEmergency Contact: ${sitter.emergencyContact}\nExperience: ${sitter.homeCareInfo}`)}>View Details</Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8">
-                            No sitters found
-                          </TableCell>
+                          <TableCell colSpan={6} className="text-center py-8">No sitters found</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -1078,10 +1167,11 @@ export default function DashboardPage() {
                         <TableHead>Client</TableHead>
                         <TableHead>Sitter</TableHead>
                         <TableHead>Service Type</TableHead>
-                        <TableHead>Date</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>End Date</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Total Amount</TableHead>
-                        <TableHead>Created At</TableHead>
+                        <TableHead>Pets</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1091,21 +1181,40 @@ export default function DashboardPage() {
                             <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
                             <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
                             <TableCell>{booking.serviceType || 'N/A'}</TableCell>
+                            <TableCell>{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell>{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
+                            <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
                             <TableCell>
-                              {booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}
-                            </TableCell>
-                            <TableCell className="capitalize">{booking.status || 'pending'}</TableCell>
-                            <TableCell>${booking.totalAmount || '0'}</TableCell>
-                            <TableCell>
-                              {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}
+                              <div className="flex space-x-2">
+                                {/* Assign sitter dropdown if no sitter assigned */}
+                                {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
+                                  <select onChange={e => assignSitter(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1" defaultValue="">
+                                    <option value="">Select Sitter</option>
+                                    {adminSitters.map((sitter) => (
+                                      <option key={sitter._id} value={sitter._id}>{sitter.firstName} {sitter.lastName}</option>
+                                    ))}
+                                  </select>
+                                )}
+                                {/* Unassign button if sitter assigned */}
+                                {booking.sitterId && booking.sitterId.firstName && (
+                                  <Button variant="outline" size="sm" onClick={() => unassignSitter(booking._id)} className="text-red-600 hover:text-red-700">Unassign Sitter</Button>
+                                )}
+                                {/* Status dropdown */}
+                                <select value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1">
+                                  <option value="pending">Pending</option>
+                                  <option value="confirmed">Confirmed</option>
+                                  <option value="in-progress">In Progress</option>
+                                  <option value="completed">Completed</option>
+                                  <option value="cancelled">Cancelled</option>
+                                </select>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
-                            No bookings found
-                          </TableCell>
+                          <TableCell colSpan={8} className="text-center py-8">No bookings found</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
