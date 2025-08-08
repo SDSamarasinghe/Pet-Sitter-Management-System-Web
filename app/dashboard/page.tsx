@@ -907,14 +907,7 @@ export default function DashboardPage() {
             </div>
           )}
           
-          {/* Debug info - remove this after testing */}
-          {user?.role === "sitter" && (
-            <div className="bg-yellow-100 p-4 rounded mb-4">
-              <p>Debug: User role: {user?.role}</p>
-              <p>Active tab: {activeTab}</p>
-              <p>Clients count: {clients.length}</p>
-            </div>
-          )}
+       
 
           {activeTab === "profile" && (
             <div className="space-y-4">
