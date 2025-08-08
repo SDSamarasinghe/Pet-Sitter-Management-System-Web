@@ -123,32 +123,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header/Nav */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-lg">
-              <span className="mr-2">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <rect width="24" height="24" rx="6" fill="#111"/>
-                  <path d="M7 7h10v10H7V7z" fill="#fff"/>
-                </svg>
-              </span>
-              PetPal
-            </span>
-          </div>
-          <nav className="hidden md:flex gap-8 text-sm text-gray-700">
-            <a href="/dashboard" className="hover:underline">Dashboard</a>
-            <a href="/services" className="hover:underline">Services</a>
-            <a href="/bookings" className="hover:underline">Bookings</a>
-            <a href="/messages" className="hover:underline">Messages</a>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => router.push('/dashboard')}>
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-4xl mx-auto py-10 px-4">
         <div className="mb-6">

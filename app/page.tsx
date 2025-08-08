@@ -1,17 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
 
-export default function HomePage() {
+export default function LandingPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="max-w-7xl mx-auto py-20 px-4 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <main className="pt-20 px-8 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6">
           Flying Duchess Pet Sitters
         </h1>

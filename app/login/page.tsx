@@ -59,7 +59,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <Header />
       {/* Login Form */}
       <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md mx-auto">

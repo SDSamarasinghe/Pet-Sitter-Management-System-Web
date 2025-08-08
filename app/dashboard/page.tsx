@@ -277,7 +277,6 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clients, setClients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("communication");
   const [clientSearch, setClientSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
@@ -289,7 +288,6 @@ export default function DashboardPage() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -363,17 +361,6 @@ export default function DashboardPage() {
     };
     fetchDashboardData();
   }, [router]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleLogout = () => {
     removeToken();
@@ -468,71 +455,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Nav */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-lg"> <span className="mr-2"> <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#111"/><path d="M7 7h10v10H7V7z" fill="#fff"/></svg></span>PetPal</span>
-            {user?.email && (
-              <span className="ml-4 text-sm text-gray-600">{user.email}</span>
-            )}
-          </div>
-          <nav className="hidden md:flex gap-8 text-sm text-gray-700">
-            <a href="/dashboard" className="hover:underline font-semibold">Dashboard</a>
-            <a href="/services" className="hover:underline">Services</a>
-            <a href="/bookings" className="hover:underline">Bookings</a>
-            <a href="/service-inquiry" className="hover:underline">Service Inquiry</a>
-            <a href="/messages" className="hover:underline">Messages</a>
-          </nav>
-          <div className="flex items-center gap-4">
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
-              >
-                <span className="text-xs font-bold text-gray-600">{user?.firstName?.[0]}</span>
-              </button>
-              
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
-                  <button
-                    onClick={() => {
-                      router.push('/profile');
-                      setIsDropdownOpen(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsDropdownOpen(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto py-10 px-4">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}</h1>
 
         {/* Tab Navigation */}
         <section className="mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 overflow-x-auto">
+            <nav className="flex space-x-8 overflow-x-auto scrollbar-hide pb-0">
               <button
                 onClick={() => setActiveTab("communication")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
@@ -1040,12 +969,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Service Areas */}
-        <section className="mb-8">
-          <h2 className="font-semibold text-lg mb-4">Service Areas</h2>
-          <div className="rounded-xl overflow-hidden border bg-white">
-            <img src="https://maps.googleapis.com/maps/api/staticmap?center=Toronto,ON&zoom=12&size=800x400&maptype=roadmap&key=YOUR_GOOGLE_MAPS_API_KEY" alt="Service Area Map" className="w-full h-80 object-cover" />
-          </div>
-        </section>
+       
       </main>
     </div>
   );
