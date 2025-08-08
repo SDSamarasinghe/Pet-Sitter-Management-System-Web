@@ -73,7 +73,7 @@ export default function SchedulingPage() {
     return scheduleItems.filter(item => item.date === dateStr);
   };
 
-  // Fetch schedule data
+  // Fetch schedule data from backend (no sample data)
   const fetchScheduleData = async () => {
     try {
       const userToken = getUserFromToken();
@@ -85,30 +85,39 @@ export default function SchedulingPage() {
       const profileResponse = await api.get('/users/profile');
       const userId = profileResponse.data._id;
 
-      // Fetch sitter's bookings
+      // Fetch sitter's bookings from backend
       const bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
       const bookings = bookingsResponse.data || [];
 
-      // Transform bookings to schedule format
-      const scheduleData = bookings.map((booking: any) => ({
-        _id: booking._id,
-        id: booking._id,
-        date: formatDate(new Date(booking.startDate || booking.date)),
-        startTime: booking.startTime || '12:00',
-        endTime: booking.endTime || '12:30',
-        clientName: `${booking.userId?.firstName || 'Unknown'} ${booking.userId?.lastName || 'Client'}`,
-        address: booking.address || booking.userId?.address || 'Address not provided',
-        serviceType: booking.serviceType || 'Pet Sitting',
-        status: booking.status || 'confirmed',
-        pets: booking.pets || [],
-        notes: booking.notes || ''
-      }));
+      // Transform bookings to schedule format for calendar
+      const scheduleData = bookings.map((booking: any) => {
+        // Parse start and end times from booking
+        const start = booking.startDate ? new Date(booking.startDate) : null;
+        const end = booking.endDate ? new Date(booking.endDate) : null;
+        // Format times for display
+        const startTime = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+        const endTime = end ? end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+        // Format date for calendar
+        const date = start ? formatDate(start) : '';
+        return {
+          _id: booking._id,
+          id: booking._id,
+          date,
+          startTime,
+          endTime,
+          clientName: booking.userId?.firstName && booking.userId?.lastName
+            ? `${booking.userId.firstName} ${booking.userId.lastName}`
+            : (booking.clientName || 'Client'),
+          address: booking.address || booking.userId?.address || 'Address not provided',
+          serviceType: booking.serviceType || 'Pet Sitting',
+          status: booking.status || 'confirmed',
+          pets: booking.pets || [],
+          notes: booking.notes || ''
+        };
+      });
 
       setScheduleItems(scheduleData);
-
-      // TODO: Fetch availability data when API is available
-      setAvailability([]);
-
+      setAvailability([]); // No availability API yet
     } catch (error) {
       console.error('Error fetching schedule data:', error);
       toast({
@@ -127,7 +136,8 @@ export default function SchedulingPage() {
       return;
     }
     fetchScheduleData();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
