@@ -415,6 +415,7 @@ export default function DashboardPage() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
   
   // Admin-specific state
   const [adminUsers, setAdminUsers] = useState<User[]>([]);
@@ -1990,15 +1991,64 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Invoices</h2>
               <div className="bg-white p-6 rounded-lg border">
-                <p className="text-gray-600 mb-4">Manage your invoices and payments</p>
-                <div className="space-y-3">
-                  <Button onClick={() => router.push('/invoices')} className="w-full sm:w-auto">
-                    View All Invoices
-                  </Button>
-                  <Button onClick={() => router.push('/reports')} variant="outline" className="w-full sm:w-auto">
-                    View Reports
-                  </Button>
-                </div>
+                {user?.role === 'client' ? (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border text-sm">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-2 text-left font-semibold">S.no</th>
+                            <th className="px-4 py-2 text-left font-semibold">Visit Date & Time</th>
+                            <th className="px-4 py-2 text-left font-semibold">Service</th>
+                            <th className="px-4 py-2 text-left font-semibold">Amount</th>
+                            <th className="px-4 py-2 text-left font-semibold">Payment Status</th>
+                            <th className="px-4 py-2 text-left font-semibold">Payment Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bookings.length > 0 ? (
+                            bookings.slice(0, showAllInvoices ? bookings.length : 1).map((booking, idx) => (
+                              <tr key={booking.id || idx} className="border-b hover:bg-gray-50">
+                                <td className="px-4 py-2 whitespace-nowrap">23576</td>
+                                <td className="px-4 py-2 whitespace-nowrap">
+                                  Aug 03, 2025 - Aug 04, 2025
+                                  <div className="font-semibold text-xs mt-1">30 min visit</div>
+                                </td>
+                                <td className="px-4 py-2">
+                                  Once A Day Pet Sitting 30min *NO MEDS* - from 03 Aug, 2025 to 04 Aug, 2025
+                                </td>
+                                <td className="px-4 py-2 font-mono">C$90.00</td>
+                                <td className="px-4 py-2">
+                                  <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Completed</span>
+                                </td>
+                                <td className="px-4 py-2">Jul 23, 2025 at 10:56 am</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="text-center py-8 text-gray-500">No invoices found.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    {bookings.length > 1 && !showAllInvoices && (
+                      <Button onClick={() => setShowAllInvoices(true)} variant="outline" className="mt-4">Load More</Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-600 mb-4">Manage your invoices and payments</p>
+                    <div className="space-y-3">
+                      <Button onClick={() => router.push('/invoices')} className="w-full sm:w-auto">
+                        View All Invoices
+                      </Button>
+                      <Button onClick={() => router.push('/reports')} variant="outline" className="w-full sm:w-auto">
+                        View Reports
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
