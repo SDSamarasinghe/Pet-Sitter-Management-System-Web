@@ -195,13 +195,12 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
               /* Not Authenticated - Show Login/Signup buttons */
               <>
                 <Button 
-                  className="bg-[#5b9cf6] text-white px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-[#357ae8]" 
                   onClick={() => router.push('/login')}
                 >
                   Log in
                 </Button>
                 <Button 
-                  className="bg-[#f5f6fa] text-gray-900 px-5 py-2 rounded-xl font-semibold text-sm shadow hover:bg-gray-200" 
+                  className="bg-[#f5f6fa] text-gray-900 px-5 py-2 font-semibold text-sm  hover:bg-gray-200" 
                   onClick={() => router.push('/signup')}
                 >
                   Sign up

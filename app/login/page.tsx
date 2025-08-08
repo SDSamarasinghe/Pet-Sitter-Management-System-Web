@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import api from '@/lib/api';
 import { setToken, isAuthenticated, getUserRole } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -33,18 +34,16 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', { email, password });
       const { access_token } = response.data;
       setToken(access_token);
-      
       toast({
         title: "Login successful!",
         description: "Welcome back to your dashboard.",
       });
-      
-      // Redirect based on user role
+      // Redirect based on user role and force reload to update header state
       const userRole = getUserRole();
       if (userRole === 'admin') {
-        router.push('/admin');
+        window.location.href = '/admin';
       } else {
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }
     } catch (error: any) {
       toast({
@@ -73,7 +72,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#5b9cf6] text-base"
+                className="w-full px-4 py-2 "
               />
             </div>
             <div className="space-y-2">
@@ -85,15 +84,15 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#5b9cf6] text-base"
+                className="w-full px-4 py-2 rounded border"
               />
             </div>
             <div className="flex justify-start items-center">
               <a href="/forgot-password" className="text-[#5b9cf6] text-sm hover:underline">Forgot password?</a>
             </div>
-            <button 
+            <Button 
               type="submit" 
-              className="w-full bg-[#5b9cf6] hover:bg-[#357ae8] text-white font-semibold rounded-xl py-3 text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -104,7 +103,7 @@ export default function LoginPage() {
               ) : (
                 'Log in'
               )}
-            </button>
+            </Button>
           </form>
           <div className="text-center mt-6">
             <a href="/signup" className="text-sm text-gray-700 hover:underline">Don't have an account? <span className="text-[#5b9cf6]">Sign up</span></a>
