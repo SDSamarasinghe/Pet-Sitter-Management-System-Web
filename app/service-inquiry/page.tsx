@@ -76,11 +76,14 @@ export default function ServiceInquiryPage() {
         return;
       }
 
-      // Submit service inquiry
-      const response = await api.post('/service-inquiries', {
+      // Prepare data for API
+      const payload = {
         ...formData,
-        petTypes: formData.petTypes.join(', ')
-      });
+        numberOfPets: Number(formData.numberOfPets),
+        petTypes: formData.petTypes, // already an array
+      };
+
+      const response = await api.post('/bookings/service-inquiry', payload);
 
       toast({
         title: 'Service inquiry submitted successfully!',
@@ -200,9 +203,9 @@ export default function ServiceInquiryPage() {
                     <SelectValue placeholder="Select number of pets" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="one">One</SelectItem>
-                    <SelectItem value="two">Two</SelectItem>
-                    <SelectItem value="three-or-more">Three or more</SelectItem>
+                    <SelectItem value="1">One</SelectItem>
+                    <SelectItem value="2">Two</SelectItem>
+                    <SelectItem value="3">Three or more</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

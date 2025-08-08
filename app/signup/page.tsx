@@ -185,7 +185,6 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <Header />
 
       {/* Signup Form */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">

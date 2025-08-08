@@ -356,7 +356,7 @@ export default function DashboardPage() {
         setBookings(bookingsResponse.data);
 
         // Fetch available users and recent notes for communication
-        if (userRole === 'sitter' || userRole === 'client') {
+        if (userRole === 'sitter' || userRole === 'client' || userRole === 'admin') {
           try {
             // Fetch available users for dropdown
             const usersResponse = await api.get('/notes/users/available');
@@ -688,51 +688,53 @@ export default function DashboardPage() {
         <section className="mb-8">
           {activeTab === "communication" && (
             <div className="space-y-6">
-              {/* Add Note Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <h2 className="text-xl font-semibold mb-4">ADD NOTE</h2>
-                {/* Client Selection Dropdown */}
-                <div className="mb-4">
-                  <select
-                    value={selectedClient}
-                    onChange={(e) => setSelectedClient(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-700"
-                  >
-                    <option value="">Select the person to add note</option>
-                    {availableUsers.map((user) => (
-                      <option key={user._id || user.id} value={user._id || user.id}>
-                        {user.firstName} {user.lastName} ({user.role})
-                      </option>
-                    ))}
-                  </select>
+              {/* Add Note Section (not for clients) */}
+              {user?.role !== 'client' && (
+                <div className="bg-white p-6 rounded-lg border">
+                  <h2 className="text-xl font-semibold mb-4">ADD NOTE</h2>
+                  {/* Client Selection Dropdown */}
+                  <div className="mb-4">
+                    <select
+                      value={selectedClient}
+                      onChange={(e) => setSelectedClient(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-700"
+                    >
+                      <option value="">Select the person to add note</option>
+                      {availableUsers.map((user) => (
+                        <option key={user._id || user.id} value={user._id || user.id}>
+                          {user.firstName} {user.lastName} ({user.role === 'admin' ? 'Admin' : user.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Note Text Area */}
+                  <div className="mb-4">
+                    <textarea
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      placeholder="Write your note here..."
+                      className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                      rows={4}
+                    />
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex justify-between items-center">
+                    <Button variant="outline" className="flex items-center space-x-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      <span>Attach Images</span>
+                    </Button>
+                    <Button 
+                      onClick={handleAddNote}
+                      disabled={!selectedClient || !noteText.trim() || isSubmittingNote}
+                      className="bg-primary text-white px-6 py-2 rounded-md font-semibold shadow hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmittingNote ? 'Adding...' : 'Add Note'}
+                    </Button>
+                  </div>
                 </div>
-                {/* Note Text Area */}
-                <div className="mb-4">
-                  <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder="Write your note here..."
-                    className="w-full p-3 border border-gray-300 rounded-md resize-none"
-                    rows={4}
-                  />
-                </div>
-                {/* Action Buttons */}
-                <div className="flex justify-between items-center">
-                  <Button variant="outline" className="flex items-center space-x-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                    </svg>
-                    <span>Attach Images</span>
-                  </Button>
-                  <Button 
-                    onClick={handleAddNote}
-                    disabled={!selectedClient || !noteText.trim() || isSubmittingNote}
-                    className="bg-primary text-white px-6 py-2 rounded-md font-semibold shadow hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmittingNote ? 'Adding...' : 'Add Note'}
-                  </Button>
-                </div>
-              </div>
+              )}
 
               {/* Recent Notes Section */}
               <div className="bg-white p-6 rounded-lg border">
@@ -774,11 +776,11 @@ export default function DashboardPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="font-medium text-gray-900">
-                                {note.senderId?._id === user?._id || note.senderId?.id === user?.id ? 'You' : (note.senderId?.firstName ? `${note.senderId.firstName} ${note.senderId.lastName}` : note.author)}
+                                {note.senderId?._id === user?._id || note.senderId?.id === user?.id ? 'You' : (note.senderId?.firstName ? `${note.senderId.firstName} ${note.senderId.lastName}${note.senderId.role === 'admin' ? ' (Admin)' : ''}` : note.author)}
                               </span>
                               <span className="text-sm text-gray-500">added a note for</span>
                               <span className="font-medium text-blue-600">
-                                {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}` : note.clientName)}
+                                {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}${note.recipientId.role === 'admin' ? ' (Admin)' : ''}` : note.clientName)}
                               </span>
                               <span className="text-sm text-gray-400">
                                 {new Date(note.createdAt || note.timestamp).toLocaleDateString()} - {new Date(note.createdAt || note.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -822,7 +824,7 @@ export default function DashboardPage() {
                                   <div key={reply._id || reply.id} className="border-t pt-2">
                                     <div className="flex items-center space-x-2 mb-1">
                       <span className="font-medium text-gray-900">
-                        {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}` : reply.author)}
+                        {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}${reply.senderId.role === 'admin' ? ' (Admin)' : ''}` : reply.author)}
                       </span>
                                       <span className="text-sm text-gray-400">
                                         {new Date(reply.createdAt || reply.timestamp).toLocaleDateString()} - {new Date(reply.createdAt || reply.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

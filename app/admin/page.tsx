@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { Dialog,DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
 
@@ -89,12 +90,13 @@ interface ApprovalFormData {
 
 export default function AdminPage() {
   console.log('AdminPage component rendered');
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [sitters, setSitters] = useState<Sitter[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedSitter, setSelectedSitter] = useState<Sitter | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'bookings' | 'address-changes' | 'sitters' | 'pets'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'bookings' | 'address-changes' | 'sitters' | 'pets' | 'communication'>('users');
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
@@ -106,6 +108,19 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Communication tab state
+  const [selectedClient, setSelectedClient] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [notes, setNotes] = useState<any[]>([]);
+  const [replyingNoteId, setReplyingNoteId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [filterByUser, setFilterByUser] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -137,14 +152,24 @@ export default function AdminPage() {
     console.log('Pets data:', pets);
   }, [users, bookings, sitters, pets]);
 
+  // Refresh notes when communication tab is active or filter changes
+  useEffect(() => {
+    if (activeTab === 'communication') {
+      refreshNotes();
+    }
+  }, [selectedClient, activeTab]);
+
   const fetchData = async () => {
     try {
       console.log('fetchData: fetching admin data...');
-      const [clientsResponse, bookingsResponse, sittersResponse, petsResponse] = await Promise.all([
+      const [clientsResponse, bookingsResponse, sittersResponse, petsResponse, usersResponse, notesResponse, profileResponse] = await Promise.all([
         api.get('/users/admin/clients'), // Fetch clients for Users tab
         api.get('/bookings'),
         api.get('/users/admin/sitters'),
-        api.get('/pets')
+        api.get('/pets'),
+        api.get('/notes/users/available'), // For communication tab
+        api.get('/notes/recent/20'), // For communication tab
+        api.get('/users/profile') // Get current admin user
       ]);
 
       console.log('fetchData: clientsResponse', clientsResponse.data);
@@ -156,6 +181,9 @@ export default function AdminPage() {
       setBookings(bookingsResponse.data || []);
       setSitters(sittersResponse.data || []);
       setPets(petsResponse.data || []);
+      setAvailableUsers(usersResponse.data || []);
+      setNotes(notesResponse.data || []);
+      setCurrentUser(profileResponse.data || null);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       setError('Failed to load admin data');
@@ -317,6 +345,87 @@ export default function AdminPage() {
     }
   };
 
+  // Communication methods
+  const handleAddNote = async () => {
+    if (!selectedClient || !noteText.trim() || isSubmittingNote) return;
+    
+    setIsSubmittingNote(true);
+    try {
+      const noteData = {
+        recipientId: selectedClient,
+        text: noteText,
+        attachments: []
+      };
+      
+      await api.post('/notes', noteData);
+      
+      setNoteText("");
+      setSelectedClient("");
+      
+      await refreshNotes();
+      
+      toast({
+        title: 'Note added successfully!',
+        description: 'Your note has been posted.',
+      });
+    } catch (error) {
+      console.error("Error creating note:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to add note',
+        description: 'Please try again.',
+      });
+    } finally {
+      setIsSubmittingNote(false);
+    }
+  };
+
+  const handleReply = async (noteId: string) => {
+    if (!replyText.trim() || isSubmittingReply) return;
+    
+    setIsSubmittingReply(true);
+    try {
+      const replyData = {
+        text: replyText,
+        attachments: []
+      };
+      
+      await api.post(`/notes/${noteId}/replies`, replyData);
+      
+      setReplyText("");
+      setReplyingNoteId(null);
+      
+      await refreshNotes();
+      
+      toast({
+        title: 'Reply added successfully!',
+        description: 'Your reply has been posted.',
+      });
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to add reply',
+        description: 'Please try again.',
+      });
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  const refreshNotes = async () => {
+    try {
+      let endpoint = '/notes/recent/20';
+      if (filterByUser) {
+        endpoint = `/notes?recipientId=${filterByUser}&limit=20`;
+      }
+      const response = await api.get(endpoint);
+      setNotes(response.data.notes || response.data || []);
+    } catch (error) {
+      console.error("Error refreshing notes:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -398,6 +507,16 @@ export default function AdminPage() {
               }`}
             >
               Address Changes ({pendingAddressChanges.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('communication')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'communication' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Communication ({notes.length})
             </button>
             <button
               onClick={() => setActiveTab('pets')}
@@ -765,6 +884,162 @@ export default function AdminPage() {
               </Card>
             )}
           </div>
+        )}
+
+        {/* Communication Tab */}
+        {activeTab === 'communication' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Communication Management</CardTitle>
+              <CardDescription>
+                View and manage all communications between sitters and clients
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Filter Section */}
+              <div className="flex gap-4 items-center">
+                <div className="flex-1">
+                  <Label htmlFor="client-filter">Filter by User</Label>
+                  <select
+                    id="client-filter"
+                    value={selectedClient}
+                    onChange={(e) => setSelectedClient(e.target.value)}
+                    className="w-full mt-1 p-2 border rounded-md"
+                  >
+                    <option value="">All Communications</option>
+                    {availableUsers.map((user: any) => (
+                      <option key={user._id || user.id} value={user._id || user.id}>
+                        {user.firstName} {user.lastName} ({user.email}) 
+                        {user.role === 'admin' ? ' (Admin)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Add Note Section */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="text-lg font-semibold mb-3">Add New Note</h3>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="note-text">Note Content</Label>
+                    <Textarea
+                      id="note-text"
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      placeholder="Enter your note here..."
+                      rows={3}
+                      className="w-full mt-1"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleAddNote}
+                    disabled={!noteText.trim()}
+                    className="w-full sm:w-auto"
+                  >
+                    Add Note
+                  </Button>
+                </div>
+              </div>
+
+              {/* Notes List */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Recent Communications</h3>
+                {notes.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No communications found
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {notes.map((note: any) => (
+                      <div key={note._id} className="border rounded-lg p-4 bg-white">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <span className="font-medium">
+                              {note.senderId?.firstName || 'Unknown'} {note.senderId?.lastName || 'User'}
+                              {note.senderId?.role === 'admin' ? ' (Admin)' : ''}
+                              {currentUser && note.senderId?._id === (currentUser as any)._id ? ' (You)' : ''}
+                            </span>
+                            <div className="text-sm text-gray-500">
+                              To: {note.recipientId?.firstName} {note.recipientId?.lastName}
+                              {note.recipientId?.role === 'admin' ? ' (Admin)' : ''}
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(note.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-gray-700 mb-3">{note.text}</p>
+                        
+                        {/* Replies */}
+                        {note.replies && note.replies.length > 0 && (
+                          <div className="ml-4 border-l-2 border-gray-200 pl-4 space-y-3">
+                            {note.replies.map((reply: any, index: number) => (
+                              <div key={reply._id || index} className="bg-gray-50 p-3 rounded">
+                                <div className="flex justify-between items-start mb-1">
+                                  <span className="font-medium text-sm">
+                                    {reply.senderId?.firstName || reply.senderId?.email || reply.senderId?.role === 'admin' ? 'Admin' : 'You'} {reply.senderId?.lastName || ''}
+                                    {reply.senderId?.role === 'admin' ? ' (Admin)' : ''}
+                                    {currentUser && reply.senderId?._id === (currentUser as any)._id ? ' (You)' : ''}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {(reply.updatedAt || reply.createdAt) ? new Date(reply.updatedAt || reply.createdAt).toLocaleString() : 'N/A'}
+                                  </span>
+                                </div>
+                                <p className="text-gray-700 text-sm">{reply.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Reply Form */}
+                        <div className="mt-3 pt-3 border-t">
+                          {replyingNoteId === note._id ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder="Type your reply..."
+                                rows={2}
+                                className="w-full"
+                              />
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => handleReply(note._id)}
+                                  disabled={!replyText.trim()}
+                                >
+                                  Submit Reply
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setReplyingNoteId(null);
+                                    setReplyText('');
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setReplyingNoteId(note._id)}
+                            >
+                              Reply
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </main>
 
