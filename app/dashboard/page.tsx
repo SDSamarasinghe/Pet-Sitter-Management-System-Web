@@ -2145,40 +2145,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Overview */}
-        <section className="mb-8">
-          <h2 className="font-semibold text-lg mb-4">Overview</h2>
-          <div className="space-y-6">
-            {/* Pets Card */}
-            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
-              <div className="flex-1">
-                <div className="font-semibold">Pets</div>
-                <div className="text-sm text-gray-500 mb-2">You have {pets.length} pet{pets.length !== 1 ? "s" : ""} registered</div>
-                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/pets')}>View Pets &rarr;</Button>
-              </div>
-              <img src={petImg} alt="Pets" className="w-40 h-24 object-cover rounded-lg ml-6" />
-            </Card>
-
-            {/* Bookings Card */}
-            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
-              <div className="flex-1">
-                <div className="font-semibold">Bookings</div>
-                <div className="text-sm text-gray-500 mb-2">You have {bookings.length} bookings</div>
-                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/bookings')}>View Bookings &rarr;</Button>
-              </div>
-              <img src={bookingImg} alt="Bookings" className="w-40 h-24 object-cover rounded-lg ml-6" />
-            </Card>
-
-            {/* Upcoming Services Card */}
-            <Card className="flex flex-row items-center p-4 rounded-xl bg-white shadow-sm border">
-              <div className="flex-1">
-                <div className="font-semibold">Upcoming Services</div>
-                <div className="text-sm text-gray-500 mb-2">You have 3 upcoming services</div>
-                <Button variant="outline" className="rounded-full text-sm px-4" onClick={() => router.push('/services')}>View Services &rarr;</Button>
-              </div>
-              <img src={serviceImg} alt="Upcoming Services" className="w-40 h-24 object-cover rounded-lg ml-6" />
-            </Card>
-          </div>
-        </section>
+       
 
         {/* Service Areas */}
        
