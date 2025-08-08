@@ -275,6 +275,63 @@ interface Booking {
 }
 
 export default function DashboardPage() {
+  // Sitter approval modal state
+  const [isSitterDialogOpen, setIsSitterDialogOpen] = useState(false);
+  const [selectedSitter, setSelectedSitter] = useState<any>(null);
+  const [sitterActionType, setSitterActionType] = useState<'approve' | 'reject'>('approve');
+  const [sitterForm, setSitterForm] = useState({ password: '', confirmPassword: '', notes: '' });
+  const [sitterError, setSitterError] = useState('');
+  const [sitterLoading, setSitterLoading] = useState(false);
+
+  // Open modal and set sitter/action
+  const openSitterDialog = (sitter: any, action: 'approve' | 'reject') => {
+    setSelectedSitter(sitter);
+    setSitterActionType(action);
+    setSitterForm({ password: '', confirmPassword: '', notes: '' });
+    setSitterError('');
+    setIsSitterDialogOpen(true);
+  };
+
+  // Approve/reject sitter handler
+  const handleSitterAction = async () => {
+    if (!selectedSitter?._id) return;
+    setSitterLoading(true);
+    setSitterError('');
+    if (sitterActionType === 'approve') {
+      if (sitterForm.password.length < 6) {
+        setSitterError('Password must be at least 6 characters long');
+        setSitterLoading(false);
+        return;
+      }
+      if (sitterForm.password !== sitterForm.confirmPassword) {
+        setSitterError('Passwords do not match');
+        setSitterLoading(false);
+        return;
+      }
+    }
+    try {
+      if (sitterActionType === 'approve') {
+        await api.put(`/users/${selectedSitter._id}/approve`, {
+          password: sitterForm.password,
+          confirmPassword: sitterForm.confirmPassword,
+          notes: sitterForm.notes
+        });
+        toast({ title: 'Sitter approved', description: `${selectedSitter.firstName} ${selectedSitter.lastName} approved.` });
+      } else {
+        await api.put(`/users/${selectedSitter._id}/reject`, { notes: sitterForm.notes });
+        toast({ title: 'Sitter rejected', description: `${selectedSitter.firstName} ${selectedSitter.lastName} rejected.` });
+      }
+      // Refresh sitters
+      const res = await api.get('/users/admin/sitters');
+      setAdminSitters(res.data ?? []);
+      setIsSitterDialogOpen(false);
+      setSelectedSitter(null);
+    } catch (err: any) {
+      setSitterError(err.response?.data?.message || 'Failed to update sitter.');
+    } finally {
+      setSitterLoading(false);
+    }
+  };
   // Helper: Status badge for sitters/bookings
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -297,24 +354,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Sitter approval/rejection dialog (simplified: just call API and refresh sitters)
-  const openSitterDialog = async (sitter: any, action: 'approve' | 'reject') => {
-    if (!sitter._id) return;
-    try {
-      if (action === 'approve') {
-        await api.put(`/users/${sitter._id}/approve`, { password: 'changeme', confirmPassword: 'changeme' });
-        toast({ title: 'Sitter approved', description: `${sitter.firstName} ${sitter.lastName} approved.` });
-      } else {
-        await api.put(`/users/${sitter._id}/reject`, {});
-        toast({ title: 'Sitter rejected', description: `${sitter.firstName} ${sitter.lastName} rejected.` });
-      }
-      // Refresh sitters
-      const res = await api.get('/users/admin/sitters');
-      setAdminSitters(res.data ?? []);
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update sitter.' });
-    }
-  };
 
   // Assign sitter to booking
   const assignSitter = async (bookingId: string, sitterId: string) => {
@@ -1096,58 +1135,117 @@ export default function DashboardPage() {
 
           {/* Admin: Sitters Tab */}
           {user?.role === "admin" && activeTab === "sitters" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Sitter Applications ({adminSitters.length})</CardTitle>
-                <CardDescription>
-                  Manage pending sitter applications and view all registered sitters
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Applied Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {adminSitters.length > 0 ? (
-                        adminSitters.map((sitter, index) => (
-                          <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
-                            <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
-                            <TableCell>{sitter.email}</TableCell>
-                            <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
-                            <TableCell>{getStatusBadge ? getStatusBadge(sitter.status) : sitter.status}</TableCell>
-                            <TableCell>{sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                {sitter.status === 'pending' && (
-                                  <>
-                                    <Button size="sm" onClick={() => openSitterDialog(sitter, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
-                                    <Button size="sm" variant="destructive" onClick={() => openSitterDialog(sitter, 'reject')}>Reject</Button>
-                                  </>
-                                )}
-                                <Button size="sm" variant="outline" onClick={() => alert(`Name: ${sitter.firstName} ${sitter.lastName}\nEmail: ${sitter.email}\nPhone: ${sitter.phone}\nAddress: ${sitter.address}\nEmergency Contact: ${sitter.emergencyContact}\nExperience: ${sitter.homeCareInfo}`)}>View Details</Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sitter Applications ({adminSitters.length})</CardTitle>
+                  <CardDescription>
+                    Manage pending sitter applications and view all registered sitters
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8">No sitters found</TableCell>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Applied Date</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {adminSitters.length > 0 ? (
+                          adminSitters.map((sitter, index) => (
+                            <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
+                              <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
+                              <TableCell>{sitter.email}</TableCell>
+                              <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
+                              <TableCell>{getStatusBadge ? getStatusBadge(sitter.status) : sitter.status}</TableCell>
+                              <TableCell>{sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  {sitter.status === 'pending' && (
+                                    <>
+                                      <Button size="sm" onClick={() => openSitterDialog(sitter, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                      <Button size="sm" variant="destructive" onClick={() => openSitterDialog(sitter, 'reject')}>Reject</Button>
+                                    </>
+                                  )}
+                                  <Button size="sm" variant="outline" onClick={() => alert(`Name: ${sitter.firstName} ${sitter.lastName}\nEmail: ${sitter.email}\nPhone: ${sitter.phone}\nAddress: ${sitter.address}\nEmergency Contact: ${sitter.emergencyContact}\nExperience: ${sitter.homeCareInfo}`)}>View Details</Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">No sitters found</TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Sitter Approve/Reject Modal */}
+              {isSitterDialogOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                    <h2 className="text-2xl font-bold mb-1">{sitterActionType === 'approve' ? 'Approve' : 'Reject'} Sitter Application</h2>
+                    <p className="mb-4 text-gray-600">
+                      {sitterActionType === 'approve'
+                        ? `Approve ${selectedSitter?.firstName} ${selectedSitter?.lastName} as a sitter. A temporary password will be set for their account.`
+                        : `Reject ${selectedSitter?.firstName} ${selectedSitter?.lastName}'s sitter application.`}
+                    </p>
+                    {sitterActionType === 'approve' && (
+                      <>
+                        <div className="mb-4">
+                          <label className="block font-medium mb-1">Temporary Password *</label>
+                          <input
+                            type="password"
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Enter temporary password"
+                            value={sitterForm.password}
+                            onChange={e => setSitterForm(f => ({ ...f, password: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <label className="block font-medium mb-1">Confirm Password *</label>
+                          <input
+                            type="password"
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Confirm temporary password"
+                            value={sitterForm.confirmPassword}
+                            onChange={e => setSitterForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                            required
+                          />
+                        </div>
+                      </>
+                    )}
+                    <div className="mb-4">
+                      <label className="block font-medium mb-1">Notes (Optional)</label>
+                      <textarea
+                        className="w-full border rounded px-3 py-2"
+                        placeholder={`Add any notes about this ${sitterActionType}...`}
+                        value={sitterForm.notes}
+                        onChange={e => setSitterForm(f => ({ ...f, notes: e.target.value }))}
+                        rows={3}
+                      />
+                    </div>
+                    {sitterError && <div className="text-red-600 mb-3">{sitterError}</div>}
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button variant="outline" onClick={() => setIsSitterDialogOpen(false)} disabled={sitterLoading}>Cancel</Button>
+                      <Button onClick={handleSitterAction} disabled={sitterLoading} className={sitterActionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''} variant={sitterActionType === 'reject' ? 'destructive' : 'default'}>
+                        {sitterLoading ? (sitterActionType === 'approve' ? 'Approving...' : 'Rejecting...') : (sitterActionType === 'approve' ? 'Approve Sitter' : 'Reject Sitter')}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </>
           )}
 
           {/* Admin: Bookings Tab */}
