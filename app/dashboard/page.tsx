@@ -5,7 +5,8 @@ import { useEffect, useState, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
@@ -291,6 +292,13 @@ export default function DashboardPage() {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
   
+  // Admin-specific state
+  const [adminUsers, setAdminUsers] = useState<User[]>([]);
+  const [adminSitters, setAdminSitters] = useState<any[]>([]);
+  const [adminBookings, setAdminBookings] = useState<any[]>([]);
+  const [adminPets, setAdminPets] = useState<any[]>([]);
+  const [addressChanges, setAddressChanges] = useState<any[]>([]);
+  
   // Key Security form state
   const [lockboxCode, setLockboxCode] = useState("4242");
   const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
@@ -316,13 +324,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/login");
-      return;
-    }
-
-    // Redirect admin users to admin page
-    const userRole = getUserRole();
-    if (userRole === 'admin') {
-      router.push('/admin');
       return;
     }
 
@@ -397,6 +398,28 @@ export default function DashboardPage() {
           }
         } catch (err) {
           // No key security data yet, ignore
+        }
+
+        // Fetch admin-specific data if user is admin
+        if (userRole === 'admin') {
+          try {
+            const [adminClientsRes, adminSittersRes, adminBookingsRes, adminPetsRes] = await Promise.all([
+              api.get('/users/admin/clients'),
+              api.get('/users/admin/sitters'),
+              api.get('/bookings'),
+              api.get('/pets')
+            ]);
+            
+            setAdminUsers(adminClientsRes.data ?? []);
+            setAdminSitters(adminSittersRes.data ?? []);
+            setAdminBookings(adminBookingsRes.data ?? []);
+            setAdminPets(adminPetsRes.data ?? []);
+            
+            // TODO: Add address changes API when available
+            setAddressChanges([]);
+          } catch (error) {
+            console.error("Error fetching admin data:", error);
+          }
         }
 
       } catch (error) {
@@ -583,7 +606,60 @@ export default function DashboardPage() {
               >
                 Communication
               </button>
-              {user?.role === "sitter" ? (
+              {user?.role === "admin" ? (
+                <>
+                  <button
+                    onClick={() => setActiveTab("users")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === "users"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Users ({adminUsers.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("sitters")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === "sitters"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Sitters ({adminSitters.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("bookings")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === "bookings"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Bookings ({adminBookings.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("address-changes")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === "address-changes"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Address Changes ({addressChanges.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("pets")}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === "pets"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    Pets ({adminPets.length})
+                  </button>
+                </>
+              ) : user?.role === "sitter" ? (
                 <>
                   <button
                     onClick={() => setActiveTab("users")}
@@ -879,6 +955,265 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Admin: Users Tab */}
+          {user?.role === "admin" && activeTab === "users" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>All Users ({adminUsers.length})</CardTitle>
+                <CardDescription>
+                  View all clients registered in the system
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Emergency Contact</TableHead>
+                        <TableHead>Created At</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {adminUsers.length > 0 ? (
+                        adminUsers.map((user, index) => (
+                          <TableRow key={user._id || user.id || `user-${index}`}>
+                            <TableCell className="font-medium">
+                              {user.firstName} {user.lastName}
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.phone || 'N/A'}</TableCell>
+                            <TableCell className="capitalize">{user.role}</TableCell>
+                            <TableCell>{user.address || 'N/A'}</TableCell>
+                            <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
+                            <TableCell>
+                              {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            No users found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Sitters Tab */}
+          {user?.role === "admin" && activeTab === "sitters" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Sitter Applications ({adminSitters.length})</CardTitle>
+                <CardDescription>
+                  Manage pending sitter applications and view all registered sitters
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Applied Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {adminSitters.length > 0 ? (
+                        adminSitters.map((sitter, index) => (
+                          <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
+                            <TableCell className="font-medium">
+                              {sitter.firstName} {sitter.lastName}
+                            </TableCell>
+                            <TableCell>{sitter.email}</TableCell>
+                            <TableCell>{sitter.phone || 'N/A'}</TableCell>
+                            <TableCell className="capitalize">{sitter.status || 'pending'}</TableCell>
+                            <TableCell>
+                              {sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8">
+                            No sitters found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Bookings Tab */}
+          {user?.role === "admin" && activeTab === "bookings" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>All Bookings ({adminBookings.length})</CardTitle>
+                <CardDescription>
+                  View all bookings in the system
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Sitter</TableHead>
+                        <TableHead>Service Type</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Total Amount</TableHead>
+                        <TableHead>Created At</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {adminBookings.length > 0 ? (
+                        adminBookings.map((booking, index) => (
+                          <TableRow key={booking._id || booking.id || `booking-${index}`}>
+                            <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
+                            <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
+                            <TableCell>{booking.serviceType || 'N/A'}</TableCell>
+                            <TableCell>
+                              {booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                            <TableCell className="capitalize">{booking.status || 'pending'}</TableCell>
+                            <TableCell>${booking.totalAmount || '0'}</TableCell>
+                            <TableCell>
+                              {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            No bookings found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Address Changes Tab */}
+          {user?.role === "admin" && activeTab === "address-changes" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Address Change Requests ({addressChanges.length})</CardTitle>
+                <CardDescription>
+                  Review and manage address change requests from clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {addressChanges.length > 0 ? (
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Current Address</TableHead>
+                          <TableHead>New Address</TableHead>
+                          <TableHead>Requested Date</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {addressChanges.map((change, index) => (
+                          <TableRow key={change._id || change.id || `change-${index}`}>
+                            <TableCell>{change.client?.name}</TableCell>
+                            <TableCell>{change.currentAddress}</TableCell>
+                            <TableCell>{change.newAddress}</TableCell>
+                            <TableCell>
+                              {change.createdAt ? new Date(change.createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                            <TableCell className="capitalize">{change.status}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No pending address changes</h3>
+                    <p className="text-gray-500">All address change requests have been processed.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Pets Tab */}
+          {user?.role === "admin" && activeTab === "pets" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>All Pets ({adminPets.length})</CardTitle>
+                <CardDescription>
+                  View all pets registered in the system
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Breed</TableHead>
+                        <TableHead>Age</TableHead>
+                        <TableHead>Owner</TableHead>
+                        <TableHead>Emergency Contact</TableHead>
+                        <TableHead>Created At</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {adminPets.length > 0 ? (
+                        adminPets.map((pet, index) => (
+                          <TableRow key={pet._id || pet.id || `pet-${index}`}>
+                            <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
+                            <TableCell>{pet.type || pet.species || 'N/A'}</TableCell>
+                            <TableCell>{pet.breed || 'N/A'}</TableCell>
+                            <TableCell>{pet.age || 'N/A'}</TableCell>
+                            <TableCell>
+                              {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
+                            </TableCell>
+                            <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
+                            <TableCell>
+                              {pet.createdAt ? new Date(pet.createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            No pets found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Sitter: My Users Tab */}
