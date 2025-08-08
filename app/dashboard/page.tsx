@@ -1284,27 +1284,47 @@ export default function DashboardPage() {
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
                             <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
                             <TableCell>
-                              <div className="flex space-x-2">
-                                {/* Assign sitter dropdown if no sitter assigned */}
-                                {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
-                                  <select onChange={e => assignSitter(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1" defaultValue="">
-                                    <option value="">Select Sitter</option>
-                                    {adminSitters.map((sitter) => (
-                                      <option key={sitter._id} value={sitter._id}>{sitter.firstName} {sitter.lastName}</option>
-                                    ))}
-                                  </select>
-                                )}
-                                {/* Unassign button if sitter assigned */}
-                                {booking.sitterId && booking.sitterId.firstName && (
-                                  <Button variant="outline" size="sm" onClick={() => unassignSitter(booking._id)} className="text-red-600 hover:text-red-700">Unassign Sitter</Button>
-                                )}
+                              <div className="flex flex-col space-y-2 min-w-[160px]">
+                                <div className="flex space-x-2">
+                                  {/* Assign sitter dropdown if no sitter assigned */}
+                                  {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
+                                    <select onChange={e => assignSitter(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1" defaultValue="">
+                                      <option value="">Select Sitter</option>
+                                      {adminSitters.map((sitter) => (
+                                        <option key={sitter._id} value={sitter._id}>{sitter.firstName} {sitter.lastName}</option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  {/* Unassign button if sitter assigned */}
+                                  {booking.sitterId && booking.sitterId.firstName && (
+                                    <Button variant="outline" size="sm" onClick={() => unassignSitter(booking._id)} className="text-red-600 hover:text-red-700">Unassign Sitter</Button>
+                                  )}
+                                </div>
                                 {/* Status dropdown */}
-                                <select value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1">
+                                <select value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-1">
                                   <option value="pending">Pending</option>
                                   <option value="confirmed">Confirmed</option>
                                   <option value="in-progress">In Progress</option>
                                   <option value="completed">Completed</option>
                                   <option value="cancelled">Cancelled</option>
+                                </select>
+                                {/* Payment status dropdown */}
+                                <select value={booking.paymentStatus || 'pending'} onChange={async e => {
+                                  const newStatus = e.target.value;
+                                  try {
+                                    await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
+                                    toast({ title: 'Payment status updated', description: `Payment status changed to ${newStatus}` });
+                                    // Refresh bookings
+                                    const res = await api.get('/bookings');
+                                    setAdminBookings(res.data ?? []);
+                                  } catch (err: any) {
+                                    toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
+                                  }
+                                }} className="text-sm border rounded px-2 py-1 mt-1">
+                                  <option value="pending">Pending</option>
+                                  <option value="partial">Partial</option>
+                                  <option value="paid">Paid</option>
+                                  <option value="refunded">Refunded</option>
                                 </select>
                               </div>
                             </TableCell>
@@ -1488,6 +1508,66 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+          {/* Sitter: Dashboard Bookings Table */}
+          {user?.role === "sitter" && activeTab === "dashboard" && (
+            <div className="bg-white p-6 rounded-lg border mb-8">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold">My Bookings</h3>
+                <Button variant="outline" size="sm" onClick={() => router.push('/bookings')}>View All Bookings</Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-semibold">Client</th>
+                      <th className="px-4 py-2 text-left font-semibold">Location</th>
+                      <th className="px-4 py-2 text-left font-semibold">Service</th>
+                      <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                      <th className="px-4 py-2 text-left font-semibold">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.length > 0 ? (
+                      bookings.map((booking: any) => (
+                        <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
+                          <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
+                          <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
+                          <td className="px-4 py-2">
+                            <div className="font-semibold">{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</div>
+                            <div className="font-bold">{booking.serviceType}</div>
+                            <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
+                            {booking.startDate && booking.endDate && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {(() => {
+                                  const start = new Date(booking.startDate);
+                                  const end = new Date(booking.endDate);
+                                  const diffMs = end.getTime() - start.getTime();
+                                  const diffMin = Math.round(diffMs / 60000);
+                                  return `${diffMin} minutes`;
+                                })()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-2">
+                            {booking.paymentStatus === 'complete' ? (
+                              <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
+                            ) : (
+                              <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center py-8 text-gray-500">No bookings found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           
        
 
@@ -1565,7 +1645,7 @@ export default function DashboardPage() {
                         placeholder="Enter lockbox code"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        If key is handed via concierge please enter 'Key will be with concierge in an envelope C/O Flying Duchess Pet Sitters' along with sitter name.
+                        If key is handed via concierge please enter 'Key will be with concierge in an envelope C/O Pet Sitter Management' along with sitter name.
                       </p>
                     </div>
                   </div>

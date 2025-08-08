@@ -58,6 +58,7 @@ interface Booking {
     email?: string;
   } | null;
   sitterName?: string | null;
+  paymentStatus?: string;
 }
 
 interface Pet {
@@ -774,7 +775,7 @@ export default function AdminPage() {
                         </span>
                       </div>
                       
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-4 items-center">
                         {/* Show assign sitter dropdown only if no sitter is assigned */}
                         {(!booking.assignedSitter && !booking.sitterName && !booking.sitterId) && sitters.length > 0 && (
                           <div className="flex items-center space-x-2">
@@ -808,18 +809,46 @@ export default function AdminPage() {
                             Unassign Sitter
                           </Button>
                         )}
-                        
-                        <select 
-                          value={booking.status}
-                          onChange={(e) => updateBookingStatus(booking._id, e.target.value)}
-                          className="text-sm border rounded px-2 py-1"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+
+                        {/* Booking status dropdown with label */}
+                        <div className="flex flex-col">
+                          <label className="text-xs font-medium mb-1 text-gray-700">Booking Status</label>
+                          <select 
+                            value={booking.status}
+                            onChange={(e) => updateBookingStatus(booking._id, e.target.value)}
+                            className="text-sm border rounded px-2 py-1"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </div>
+
+                        {/* Payment status dropdown with label */}
+                        <div className="flex flex-col">
+                          <label className="text-xs font-medium mb-1 text-gray-700">Payment Status</label>
+                          <select
+                            value={booking.paymentStatus || 'pending'}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
+                                setSuccess('Payment status updated successfully');
+                                fetchData();
+                              } catch (err: any) {
+                                setError(err.response?.data?.message || 'Failed to update payment status');
+                              }
+                            }}
+                            className="text-sm border rounded px-2 py-1"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="partial">Partial</option>
+                            <option value="paid">Paid</option>
+                            <option value="refunded">Refunded</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

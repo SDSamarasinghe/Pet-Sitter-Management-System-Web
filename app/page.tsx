@@ -10,7 +10,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <main className="pt-20 px-8 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6">
-          Flying Duchess Pet Sitters
+          Pet Sitter Management System
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
           Toronto's most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.
