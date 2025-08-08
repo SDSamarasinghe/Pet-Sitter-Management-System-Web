@@ -126,7 +126,6 @@ export default function ServiceInquiryPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <Header />
       
       <main className="flex-1 container mx-auto max-w-2xl py-8 px-4">
         <Card>

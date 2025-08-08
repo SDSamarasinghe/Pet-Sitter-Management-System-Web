@@ -10,7 +10,6 @@ export default function FindCarePage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <Header />
       
       <main className="flex-1 container mx-auto max-w-4xl py-8 px-4">
         <div className="text-center mb-12">

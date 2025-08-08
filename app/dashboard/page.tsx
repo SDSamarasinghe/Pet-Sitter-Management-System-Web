@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -272,6 +273,7 @@ interface Booking {
 }
 
 export default function DashboardPage() {
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -288,6 +290,27 @@ export default function DashboardPage() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
+  
+  // Key Security form state
+  const [lockboxCode, setLockboxCode] = useState("4242");
+  const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
+  const [alarmCompanyName, setAlarmCompanyName] = useState("");
+  const [alarmCompanyPhone, setAlarmCompanyPhone] = useState("Anjana");
+  const [alarmCodeToEnter, setAlarmCodeToEnter] = useState("*****");
+  const [alarmCodeToExit, setAlarmCodeToExit] = useState("");
+  const [additionalComments, setAdditionalComments] = useState("");
+  const [homeAccessList, setHomeAccessList] = useState("");
+  const [accessPermissions, setAccessPermissions] = useState({
+    landlord: false,
+    buildingManagement: false,
+    superintendent: false,
+    housekeeper: false,
+    neighbour: false,
+    friend: false,
+    family: false,
+    none: true
+  });
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -314,45 +337,68 @@ export default function DashboardPage() {
         const profileResponse = await api.get("/users/profile");
         const userId = profileResponse.data._id;
         const userRole = profileResponse.data.role;
-        
+
         // Fetch user's pets
         const petsResponse = await api.get(`/pets/user/${userId}`);
         setPets(petsResponse?.data ?? []);
-       
+
         // Fetch bookings based on user role
         let bookingsResponse;
         if (userRole === 'sitter') {
-          console.log("User is sitter, fetching clients...");
           bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
           // Fetch all clients with their pets for sitters
           const clientsResponse = await api.get('/users/admin/clients-with-pets');
-          console.log("🚀 ~ fetchDashboardData ~ clientsResponse:", clientsResponse)
           setClients(clientsResponse.data ?? []);
         } else {
-          console.log("User is not sitter, role:", userRole);
           bookingsResponse = await api.get(`/bookings/user/${userId}`);
         }
         setUser(profileResponse.data);
-        console.log("🚀 ~ User set:", profileResponse.data);
         setBookings(bookingsResponse.data);
-        
+
         // Fetch available users and recent notes for communication
         if (userRole === 'sitter' || userRole === 'client') {
           try {
             // Fetch available users for dropdown
             const usersResponse = await api.get('/notes/users/available');
             setAvailableUsers(usersResponse.data ?? []);
-            
+
             // Fetch recent notes
             const notesResponse = await api.get('/notes/recent/20');
             setNotes(notesResponse.data ?? []);
           } catch (error) {
-            console.error("Error fetching communication data:", error);
-            // Fallback to empty arrays
             setAvailableUsers([]);
             setNotes([]);
           }
         }
+
+        // Fetch Key Security data for this user
+        try {
+          const keySecurityRes = await api.get(`/key-security/client/${userId}`);
+          if (keySecurityRes.data) {
+            const d = keySecurityRes.data;
+            setLockboxCode(d.lockboxCode || "");
+            setLockboxLocation(d.lockboxLocation || "");
+            setAlarmCompanyName(d.alarmCompanyName || "");
+            setAlarmCompanyPhone(d.alarmCompanyPhone || "");
+            setAlarmCodeToEnter(d.alarmCodeToEnter || "");
+            setAlarmCodeToExit(d.alarmCodeToExit || "");
+            setAdditionalComments(d.additionalComments || "");
+            setHomeAccessList(d.homeAccessList || "");
+            setAccessPermissions(d.accessPermissions || {
+              landlord: false,
+              buildingManagement: false,
+              superintendent: false,
+              housekeeper: false,
+              neighbour: false,
+              friend: false,
+              family: false,
+              none: true
+            });
+          }
+        } catch (err) {
+          // No key security data yet, ignore
+        }
+
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -439,6 +485,71 @@ export default function DashboardPage() {
       refreshNotes();
     }
   }, [filterByUser, user]);
+
+  const handleUpdateKeySecurity = async () => {
+    try {
+      if (!user || !user.id) {
+        toast({
+          title: 'User not loaded',
+          description: 'Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      const securityData = {
+        lockboxCode,
+        lockboxLocation,
+        alarmCompanyName,
+        alarmCompanyPhone,
+        alarmCodeToEnter,
+        alarmCodeToExit,
+        additionalComments,
+        homeAccessList,
+        accessPermissions
+      };
+      await api.post(`/key-security/client/${user.id}`, securityData);
+      toast({
+        title: 'Key Security updated!',
+        description: 'Your key security information was saved successfully.',
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error('Error updating security information:', error);
+      toast({
+        title: 'Failed to update key security',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAccessPermissionChange = (permission: string, checked: boolean) => {
+    if (permission === 'none' && checked) {
+      // If "None" is selected, uncheck all others
+      setAccessPermissions({
+        landlord: false,
+        buildingManagement: false,
+        superintendent: false,
+        housekeeper: false,
+        neighbour: false,
+        friend: false,
+        family: false,
+        none: true
+      });
+    } else if (permission !== 'none' && checked) {
+      // If any other option is selected, uncheck "None"
+      setAccessPermissions(prev => ({
+        ...prev,
+        [permission]: checked,
+        none: false
+      }));
+    } else {
+      setAccessPermissions(prev => ({
+        ...prev,
+        [permission]: checked
+      }));
+    }
+  };
 
   if (isLoading) {
     return (
@@ -857,16 +968,176 @@ export default function DashboardPage() {
           )}
 
           {activeTab === "security" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h2 className="text-xl font-semibold">Key Security</h2>
+              
+              {/* Key Access Section */}
               <div className="bg-white p-6 rounded-lg border">
-                <p className="text-gray-600 mb-4">Manage your account security settings</p>
-                <div className="space-y-3">
-                  <Button onClick={() => router.push('/security')} className="w-full sm:w-auto">
-                    Security Settings
-                  </Button>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    Change Password
+                <h3 className="text-lg font-semibold mb-4">Key Access</h3>
+                
+                <div className="space-y-4">
+                  {/* Lockbox Code */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">
+                      Lockbox Code <span className="text-red-500">*</span>
+                    </label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        value={lockboxCode}
+                        onChange={(e) => setLockboxCode(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter lockbox code"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        If key is handed via concierge please enter 'Key will be with concierge in an envelope C/O Flying Duchess Pet Sitters' along with sitter name.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Lockbox Location */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">Lockbox Location</label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        value={lockboxLocation}
+                        onChange={(e) => setLockboxLocation(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Describe lockbox location"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Alarm Company Name */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">Alarm Company Name</label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        value={alarmCompanyName}
+                        onChange={(e) => setAlarmCompanyName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter alarm company name"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Alarm Company Phone */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">Alarm Company Phone</label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        value={alarmCompanyPhone}
+                        onChange={(e) => setAlarmCompanyPhone(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Alarm Code to Enter */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">Alarm Code to Enter</label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="password"
+                        value={alarmCodeToEnter}
+                        onChange={(e) => setAlarmCodeToEnter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter alarm code"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Alarm Code to Exit */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <label className="text-sm font-medium text-gray-700">Alarm Code to Exit</label>
+                    <div className="md:col-span-2">
+                      <input
+                        type="password"
+                        value={alarmCodeToExit}
+                        onChange={(e) => setAlarmCodeToExit(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter exit code"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Additional Comments */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <label className="text-sm font-medium text-gray-700">
+                      Additional Comments about key, concierge or alarm.
+                    </label>
+                    <div className="md:col-span-2">
+                      <textarea
+                        value={additionalComments}
+                        onChange={(e) => setAdditionalComments(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter any additional comments..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Others Who Have Access Section */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-semibold mb-4">Others Who Have Access To Your Home</h3>
+                
+                <div className="space-y-4">
+                  {/* Access Checkboxes */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label className="text-sm font-medium text-gray-700">
+                      Please Check Any Or All Who Have Access To Your Home <span className="text-red-500">*</span>
+                    </label>
+                    <div className="md:col-span-2 space-y-2">
+                      {[
+                        { key: 'landlord', label: 'Landlord' },
+                        { key: 'buildingManagement', label: 'Building Management' },
+                        { key: 'superintendent', label: 'Superintendent' },
+                        { key: 'housekeeper', label: 'Housekeeper / Cleaner' },
+                        { key: 'neighbour', label: 'Neighbour' },
+                        { key: 'friend', label: 'Friend' },
+                        { key: 'family', label: 'Family' },
+                        { key: 'none', label: 'None' }
+                      ].map((option) => (
+                        <label key={option.key} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={accessPermissions[option.key as keyof typeof accessPermissions]}
+                            onChange={(e) => handleAccessPermissionChange(option.key, e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Home Access List */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <label className="text-sm font-medium text-gray-700">
+                      Please List Name and Phone Number of All Who Have Access to Your Home
+                    </label>
+                    <div className="md:col-span-2">
+                      <textarea
+                        value={homeAccessList}
+                        onChange={(e) => setHomeAccessList(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Eg. My Mum (Rhoda Smith) - 416-123-4567"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Update Button */}
+                <div className="mt-6 flex justify-start">
+                  <Button onClick={handleUpdateKeySecurity} size="sm" className="px-6">
+                    Update
                   </Button>
                 </div>
               </div>

@@ -318,7 +318,6 @@ export default function BookingDetailPage() {
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="flex items-center justify-center py-12">
           <Spinner size="lg" />
         </div>
@@ -329,7 +328,6 @@ export default function BookingDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="flex items-center justify-center py-12">
           <Spinner size="lg" />
         </div>
@@ -340,7 +338,6 @@ export default function BookingDetailPage() {
   if (!booking) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <Alert>
             <AlertDescription>
@@ -357,7 +354,6 @@ export default function BookingDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">

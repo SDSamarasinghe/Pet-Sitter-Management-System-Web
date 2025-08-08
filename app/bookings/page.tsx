@@ -225,7 +225,6 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <Spinner size="lg" />
