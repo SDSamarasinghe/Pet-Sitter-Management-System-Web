@@ -143,7 +143,7 @@ export default function ServicesPage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Flying Duchess Pet Services
+           Pet Services
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
             Toronto's most trusted in-home pet care service. Professional, insured, and experienced pet sitters who will love your pets like their own.

@@ -5,7 +5,7 @@ import CentralizedHeader from "@/components/CentralizedHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flying Duchess Pet-Sitting System",
+  title: "Pet-Sitting System",
   description: "Professional in-home pet care services in Toronto",
 };
 
