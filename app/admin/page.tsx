@@ -135,7 +135,7 @@ export default function AdminPage() {
     if (userRole !== 'admin') {
       // Redirect non-admin users to their appropriate dashboard
       if (userRole === 'sitter') {
-        router.push('/sitter');
+        router.push('/dashboard');
       } else {
         router.push('/dashboard');
       }
