@@ -1947,42 +1947,118 @@ export default function DashboardPage() {
           )}
 
           {activeTab === "booking" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h2 className="text-xl font-semibold">Book Now</h2>
+              
+              {/* Addon Booking Section */}
               <div className="bg-white p-6 rounded-lg border">
-                <p className="text-gray-600 mb-4">You have {bookings.length} total bookings</p>
-                <div className="space-y-3">
-                  <Button onClick={() => router.push('/bookings')} className="w-full sm:w-auto">
-                    View All Bookings
-                  </Button>
-                  {user?.role !== 'sitter' && (
-                    <Button onClick={() => router.push('/bookings')} variant="outline" className="w-full sm:w-auto">
-                      Book New Service
-                    </Button>
-                  )}
-                </div>
-                {bookings.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <h4 className="font-medium">Recent Bookings:</h4>
-                    {bookings.slice(0, 3).map((booking) => (
-                      <div key={booking.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium">{booking.serviceType}</p>
-                            <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
-                          </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {booking.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                <p className="text-sm text-gray-600 mb-4">
+                  To book Add-ons only, e.g. consultation, key pickup/dropoff, purchase a lockbox, click here:
+                </p>
+                <Button className="bg-primary text-white px-6 py-2">
+                  Book Add-on Only
+                </Button>
+              </div>
+
+              {/* Main Booking Section */}
+              <div className="bg-white p-6 rounded-lg border">
+                <p className="text-sm font-medium mb-4">Book your pet visit services here:</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  {/* Service Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+                    <p className="text-xs text-gray-500 mb-2">Select from drop down</p>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option>Once A Day Pet Sitting 45min - C$40</option>
+                    </select>
                   </div>
-                )}
+
+                  {/* Start Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* End Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <Button className="bg-primary text-white px-6 py-2">
+                  Check Availability
+                </Button>
+              </div>
+
+              {/* Other Payments Section */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-semibold mb-2">Other Payments</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Make payments for late bookings, booking changes, etc here:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <Button className="bg-primary text-white px-6 py-2">
+                  Other Payments
+                </Button>
+              </div>
+
+              {/* Assigned Sitters Section */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-semibold mb-4">Assigned Sitters</h3>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Name</th>
+                        <th className="text-right py-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="py-3">
+                          <span className="text-green-600 font-medium">Dharani A</span>
+                        </td>
+                        <td className="py-3 text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button variant="outline" size="sm" className="text-xs px-3 py-1">
+                              View Details
+                            </Button>
+                            <Button className="bg-primary text-white text-xs px-3 py-1">
+                              Add Note
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -2007,23 +2083,37 @@ export default function DashboardPage() {
                         </thead>
                         <tbody>
                           {bookings.length > 0 ? (
-                            bookings.slice(0, showAllInvoices ? bookings.length : 1).map((booking, idx) => (
-                              <tr key={booking.id || idx} className="border-b hover:bg-gray-50">
-                                <td className="px-4 py-2 whitespace-nowrap">23576</td>
-                                <td className="px-4 py-2 whitespace-nowrap">
-                                  Aug 03, 2025 - Aug 04, 2025
-                                  <div className="font-semibold text-xs mt-1">30 min visit</div>
-                                </td>
-                                <td className="px-4 py-2">
-                                  Once A Day Pet Sitting 30min *NO MEDS* - from 03 Aug, 2025 to 04 Aug, 2025
-                                </td>
-                                <td className="px-4 py-2 font-mono">C$90.00</td>
-                                <td className="px-4 py-2">
-                                  <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Completed</span>
-                                </td>
-                                <td className="px-4 py-2">Jul 23, 2025 at 10:56 am</td>
-                              </tr>
-                            ))
+                            bookings.slice(0, showAllInvoices ? bookings.length : 1).map((booking, idx) => {
+                              // Use only available fields from Booking interface
+                              const visitDate = booking.date ? new Date(booking.date) : null;
+                              const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A';
+                              const formatDateTime = (date: Date | null) => date ? `${date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase()}` : '--';
+                              // Payment status
+                              const paymentStatus = (booking as any).paymentStatus || booking.status || '';
+                              const isCompleted = paymentStatus.toLowerCase() === 'completed' || paymentStatus.toLowerCase() === 'complete';
+                              // Amount
+                              const amount = (booking as any).totalAmount !== undefined ? (booking as any).totalAmount : undefined;
+                              // Payment date fallback: use booking.date if no paymentDate
+                              const paymentDate = (booking as any).paymentDate ? new Date((booking as any).paymentDate) : (visitDate || null);
+                              return (
+                                <tr key={booking.id || idx} className="border-b hover:bg-gray-50">
+                                  <td className="px-4 py-2 whitespace-nowrap">{booking.id || idx + 1}</td>
+                                  <td className="px-4 py-2 whitespace-nowrap">
+                                    {visitDate ? formatDate(visitDate) : 'N/A'}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    {booking.serviceType || 'N/A'}
+                                  </td>
+                                  <td className="px-4 py-2 font-mono">{amount !== undefined ? `C$${Number(amount).toFixed(2)}` : '--'}</td>
+                                  <td className="px-4 py-2">
+                                    <span className={`inline-block px-3 py-1 rounded font-semibold ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                      {isCompleted ? 'Completed' : (paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1))}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-2">{paymentDate ? formatDateTime(paymentDate) : '--'}</td>
+                                </tr>
+                              );
+                            })
                           ) : (
                             <tr>
                               <td colSpan={6} className="text-center py-8 text-gray-500">No invoices found.</td>
