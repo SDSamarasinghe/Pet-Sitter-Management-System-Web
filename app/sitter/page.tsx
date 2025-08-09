@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Booking {
   id: string;
@@ -174,15 +176,15 @@ export default function SitterPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
         
         {success && (
-          <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-            {success}
-          </div>
+          <Alert className="mb-4 border-green-400 bg-green-50 text-green-800">
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         )}
 
         {/* Report Form Modal */}
@@ -289,8 +291,15 @@ export default function SitterPage() {
                 </div>
 
                 <div className="flex space-x-4">
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Submitting...' : 'Submit Report'}
+                  <Button type="submit" disabled={isLoading} className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                    {isLoading ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit Report'
+                    )}
                   </Button>
                   <Button 
                     type="button" 

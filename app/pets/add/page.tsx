@@ -7,16 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
+import { Spinner } from '@/components/ui/spinner';
 import { uploadToCloudinary, testCloudinaryConnection } from '@/lib/cloudinary';
 import { isAuthenticated } from '@/lib/auth';
 
 export default function AddPetPage() {
   const [formData, setFormData] = useState({
     name: '',
-    species: '',
+    type: '',
+    photo: '',
     breed: '',
     age: '',
+    species: '',
     weight: '',
     microchipNumber: '',
     vaccinations: '',
@@ -27,6 +31,7 @@ export default function AddPetPage() {
     emergencyContact: '',
     veterinarianInfo: '',
     careInstructions: '',
+    info: '',
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
@@ -43,6 +48,14 @@ export default function AddPetPage() {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -71,30 +84,43 @@ export default function AddPetPage() {
     setSuccess('');
 
     try {
-      let photoUrl = '';
-      
+      let photo = '';
       // Upload photo to Cloudinary if provided
       if (photoFile) {
-        photoUrl = await uploadToCloudinary(photoFile);
+        photo = await uploadToCloudinary(photoFile);
       }
 
-      // Create pet with API
+      // Prepare pet data according to DTO
       const petData = {
-        ...formData,
-        age: parseInt(formData.age),
-        photoUrl: photoUrl || undefined,
+        name: formData.name,
+        type: formData.type || undefined,
+        photo: photo || undefined,
+        breed: formData.breed || undefined,
+        age: formData.age || undefined,
+        species: formData.species || undefined,
+        weight: formData.weight ? Number(formData.weight) : undefined,
+        microchipNumber: formData.microchipNumber || undefined,
+        vaccinations: formData.vaccinations || undefined,
+        medications: formData.medications || undefined,
+        allergies: formData.allergies || undefined,
+        dietaryRestrictions: formData.dietaryRestrictions || undefined,
+        behaviorNotes: formData.behaviorNotes || undefined,
+        emergencyContact: formData.emergencyContact || undefined,
+        veterinarianInfo: formData.veterinarianInfo || undefined,
+        careInstructions: formData.careInstructions || undefined,
+        info: formData.info || undefined,
       };
 
       await api.post('/pets', petData);
-      
       setSuccess('Pet added successfully!');
-      
       // Reset form
       setFormData({
         name: '',
-        species: '',
+        type: '',
+        photo: '',
         breed: '',
         age: '',
+        species: '',
         weight: '',
         microchipNumber: '',
         vaccinations: '',
@@ -105,15 +131,13 @@ export default function AddPetPage() {
         emergencyContact: '',
         veterinarianInfo: '',
         careInstructions: '',
+        info: '',
       });
       setPhotoFile(null);
       setPhotoPreview('');
-      
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
-      
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to add pet');
     } finally {
@@ -157,22 +181,30 @@ export default function AddPetPage() {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="species">Species *</Label>
-                  <Input
-                    id="species"
-                    name="species"
-                    type="text"
-                    placeholder="e.g., Dog, Cat"
-                    value={formData.species}
-                    onChange={handleInputChange}
+                  <Label htmlFor="type">Type *</Label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleSelectChange}
                     required
-                  />
+                    className="w-full border rounded px-3 py-2 bg-white"
+                  >
+                    <option value="">Select type</option>
+                    <option value="Cat(s)">Cat(s)</option>
+                    <option value="Dog(s)">Dog(s)</option>
+                    <option value="Rabbit(s)">Rabbit(s)</option>
+                    <option value="Bird(s)">Bird(s)</option>
+                    <option value="Guinea pig(s)">Guinea pig(s)</option>
+                    <option value="Ferret(s)">Ferret(s)</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="breed">Breed *</Label>
+                  <Label htmlFor="breed">Breed</Label>
                   <Input
                     id="breed"
                     name="breed"
@@ -180,22 +212,18 @@ export default function AddPetPage() {
                     placeholder="e.g., Golden Retriever"
                     value={formData.breed}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="age">Age (years) *</Label>
+                  <Label htmlFor="age">Age</Label>
                   <Input
                     id="age"
                     name="age"
-                    type="number"
+                    type="text"
                     placeholder="e.g., 3"
                     value={formData.age}
                     onChange={handleInputChange}
-                    min="0"
-                    max="30"
-                    required
                   />
                 </div>
               </div>
@@ -334,7 +362,7 @@ export default function AddPetPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="careInstructions">Care Instructions *</Label>
+                <Label htmlFor="careInstructions">Care Instructions</Label>
                 <Textarea
                   id="careInstructions"
                   name="careInstructions"
@@ -342,25 +370,47 @@ export default function AddPetPage() {
                   value={formData.careInstructions}
                   onChange={handleInputChange}
                   rows={4}
-                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="info">General Info / Special Needs</Label>
+                <Textarea
+                  id="info"
+                  name="info"
+                  placeholder="General pet information, special needs, or notes for sitters"
+                  value={formData.info}
+                  onChange={handleInputChange}
+                  rows={3}
                 />
               </div>
 
               {error && (
-                <div className="text-red-500 text-sm">{error}</div>
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               
               {success && (
-                <div className="text-green-500 text-sm">{success}</div>
+                <Alert className="border-green-400 bg-green-50 text-green-800">
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
               )}
 
               <div className="flex gap-4">
                 <Button 
                   type="submit" 
-                  className="flex-1"
+                  className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Adding Pet...' : 'Add Pet'}
+                  {isLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Adding Pet...
+                    </>
+                  ) : (
+                    'Add Pet'
+                  )}
                 </Button>
                 <Button 
                   type="button" 
