@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,11 +41,11 @@ export default function AddPetPage() {
   const router = useRouter();
 
   // Check authentication on component mount
-  useState(() => {
+  useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
     }
-  });
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
