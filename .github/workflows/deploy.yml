@@ -1,0 +1,56 @@
+name: Deploy Web to Azure VM
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to Azure VM
+      run: |
+        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} << 'EOF'
+          set -e
+          
+          echo "🔄 Starting Web deployment..."
+          
+          # Navigate to home directory
+          cd ~
+          
+          # Update Web repository
+          echo "📥 Updating Web repository..."
+          if [ -d "Pet-Sitter-Management-System-Web" ]; then
+            cd Pet-Sitter-Management-System-Web
+            git pull origin master || {
+              echo "⚠️ Git pull failed, trying to reset..."
+              git reset --hard HEAD
+              git pull origin master
+            }
+            cd ..
+          else
+            echo "📥 Cloning Web repository..."
+            git clone https://github.com/SDSamarasinghe/Pet-Sitter-Management-System-Web.git
+          fi
+          
+          echo "✅ Web repository updated!"
+          echo "ℹ️ Web deployment is currently disabled due to build issues."
+          echo "ℹ️ Focus on API deployment for now."
+          
+        EOF
+
+env:
+  HOST_IP: ${{ secrets.HOST_IP }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
