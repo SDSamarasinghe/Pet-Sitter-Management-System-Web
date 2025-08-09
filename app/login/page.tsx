@@ -40,10 +40,12 @@ export default function LoginPage() {
       });
       // Redirect based on user role and force reload to update header state
       const userRole = getUserRole();
-      if (userRole === 'admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/dashboard';
+      if (typeof window !== 'undefined') {
+        if (userRole === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (error: any) {
       toast({
