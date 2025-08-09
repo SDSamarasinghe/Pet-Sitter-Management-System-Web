@@ -1304,7 +1304,8 @@ export default function DashboardPage() {
                                   )}
                                 </div>
                                 {/* Status dropdown */}
-                                <select value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-1">
+                                <label className="text-xs text-gray-600 font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
+                                <select id={`booking-status-${booking._id}`} value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-0">
                                   <option value="pending">Pending</option>
                                   <option value="confirmed">Confirmed</option>
                                   <option value="in-progress">In Progress</option>
@@ -1312,7 +1313,8 @@ export default function DashboardPage() {
                                   <option value="cancelled">Cancelled</option>
                                 </select>
                                 {/* Payment status dropdown */}
-                                <select value={booking.paymentStatus || 'pending'} onChange={async e => {
+                                <label className="text-xs text-gray-600 font-medium mt-2 mb-0.5" htmlFor={`payment-status-${booking._id}`}>Payment Status</label>
+                                <select id={`payment-status-${booking._id}`} value={booking.paymentStatus || 'pending'} onChange={async e => {
                                   const newStatus = e.target.value;
                                   try {
                                     await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
@@ -1323,7 +1325,7 @@ export default function DashboardPage() {
                                   } catch (err: any) {
                                     toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
                                   }
-                                }} className="text-sm border rounded px-2 py-1 mt-1">
+                                }} className="text-sm border rounded px-2 py-1 mt-0">
                                   <option value="pending">Pending</option>
                                   <option value="partial">Partial</option>
                                   <option value="paid">Paid</option>

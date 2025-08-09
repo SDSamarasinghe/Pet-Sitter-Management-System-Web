@@ -86,7 +86,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
           onClick={() => router.push('/')}
           className="font-bold text-xl tracking-tight flex items-center gap-2 hover:opacity-80"
         >
-          <span className="inline-block w-6 h-6 bg-black rounded-full mr-1" /> PetPal
+          <span className="inline-block w-6 h-6 bg-black rounded-full mr-1" /> Pet-sitter Management System
         </button>
       </div>
       
