@@ -80,26 +80,45 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
   const visibleNavItems = getVisibleNavItems();
 
   return (
-    <header className="w-full h-16 min-h-16 max-h-16 flex items-center justify-between px-8 bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="w-full h-12 sm:h-14 md:h-16 min-h-12 sm:min-h-14 md:min-h-16 max-h-12 sm:max-h-14 md:max-h-16 flex items-center justify-between px-2 sm:px-4 md:px-6 lg:px-8 bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="flex items-center gap-2">
         <button 
           onClick={() => router.push('/')}
-          className="font-bold text-xl tracking-tight flex items-center gap-2 hover:opacity-80"
+          className="font-bold text-sm sm:text-base md:text-lg lg:text-xl tracking-tight flex items-center gap-1 sm:gap-2 hover:opacity-80"
         >
-          <span className="inline-block w-6 h-6 bg-black rounded-full mr-1" /> Pet-sitter Management System
+          <span className="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-black rounded-full mr-1" /> 
+          <span className="hidden sm:inline">Pet-sitter Management System</span>
+          <span className="sm:hidden">PetSitter</span>
         </button>
       </div>
       
       {/* Desktop Navigation */}
-  <nav className="hidden md:flex items-center gap-6 overflow-x-auto scrollbar-hide h-full flex-none">
+      <nav className="hidden lg:flex items-center gap-4 xl:gap-6 overflow-x-auto scrollbar-hide h-full flex-none">
         {visibleNavItems.slice(0, 6).map((item) => (
           <button
             key={item.href}
             onClick={() => router.push(item.href)}
-            className={`text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`text-sm font-medium whitespace-nowrap transition-colors px-2 py-1 rounded ${
               currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
-                : 'text-gray-700 hover:text-black'
+                ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                : 'text-gray-700 hover:text-black hover:bg-gray-50'
+            }`}
+          >
+            {item.name}
+          </button>
+        ))}
+      </nav>
+
+      {/* Tablet Navigation */}
+      <nav className="hidden md:flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide max-w-md h-full flex-none">
+        {visibleNavItems.slice(0, 4).map((item) => (
+          <button
+            key={item.href}
+            onClick={() => router.push(item.href)}
+            className={`text-xs font-medium whitespace-nowrap px-2 py-1 rounded transition-colors ${
+              currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-700 hover:text-black hover:bg-gray-50'
             }`}
           >
             {item.name}
@@ -108,15 +127,15 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
       </nav>
 
       {/* Mobile Navigation Menu */}
-  <nav className="md:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide max-w-xs h-full flex-none">
-        {visibleNavItems.slice(0, 4).map((item) => (
+      <nav className="md:hidden flex items-center gap-1 overflow-x-auto scrollbar-hide max-w-xs h-full flex-none">
+        {visibleNavItems.slice(0, 2).map((item) => (
           <button
             key={item.href}
             onClick={() => router.push(item.href)}
-            className={`text-xs font-medium whitespace-nowrap px-2 py-1 rounded transition-colors ${
+            className={`text-xs font-medium whitespace-nowrap px-1.5 py-0.5 rounded transition-colors ${
               currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
                 ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-700 hover:text-black'
+                : 'text-gray-700 hover:text-black hover:bg-gray-50'
             }`}
           >
             {item.name}
@@ -125,7 +144,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
       </nav>
 
       {/* Auth Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {showAuthButtons && (
           <>
             {user ? (
@@ -133,16 +152,18 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-black focus:outline-none"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-black focus:outline-none"
                 >
-                  <span className="text-sm font-medium">Hello, {user.firstName}</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-xs sm:text-sm font-medium">
+                    <span className="hidden sm:inline">Hello, </span>{user.firstName}
+                  </span>
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                  <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-md shadow-lg py-1 z-50 border">
                     <button
                       onClick={() => {
                         router.push('/profile');
@@ -164,9 +185,9 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
                       </svg>
                       {getUserRole() === 'admin' ? 'Admin Panel' : 'Dashboard'}
                     </button>
-                    {/* Show more nav items in dropdown on mobile */}
-                    <div className="md:hidden border-t border-gray-100 mt-1 pt-1">
-                      {visibleNavItems.slice(4).map((item) => (
+                    {/* Show more nav items in dropdown on mobile/tablet */}
+                    <div className="lg:hidden border-t border-gray-100 mt-1 pt-1">
+                      {visibleNavItems.slice(window.innerWidth < 768 ? 2 : 4).map((item) => (
                         <button
                           key={item.href}
                           onClick={() => {
@@ -196,12 +217,15 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
               <>
                 <Button 
                   onClick={() => router.push('/login')}
+                  className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                  size="sm"
                 >
                   Log in
                 </Button>
                 <Button 
-                  className="bg-[#f5f6fa] text-gray-900 px-5 py-2 font-semibold text-sm  hover:bg-gray-200" 
+                  className="bg-[#f5f6fa] text-gray-900 px-2 sm:px-4 py-1 sm:py-2 font-semibold text-xs sm:text-sm hover:bg-gray-200" 
                   onClick={() => router.push('/signup')}
+                  size="sm"
                 >
                   Sign up
                 </Button>

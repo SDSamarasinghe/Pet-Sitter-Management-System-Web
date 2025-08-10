@@ -713,17 +713,17 @@ export default function DashboardPage() {
   const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-5xl mx-auto py-10 px-4">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}</h1>
+    <div className="h-full bg-transparent">
+      <main className="w-full max-w-none sm:max-w-4xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto py-4 sm:py-6 md:py-8 lg:py-10 px-2 sm:px-4 md:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8">Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}</h1>
 
         {/* Tab Navigation */}
-        <section className="mb-8">
+        <section className="mb-6 sm:mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 overflow-x-auto scrollbar-hide pb-0">
+            <nav className="flex space-x-2 sm:space-x-4 md:space-x-6 lg:space-x-8 overflow-x-auto scrollbar-hide pb-0">
               <button
                 onClick={() => setActiveTab("communication")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                   activeTab === "communication"
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -735,53 +735,58 @@ export default function DashboardPage() {
                 <>
                   <button
                     onClick={() => setActiveTab("users")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                       activeTab === "users"
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    Users ({adminUsers.length})
+                    <span className="hidden sm:inline">Users ({adminUsers.length})</span>
+                    <span className="sm:hidden">Users</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("sitters")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                       activeTab === "sitters"
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    Sitters ({adminSitters.length})
+                    <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
+                    <span className="sm:hidden">Sitters</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("bookings")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                       activeTab === "bookings"
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    Bookings ({adminBookings.length})
+                    <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
+                    <span className="sm:hidden">Bookings</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("address-changes")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                       activeTab === "address-changes"
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    Address Changes ({addressChanges.length})
+                    <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
+                    <span className="md:hidden">Address</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("pets")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                       activeTab === "pets"
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    Pets ({adminPets.length})
+                    <span className="hidden sm:inline">Pets ({adminPets.length})</span>
+                    <span className="sm:hidden">Pets</span>
                   </button>
                 </>
               ) : user?.role === "sitter" ? (
