@@ -3,7 +3,7 @@
 
 environments:
   development:
-    api_url: "http://localhost:5001"
+    api_url: "http://localhost:8000"
     cloudinary:
       cloud_name: "dnutx6czj"
       upload_preset: "test_upload"
@@ -25,7 +25,7 @@ environments:
       hot_reload: false
   
   staging:
-    api_url: "http://20.151.57.93:5001"
+    api_url: "http://20.151.57.93:8000"
     cloudinary:
       cloud_name: "dnutx6czj"
       upload_preset: "test_upload"
