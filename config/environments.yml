@@ -1,0 +1,45 @@
+# Environment Configuration for Pet Sitter Management System
+# Use this file to manage different environment settings
+
+environments:
+  development:
+    api_url: "http://localhost:5001"
+    cloudinary:
+      cloud_name: "dnutx6czj"
+      upload_preset: "test_upload"
+    database:
+      type: "local"
+    features:
+      debug_mode: true
+      hot_reload: true
+  
+  production:
+    api_url: "http://20.151.57.93:8000"
+    cloudinary:
+      cloud_name: "dnutx6czj" 
+      upload_preset: "test_upload"
+    database:
+      type: "remote"
+    features:
+      debug_mode: false
+      hot_reload: false
+  
+  staging:
+    api_url: "http://20.151.57.93:5001"
+    cloudinary:
+      cloud_name: "dnutx6czj"
+      upload_preset: "test_upload"
+    database:
+      type: "remote"
+    features:
+      debug_mode: true
+      hot_reload: false
+
+# Instructions:
+# 1. For local development: npm run dev (uses development config)
+# 2. For production build: npm run build (uses production config)
+# 3. For staging: NODE_ENV=staging npm run build
+
+# To switch environments manually:
+# 1. Copy the appropriate values from above to your .env.local file
+# 2. Or use the scripts in package.json

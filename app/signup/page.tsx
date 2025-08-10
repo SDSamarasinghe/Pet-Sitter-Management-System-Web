@@ -57,6 +57,9 @@ export default function SignupPage() {
     role: 'sitter'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -88,6 +91,78 @@ export default function SignupPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: "Please select a JPEG, PNG, GIF, or WebP image",
+        });
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please select an image smaller than 5MB",
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadProfilePicture = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      console.log('Uploading to:', `${process.env.NEXT_PUBLIC_API_URL}/upload/profile-picture`);
+      
+      const response = await api.post('/upload/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Upload response:', response.data);
+
+      if (response.data.success) {
+        return response.data.url;
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.response?.data?.message || 'Failed to upload profile picture',
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -102,15 +177,6 @@ export default function SignupPage() {
         variant: "destructive",
         title: "Validation Error", 
         description: "Password must be at least 6 characters long",
-      });
-      return false;
-    }
-    // Validate profilePicture as URL if provided
-    if (formData.profilePicture && !/^https?:\/\/.+\..+/.test(formData.profilePicture)) {
-      toast({
-        variant: "destructive",
-        title: "Validation Error",
-        description: "Profile picture must be a valid URL",
       });
       return false;
     }
@@ -137,12 +203,27 @@ export default function SignupPage() {
     }
 
     try {
+      // Upload profile picture first if selected
+      let profilePictureUrl = '';
+      if (selectedFile) {
+        console.log('Uploading profile picture...', selectedFile.name);
+        profilePictureUrl = await uploadProfilePicture() || '';
+        console.log('Profile picture uploaded:', profilePictureUrl);
+      }
+
       const { confirmPassword, areasCovered, ...rest } = formData;
       const submitData = {
         ...rest,
+        profilePicture: profilePictureUrl,
         areasCovered: areasCovered.split(',').map(a => a.trim()).filter(Boolean),
         petTypesServiced: formData.petTypesServiced,
       };
+      
+      console.log('Submitting registration data:', {
+        ...submitData,
+        password: '[HIDDEN]' // Don't log password
+      });
+      
       await api.post('/users', submitData);
       
       toast({
@@ -171,6 +252,8 @@ export default function SignupPage() {
         customerType: 'new',
         role: 'sitter'
       });
+      setSelectedFile(null);
+      setPreviewUrl('');
     } catch (error: any) {
       toast({
         variant: "destructive", 
@@ -225,8 +308,42 @@ export default function SignupPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="profilePicture">Profile Picture URL</Label>
-                    <Input id="profilePicture" name="profilePicture" type="text" value={formData.profilePicture} onChange={handleInputChange} placeholder="Cloudinary URL" />
+                    <Label htmlFor="profilePicture">Profile Picture</Label>
+                    <div className="space-y-3">
+                      <input
+                        id="profilePicture"
+                        name="profilePicture"
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handleFileChange}
+                        className="w-full p-3 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {previewUrl && (
+                        <div className="relative w-32 h-32">
+                          <img
+                            src={previewUrl}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover rounded-md border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFile(null);
+                              setPreviewUrl('');
+                              // Reset file input
+                              const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
+                              if (fileInput) fileInput.value = '';
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-500">
+                        Supported formats: JPEG, PNG, GIF, WebP (max 5MB)
+                      </p>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="extension">Extension Number</Label>
@@ -307,12 +424,12 @@ export default function SignupPage() {
                 <Button 
                   type="submit" 
                   className="w-full bg-[#5b9cf6] hover:bg-[#357ae8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isLoading}
+                  disabled={isLoading || isUploading}
                 >
                   {isLoading ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Creating Account...
+                      {isUploading ? 'Uploading Image...' : 'Creating Account...'}
                     </>
                   ) : (
                     'Create Sitter Account'

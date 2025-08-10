@@ -4,10 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "NODE_ENV=development next dev",
+    "dev:production": "NODE_ENV=production next dev",
     "build": "next build",
+    "build:dev": "NODE_ENV=development next build",
+    "build:prod": "NODE_ENV=production next build",
+    "build:staging": "NODE_ENV=staging next build",
     "start": "next start -H 0.0.0.0",
+    "start:dev": "NODE_ENV=development next start -H 0.0.0.0",
+    "start:prod": "NODE_ENV=production next start -H 0.0.0.0",
     "lint": "next lint",
-    "build:debug": "next build --debug"
+    "build:debug": "next build --debug",
+    "env:dev": "cp .env.development .env.local",
+    "env:prod": "cp .env.production .env.local"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
