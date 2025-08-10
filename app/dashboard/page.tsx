@@ -958,7 +958,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 {/* Notes List */}
-                <div className="space-y-4">
+                <div className="space-y-4 h-[40rem] overflow-y-auto pr-2">
                   {notes.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
                       No notes yet. Add your first note above!

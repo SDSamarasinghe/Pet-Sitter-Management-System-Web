@@ -80,7 +80,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
   const visibleNavItems = getVisibleNavItems();
 
   return (
-    <header className="w-full flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="w-full h-16 min-h-16 max-h-16 flex items-center justify-between px-8 bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="flex items-center gap-2">
         <button 
           onClick={() => router.push('/')}
@@ -91,7 +91,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
       </div>
       
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center gap-6 overflow-x-auto scrollbar-hide">
+  <nav className="hidden md:flex items-center gap-6 overflow-x-auto scrollbar-hide h-full flex-none">
         {visibleNavItems.slice(0, 6).map((item) => (
           <button
             key={item.href}
@@ -108,7 +108,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
       </nav>
 
       {/* Mobile Navigation Menu */}
-      <nav className="md:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide max-w-xs">
+  <nav className="md:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide max-w-xs h-full flex-none">
         {visibleNavItems.slice(0, 4).map((item) => (
           <button
             key={item.href}
