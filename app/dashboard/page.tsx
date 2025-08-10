@@ -275,6 +275,8 @@ interface Booking {
 }
 
 export default function DashboardPage() {
+  const { toast } = useToast();
+  
   // Sitter approval modal state
   const [isSitterDialogOpen, setIsSitterDialogOpen] = useState(false);
   const [selectedSitter, setSelectedSitter] = useState<any>(null);
@@ -396,7 +398,7 @@ export default function DashboardPage() {
       toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update status.' });
     }
   };
-  const { toast } = useToast();
+  
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -416,6 +418,15 @@ export default function DashboardPage() {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
   const [showAllInvoices, setShowAllInvoices] = useState(false);
+  
+  // Image upload state for notes
+  const [noteImages, setNoteImages] = useState<File[]>([]);
+  const [noteImagePreviews, setNoteImagePreviews] = useState<string[]>([]);
+  const [replyImages, setReplyImages] = useState<File[]>([]);
+  const [replyImagePreviews, setReplyImagePreviews] = useState<string[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const noteImageInputRef = useRef<HTMLInputElement>(null);
+  const replyImageInputRef = useRef<HTMLInputElement>(null);
   
   // Admin-specific state
   const [adminUsers, setAdminUsers] = useState<User[]>([]);
@@ -561,28 +572,166 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
+  // Image upload handlers for notes
+  const handleNoteImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are allowed",
+          variant: "destructive"
+        });
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "File too large",
+          description: `${file.name} is larger than 5MB`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      return true;
+    });
+
+    // Add to existing images (allow multiple)
+    setNoteImages(prev => [...prev, ...validFiles]);
+
+    // Create previews
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setNoteImagePreviews(prev => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleReplyImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are allowed",
+          variant: "destructive"
+        });
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "File too large",
+          description: `${file.name} is larger than 5MB`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      return true;
+    });
+
+    // Add to existing images
+    setReplyImages(prev => [...prev, ...validFiles]);
+
+    // Create previews
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setReplyImagePreviews(prev => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeNoteImage = (index: number) => {
+    setNoteImages(prev => prev.filter((_, i) => i !== index));
+    setNoteImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeReplyImage = (index: number) => {
+    setReplyImages(prev => prev.filter((_, i) => i !== index));
+    setReplyImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (images: File[]): Promise<any[]> => {
+    const uploadPromises = images.map(async (image) => {
+      const formData = new FormData();
+      formData.append('file', image);
+
+      const response = await api.post('/upload/note-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return {
+        type: 'image',
+        url: response.data.url,
+        filename: response.data.originalName,
+      };
+    });
+
+    return Promise.all(uploadPromises);
+  };
+
   const handleAddNote = async () => {
     if (!selectedClient || !noteText.trim() || isSubmittingNote) return;
     
     setIsSubmittingNote(true);
     try {
+      let attachments: any[] = [];
+      
+      // Upload images if any
+      if (noteImages.length > 0) {
+        setIsUploadingImages(true);
+        try {
+          attachments = await uploadImages(noteImages);
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          toast({
+            title: "Image upload failed",
+            description: "Failed to upload images. Note will be created without images.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+      
       const noteData = {
         recipientId: selectedClient,
         text: noteText,
-        attachments: [] // TODO: Add image attachment functionality
+        attachments: attachments
       };
       
       const response = await api.post('/notes', noteData);
       
-      // Clear form first
+      // Clear form
       setNoteText("");
       setSelectedClient("");
+      setNoteImages([]);
+      setNoteImagePreviews([]);
       
       // Refresh notes to get the latest data
       await refreshNotes();
+      
+      toast({
+        title: "Note added successfully",
+        description: attachments.length > 0 ? `Note with ${attachments.length} image(s) added` : "Note added"
+      });
     } catch (error) {
       console.error("Error creating note:", error);
-      // You could add error handling/toast notification here
+      toast({
+        title: "Error creating note",
+        description: "Failed to create note. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmittingNote(false);
     }
@@ -593,22 +742,52 @@ export default function DashboardPage() {
     
     setIsSubmittingReply(true);
     try {
+      let attachments: any[] = [];
+      
+      // Upload images if any
+      if (replyImages.length > 0) {
+        setIsUploadingImages(true);
+        try {
+          attachments = await uploadImages(replyImages);
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          toast({
+            title: "Image upload failed",
+            description: "Failed to upload images. Reply will be created without images.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+      
       const replyData = {
         text: replyText,
-        attachments: [] // TODO: Add image attachment functionality
+        attachments: attachments
       };
       
       const response = await api.post(`/notes/${noteId}/replies`, replyData);
       
-      // Clear reply form first
+      // Clear reply form
       setReplyText("");
       setReplyingNoteId(null);
+      setReplyImages([]);
+      setReplyImagePreviews([]);
       
       // Refresh notes to get the updated data
       await refreshNotes();
+      
+      toast({
+        title: "Reply added successfully",
+        description: attachments.length > 0 ? `Reply with ${attachments.length} image(s) added` : "Reply added"
+      });
     } catch (error) {
       console.error("Error adding reply:", error);
-      // You could add error handling/toast notification here
+      toast({
+        title: "Error adding reply",
+        description: "Failed to add reply. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmittingReply(false);
     }
@@ -923,17 +1102,58 @@ export default function DashboardPage() {
                       rows={4}
                     />
                   </div>
+
+                  {/* Image Previews */}
+                  {noteImagePreviews.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Attached Images:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {noteImagePreviews.map((preview, index) => (
+                          <div key={index} className="relative">
+                            <img
+                              src={preview}
+                              alt={`Preview ${index + 1}`}
+                              className="w-20 h-20 object-cover rounded border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeNoteImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hidden File Input */}
+                  <input
+                    ref={noteImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleNoteImageSelect}
+                    className="hidden"
+                  />
+
                   {/* Action Buttons */}
                   <div className="flex justify-between items-center">
-                    <Button variant="outline" className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center space-x-2"
+                      onClick={() => noteImageInputRef.current?.click()}
+                      disabled={isUploadingImages}
+                    >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
-                      <span>Attach Images</span>
+                      <span>{isUploadingImages ? 'Uploading...' : 'Attach Images'}</span>
                     </Button>
                     <Button 
                       onClick={handleAddNote}
-                      disabled={!selectedClient || !noteText.trim() || isSubmittingNote}
+                      disabled={!selectedClient || !noteText.trim() || isSubmittingNote || isUploadingImages}
                       className="bg-primary text-white px-6 py-2 rounded-md font-semibold shadow hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmittingNote ? 'Adding...' : 'Add Note'}
@@ -1037,6 +1257,21 @@ export default function DashboardPage() {
                                       </span>
                                     </div>
                                     <p className="text-gray-700 text-sm leading-relaxed">{reply.text}</p>
+                                    {/* Reply Images (if any) */}
+                                    {reply.attachments && reply.attachments.length > 0 && (
+                                      <div className="mt-2">
+                                        <div className="flex space-x-2">
+                                          {reply.attachments.filter((att: any) => att.type === 'image').map((attachment: any, index: number) => (
+                                            <img
+                                              key={index}
+                                              src={attachment.url}
+                                              alt={attachment.filename}
+                                              className="w-24 h-24 object-cover rounded border"
+                                            />
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1052,21 +1287,67 @@ export default function DashboardPage() {
                                     className="w-full p-2 border border-gray-300 rounded-md resize-none"
                                     rows={2}
                                   />
+                                  
+                                  {/* Reply Image Previews */}
+                                  {replyImagePreviews.length > 0 && (
+                                    <div className="mb-2">
+                                      <h5 className="text-xs font-medium text-gray-600 mb-1">Attached Images:</h5>
+                                      <div className="flex flex-wrap gap-1">
+                                        {replyImagePreviews.map((preview, index) => (
+                                          <div key={index} className="relative">
+                                            <img
+                                              src={preview}
+                                              alt={`Reply preview ${index + 1}`}
+                                              className="w-16 h-16 object-cover rounded border"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => removeReplyImage(index)}
+                                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Hidden File Input for Reply */}
+                                  <input
+                                    ref={replyImageInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleReplyImageSelect}
+                                    className="hidden"
+                                  />
+                                  
                                   <div className="flex gap-2">
-                                    <Button variant="outline" className="flex items-center space-x-2">
+                                    <Button 
+                                      variant="outline" 
+                                      className="flex items-center space-x-2"
+                                      onClick={() => replyImageInputRef.current?.click()}
+                                      disabled={isUploadingImages}
+                                    >
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                       </svg>
-                                      <span>Attach Images</span>
+                                      <span>{isUploadingImages ? 'Uploading...' : 'Attach Images'}</span>
                                     </Button>
                                     <Button
                                       className="bg-primary text-white px-4 py-2 rounded-md font-semibold shadow hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                       onClick={() => handleReply(note._id || note.id)}
-                                      disabled={!replyText.trim() || isSubmittingReply}
+                                      disabled={!replyText.trim() || isSubmittingReply || isUploadingImages}
                                     >
                                       {isSubmittingReply ? 'Submitting...' : 'Submit'}
                                     </Button>
-                                    <Button variant="ghost" onClick={() => { setReplyingNoteId(null); setReplyText(""); }}>
+                                    <Button variant="ghost" onClick={() => { 
+                                      setReplyingNoteId(null); 
+                                      setReplyText(""); 
+                                      setReplyImages([]);
+                                      setReplyImagePreviews([]);
+                                    }}>
                                       Cancel
                                     </Button>
                                   </div>
