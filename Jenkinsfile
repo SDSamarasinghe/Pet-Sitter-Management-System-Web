@@ -28,30 +28,29 @@ pipeline {
                 }
             }
 
-            stage('Build Docker Image') {
-                steps {
-                    sh '''
-                        cat > Dockerfile << 'EOF'
-    FROM node:18-alpine AS builder
-    WORKDIR /app
-    COPY package*.json ./
-    RUN npm ci
-    COPY . .
-    RUN npm run build
-    FROM node:18-alpine AS production
-    WORKDIR /app
-    COPY --from=builder /app/.next ./.next
-    # Removed public copy since it does not exist
-    # COPY --from=builder /app/public ./public
-    EXPOSE 3000
-    CMD ["npm", "start"]
-    EOF
-                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest .
-                    '''
-                }
-            }
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    cat > Dockerfile << 'EOF'
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-            stage('Deploy') {
+FROM node:18-alpine AS production
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+RUN npm ci --only=production
+COPY --from=builder /app/.next ./.next
+EXPOSE 3000
+CMD ["npm", "start"]
+EOF
+                '''
+                sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest .'
+            }
+        }            stage('Deploy') {
                 steps {
                     sh '''
                         docker run -d \
