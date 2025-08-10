@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import Header from '@/components/Header';
 import api from '@/lib/api';
 import { isAuthenticated, getUserFromToken } from '@/lib/auth';
 import { ArrowLeft, Calendar, Clock, MapPin, PawPrint, User, MessageCircle, Send, Edit, Trash2 } from 'lucide-react';
