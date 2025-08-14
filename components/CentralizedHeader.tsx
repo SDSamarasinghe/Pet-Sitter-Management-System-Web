@@ -87,7 +87,7 @@ export default function CentralizedHeader({ showAuthButtons = true }: Centralize
           className="font-bold text-sm sm:text-base md:text-lg lg:text-xl tracking-tight flex items-center gap-1 sm:gap-2 hover:opacity-80"
         >
           <span className="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-black rounded-full mr-1" /> 
-          <span className="hidden sm:inline">Pet-sitter Management System</span>
+          <span className="hidden sm:inline">Whiskerz</span>
           <span className="sm:hidden">PetSitter</span>
         </button>
       </div>
