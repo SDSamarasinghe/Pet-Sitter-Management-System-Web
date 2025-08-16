@@ -68,11 +68,8 @@ export default function SignupPage() {
   useEffect(() => {
     if (isAuthenticated()) {
       const userRole = getUserRole();
-      if (userRole === 'admin') {
-        router.replace('/admin');
-      } else {
-        router.replace('/dashboard');
-      }
+  // Route authenticated users to unified dashboard
+  router.replace('/dashboard');
     }
   }, [router]);
 
