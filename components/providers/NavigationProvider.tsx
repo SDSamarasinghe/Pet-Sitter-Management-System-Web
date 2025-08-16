@@ -22,17 +22,16 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 // Define navigation items based on user roles
 const getNavigationItems = (userRole: string | null, isLoggedIn: boolean): NavigationItem[] => {
   const items: NavigationItem[] = [
-    { name: 'Home', href: '/', show: 'always' },
-    { name: 'Find Care', href: '/find-care', show: 'always' },
-    { name: 'Service Inquiry', href: '/service-inquiry', show: 'always' },
+  { name: 'Home', href: '/', show: 'always' },
+  { name: 'Service Inquiry', href: '/service-inquiry', show: 'always' },
+    { name: 'Services', href: '/services', show: 'always' },
   ];
 
   if (isLoggedIn) {
     items.push(
-      { name: 'Dashboard', href: userRole === 'admin' ? '/admin' : '/dashboard', show: 'authenticated' },
-      { name: 'Services', href: '/services', show: 'authenticated' },
+      // Admins should also land on the unified /dashboard route
+      { name: 'Dashboard', href: '/dashboard', show: 'authenticated' },
       { name: 'Bookings', href: '/bookings', show: 'authenticated' },
-      { name: 'Messages', href: '/messages', show: 'authenticated' },
       { name: 'Profile', href: '/profile', show: 'authenticated' }
     );
 

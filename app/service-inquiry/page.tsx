@@ -127,27 +127,26 @@ export default function ServiceInquiryPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      
-      <main className="flex-1 container mx-auto max-w-2xl py-8 px-4">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              Pet Service Inquiry
-            </CardTitle>
-            <CardDescription className="text-gray-600">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <main className="container mx-auto max-w-4xl px-4">
+        <div className="bg-white rounded-lg shadow-sm border p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Pet Service Inquiry</h1>
+            <p className="text-gray-600">
               After you fill out this service request, we will contact you to go over details and availability. 
               Thank you for considering Flying Duchess for your pets!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Customer Information */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Customer Information</h2>
               
-              {/* Customer Type */}
               <div className="space-y-2">
-                <Label htmlFor="customerType">Are you a new or existing customer? *</Label>
+                <Label htmlFor="customerType" className="text-sm font-medium text-gray-700">Are you a new or existing customer? *</Label>
                 <Select onValueChange={(value: string) => handleSelectChange('customerType', value)} required>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select customer type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -157,33 +156,62 @@ export default function ServiceInquiryPage() {
                 </Select>
               </div>
 
-              {/* Name */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name *</Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name *</Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     required
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              {/* Address */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">Phone number *</Label>
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    placeholder="(416) 555-0123"
+                    required
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">E-mail *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="your@email.com"
+                    required
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="address">Address including unit number and postal code *</Label>
+                <Label htmlFor="address" className="text-sm font-medium text-gray-700">Address including unit number and postal code *</Label>
                 <Input
                   id="address"
                   name="address"
@@ -191,14 +219,19 @@ export default function ServiceInquiryPage() {
                   onChange={handleInputChange}
                   placeholder="123 Main St, Unit 4B, Toronto ON M5V 3A1"
                   required
+                  className="w-full"
                 />
               </div>
+            </div>
 
-              {/* Number of Pets */}
+            {/* Pet Information */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Pet Information</h2>
+              
               <div className="space-y-2">
-                <Label htmlFor="numberOfPets">Number of pets *</Label>
+                <Label htmlFor="numberOfPets" className="text-sm font-medium text-gray-700">Number of pets *</Label>
                 <Select onValueChange={(value) => handleSelectChange('numberOfPets', value)} required>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select number of pets" />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,10 +242,9 @@ export default function ServiceInquiryPage() {
                 </Select>
               </div>
 
-              {/* Pet Types */}
               <div className="space-y-2">
-                <Label>Select type of pets *</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <Label className="text-sm font-medium text-gray-700">Select type of pets *</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {petTypeOptions.map((petType) => (
                     <div key={petType} className="flex items-center space-x-2">
                       <Checkbox
@@ -220,16 +252,20 @@ export default function ServiceInquiryPage() {
                         checked={formData.petTypes.includes(petType)}
                         onCheckedChange={(checked) => handlePetTypeChange(petType, checked as boolean)}
                       />
-                      <Label htmlFor={petType} className="text-sm">{petType}</Label>
+                      <Label htmlFor={petType} className="text-sm font-normal">{petType}</Label>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Service Dates */}
-              <div className="grid grid-cols-2 gap-4">
+            {/* Service Information */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Service Information</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start date of your service *</Label>
+                  <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">Start date of your service *</Label>
                   <Input
                     id="startDate"
                     name="startDate"
@@ -237,10 +273,11 @@ export default function ServiceInquiryPage() {
                     value={formData.startDate}
                     onChange={handleInputChange}
                     required
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">End date of your service *</Label>
+                  <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">End date of your service *</Label>
                   <Input
                     id="endDate"
                     name="endDate"
@@ -248,41 +285,13 @@ export default function ServiceInquiryPage() {
                     value={formData.endDate}
                     onChange={handleInputChange}
                     required
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              {/* Contact Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone number *</Label>
-                  <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="(416) 555-0123"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Additional Details */}
               <div className="space-y-2">
-                <Label htmlFor="additionalDetails">
+                <Label htmlFor="additionalDetails" className="text-sm font-medium text-gray-700">
                   Additional details such as medication schedules, special care instructions, etc.
                 </Label>
                 <Textarea
@@ -292,38 +301,38 @@ export default function ServiceInquiryPage() {
                   value={formData.additionalDetails}
                   onChange={handleInputChange}
                   placeholder="Please provide any special care instructions, medication schedules, feeding requirements, or other important details about your pets..."
+                  className="w-full"
                 />
               </div>
+            </div>
 
-
-
-              <div className="flex gap-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Spinner size="sm" className="mr-2" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Service Inquiry'
-                  )}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            <div className="flex gap-4 justify-center pt-6">
+              <Button 
+                type="submit" 
+                className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Spinner size="sm" className="mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Service Inquiry'
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => router.push('/dashboard')}
+                disabled={isLoading}
+                className="w-full max-w-sm"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
       </main>
     </div>
   );

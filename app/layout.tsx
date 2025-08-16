@@ -5,8 +5,15 @@ import CentralizedHeader from "@/components/CentralizedHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pet-Sitting System",
-  description: "Professional in-home pet care services in Toronto",
+  title: "PetCare - Professional Pet Sitting Services",
+  description: "Toronto's most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.",
+  keywords: "pet sitting, dog walking, cat care, pet care Toronto, professional pet sitters",
+  authors: [{ name: "PetCare Team" }],
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -15,15 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-      <html lang="en">
+      <html lang="en" className="scroll-smooth">
         <head>
           <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         </head>
-        <body className="h-screen bg-gray-50 font-sans antialiased overflow-hidden">
+        <body className="h-screen bg-background text-foreground antialiased overflow-hidden">
           <NavigationProvider>
             <div className="h-screen flex flex-col">
               <CentralizedHeader />
-              <main className="flex-1 overflow-auto bg-gray-50">
+              <main className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-white scrollbar-modern">
                 <div className="min-h-full w-full">
                   {children}
                 </div>

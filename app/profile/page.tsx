@@ -17,7 +17,7 @@ interface User {
   firstName: string;
   lastName: string;
   role: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
   emergencyContact?: string;
   homeCareInfo?: string;
@@ -32,7 +32,7 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
     address: "",
     emergencyContact: "",
     homeCareInfo: ""
@@ -55,7 +55,7 @@ export default function ProfilePage() {
           firstName: userData.firstName || "",
           lastName: userData.lastName || "",
           email: userData.email || "",
-          phone: userData.phone || "",
+          phoneNumber: userData.phoneNumber || "",
           address: userData.address || "",
           emergencyContact: userData.emergencyContact || "",
           homeCareInfo: userData.homeCareInfo || ""
@@ -84,13 +84,15 @@ export default function ProfilePage() {
     setMessage({ type: "", text: "" });
 
     try {
+      // Use the new /users/profile endpoint for updates
       const response = await api.put("/users/profile", formData);
       setUser(response.data);
       setIsEditing(false);
       setMessage({ type: "success", text: "Profile updated successfully!" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-      setMessage({ type: "error", text: "Failed to update profile. Please try again." });
+      const errorMessage = error.response?.data?.message || "Failed to update profile. Please try again.";
+      setMessage({ type: "error", text: errorMessage });
     } finally {
       setIsSaving(false);
     }
@@ -102,7 +104,7 @@ export default function ProfilePage() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
-        phone: user.phone || "",
+        phoneNumber: user.phoneNumber || "",
         address: user.address || "",
         emergencyContact: user.emergencyContact || "",
         homeCareInfo: user.homeCareInfo || ""
@@ -204,12 +206,12 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phoneNumber">Phone Number</Label>
               <Input
-                id="phone"
-                name="phone"
+                id="phoneNumber"
+                name="phoneNumber"
                 type="tel"
-                value={formData.phone}
+                value={formData.phoneNumber}
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 placeholder="(416) 555-0123"

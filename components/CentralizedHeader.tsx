@@ -1,239 +1,307 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from '@/lib/auth';
-import { useNavigation } from '@/components/providers/NavigationProvider';
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { 
+  isAuthenticated, 
+  removeToken, 
+  getUserFromToken, 
+  getUserRole 
+} from "@/lib/auth";
+import { useNavigation } from "./providers/NavigationProvider";
 
-interface CentralizedHeaderProps {
-  showAuthButtons?: boolean;
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: string;
 }
 
-export default function CentralizedHeader({ showAuthButtons = true }: CentralizedHeaderProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+const CentralizedHeader: React.FC = () => {
   const router = useRouter();
-  const { navigationItems, currentPath, userRole, isLoggedIn } = useNavigation();
+  const pathname = usePathname();
+  const { navigationItems } = useNavigation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    if (isAuthenticated()) {
-      const userToken = getUserFromToken();
-      if (userToken) {
-        setUser({ firstName: userToken.firstName || "User" });
-      }
+    const userToken = getUserFromToken();
+    if (userToken) {
+      setUser(userToken);
     }
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+        setDropdownOpen(false);
       }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   const handleLogout = () => {
     removeToken();
     setUser(null);
-    setIsDropdownOpen(false);
-    router.push('/login');
+    setDropdownOpen(false);
+    router.push("/");
   };
 
-  const handleDashboardNavigation = () => {
-    const userRole = getUserRole();
-    if (userRole === 'admin') {
-      router.push('/admin');
-    } else {
-      router.push('/dashboard');
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    setIsOpen(false); // Close mobile menu
+  };
+
+  const isCurrentPath = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
     }
-    setIsDropdownOpen(false);
+    return pathname.startsWith(href);
   };
 
-  // Filter navigation items based on user role and authentication status
-  const getVisibleNavItems = () => {
-    return navigationItems.filter(item => {
-      switch (item.show) {
-        case 'always':
-          return true;
-        case 'authenticated':
-          return isLoggedIn;
-        case 'guest':
-          return !isLoggedIn;
-        case 'admin':
-          return userRole === 'admin';
-        case 'sitter':
-          return userRole === 'sitter';
-        case 'client':
-          return userRole === 'client';
-        default:
-          return false;
-      }
-    });
+  const getUserDisplayName = (user: User) => {
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    }
+    return user.email;
   };
 
-  const visibleNavItems = getVisibleNavItems();
+  const getRoleBadge = (role: string) => {
+    const roleColors = {
+      admin: 'bg-red-100 text-red-800',
+      sitter: 'bg-green-100 text-green-800',
+      client: 'bg-blue-100 text-blue-800'
+    };
+    
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleColors[role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'}`}>
+        {role}
+      </span>
+    );
+  };
 
   return (
-    <header className="w-full h-12 sm:h-14 md:h-16 min-h-12 sm:min-h-14 md:min-h-16 max-h-12 sm:max-h-14 md:max-h-16 flex items-center justify-between px-2 sm:px-4 md:px-6 lg:px-8 bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="flex items-center gap-2">
-        <button 
-          onClick={() => router.push('/')}
-          className="font-bold text-sm sm:text-base md:text-lg lg:text-xl tracking-tight flex items-center gap-1 sm:gap-2 hover:opacity-80"
-        >
-          <span className="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-black rounded-full mr-1" /> 
-          <span className="hidden sm:inline">Whiskerz</span>
-          <span className="sm:hidden">PetSitter</span>
-        </button>
-      </div>
-      
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:flex items-center gap-4 xl:gap-6 overflow-x-auto scrollbar-hide h-full flex-none">
-        {visibleNavItems.slice(0, 6).map((item) => (
-          <button
-            key={item.href}
-            onClick={() => router.push(item.href)}
-            className={`text-sm font-medium whitespace-nowrap transition-colors px-2 py-1 rounded ${
-              currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                : 'text-gray-700 hover:text-black hover:bg-gray-50'
-            }`}
+    <header className="glass sticky top-0 z-50 w-full border-b border-gray-200/20 backdrop-blur-xl bg-white/95">
+      <div className="container-modern">
+        <div className="flex h-16 lg:h-20 items-center justify-between">
+          {/* Logo */}
+          <div 
+            className="flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200" 
+            onClick={() => handleNavigation("/")}
           >
-            {item.name}
-          </button>
-        ))}
-      </nav>
+            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                PetCare
+              </span>
+              <span className="text-xs text-gray-500 font-medium hidden sm:block">
+                Professional Pet Sitting
+              </span>
+            </div>
+          </div>
 
-      {/* Tablet Navigation */}
-      <nav className="hidden md:flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide max-w-md h-full flex-none">
-        {visibleNavItems.slice(0, 4).map((item) => (
-          <button
-            key={item.href}
-            onClick={() => router.push(item.href)}
-            className={`text-xs font-medium whitespace-nowrap px-2 py-1 rounded transition-colors ${
-              currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-700 hover:text-black hover:bg-gray-50'
-            }`}
-          >
-            {item.name}
-          </button>
-        ))}
-      </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex lg:items-center lg:space-x-1">
+            {navigationItems.map((item) => (
+              <Button
+                key={item.href}
+                variant="ghost"
+                onClick={() => handleNavigation(item.href)}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  isCurrentPath(item.href)
+                    ? 'bg-blue-50 text-blue-700 shadow-sm'
+                    : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50/50'
+                }`}
+              >
+                {item.name}
+              </Button>
+            ))}
+          </nav>
 
-      {/* Mobile Navigation Menu */}
-      <nav className="md:hidden flex items-center gap-1 overflow-x-auto scrollbar-hide max-w-xs h-full flex-none">
-        {visibleNavItems.slice(0, 2).map((item) => (
-          <button
-            key={item.href}
-            onClick={() => router.push(item.href)}
-            className={`text-xs font-medium whitespace-nowrap px-1.5 py-0.5 rounded transition-colors ${
-              currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-700 hover:text-black hover:bg-gray-50'
-            }`}
-          >
-            {item.name}
-          </button>
-        ))}
-      </nav>
-
-      {/* Auth Section */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        {showAuthButtons && (
-          <>
-            {user ? (
-              /* Authenticated User Dropdown */
+          {/* Right side - Auth section */}
+          <div className="flex items-center space-x-3">
+            {isAuthenticated() && user ? (
               <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-black focus:outline-none"
+                <Button
+                  variant="ghost"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <span className="text-xs sm:text-sm font-medium">
-                    <span className="hidden sm:inline">Hello, </span>{user.firstName}
-                  </span>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                    <span className="text-white font-semibold text-sm lg:text-base">
+                      {getUserDisplayName(user).charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="hidden lg:block text-left">
+                    <div className="text-sm font-semibold text-gray-900">
+                      {getUserDisplayName(user)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {getRoleBadge(user.role)}
+                    </div>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-400 transition-transform duration-200" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                </Button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-md shadow-lg py-1 z-50 border">
-                    <button
-                      onClick={() => {
-                        router.push('/profile');
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Profile
-                    </button>
-                    <button
-                      onClick={handleDashboardNavigation}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                      </svg>
-                      {getUserRole() === 'admin' ? 'Admin Panel' : 'Dashboard'}
-                    </button>
-                    {/* Show more nav items in dropdown on mobile/tablet */}
-                    <div className="lg:hidden border-t border-gray-100 mt-1 pt-1">
-                      {visibleNavItems.slice(window.innerWidth < 768 ? 2 : 4).map((item) => (
-                        <button
-                          key={item.href}
-                          onClick={() => {
-                            router.push(item.href);
-                            setIsDropdownOpen(false);
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {item.name}
-                        </button>
-                      ))}
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-200/20 py-2 animate-scaleIn">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {getUserDisplayName(user)}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {user.email}
+                      </div>
+                      <div className="mt-2">
+                        {getRoleBadge(user.role)}
+                      </div>
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t border-gray-100 mt-1 pt-2"
-                    >
-                      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Logout
-                    </button>
+                    
+                    <div className="py-2">
+                      <button
+                        onClick={() => { setDropdownOpen(false); handleNavigation('/dashboard'); }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                      >
+                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        Dashboard
+                      </button>
+                      
+                      <button
+                        onClick={() => { setDropdownOpen(false); handleNavigation('/profile'); }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                      >
+                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Profile
+                      </button>
+                      
+                      {user.role === 'client' && (
+                        <button
+                          onClick={() => { setDropdownOpen(false); handleNavigation('/pets'); }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                        >
+                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          My Pets
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
+                      >
+                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
-              /* Not Authenticated - Show Login/Signup buttons */
-              <>
+              <div className="hidden lg:flex lg:items-center lg:space-x-3">
                 <Button 
-                  onClick={() => router.push('/login')}
-                  className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-                  size="sm"
+                  variant="ghost" 
+                  onClick={() => handleNavigation("/login")}
+                  className="px-6 py-2 rounded-xl font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50/50 transition-all duration-200"
                 >
-                  Log in
+                  Sign In
                 </Button>
                 <Button 
-                  className="bg-[#f5f6fa] text-gray-900 px-2 sm:px-4 py-1 sm:py-2 font-semibold text-xs sm:text-sm hover:bg-gray-200" 
-                  onClick={() => router.push('/signup')}
-                  size="sm"
+                  onClick={() => handleNavigation("/signup")}
+                  className="btn-primary px-6 py-2"
                 >
-                  Sign up
+                  Get Started
                 </Button>
-              </>
+              </div>
             )}
-          </>
+
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              className="lg:hidden p-2 rounded-xl hover:bg-gray-50"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {isOpen && (
+          <div className="lg:hidden border-t border-gray-200/20 py-4 animate-slideUp">
+            <nav className="flex flex-col space-y-2">
+              {navigationItems.map((item) => (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  onClick={() => handleNavigation(item.href)}
+                  className={`justify-start px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    isCurrentPath(item.href)
+                      ? 'bg-blue-50 text-blue-700 shadow-sm'
+                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50/50'
+                  }`}
+                >
+                  {item.name}
+                </Button>
+              ))}
+
+              {!isAuthenticated() && (
+                <>
+                  <div className="border-t border-gray-200/50 pt-4 mt-4">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleNavigation("/login")}
+                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50/50 transition-all duration-200"
+                    >
+                      Sign In
+                    </Button>
+                    <Button 
+                      onClick={() => handleNavigation("/signup")}
+                      className="w-full mt-2 btn-primary py-3"
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                </>
+              )}
+            </nav>
+          </div>
         )}
       </div>
     </header>
   );
-}
+};
+
+export default CentralizedHeader;
