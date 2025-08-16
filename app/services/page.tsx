@@ -6,89 +6,153 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserFromToken, removeToken } from "@/lib/auth";
 
-const services = [
-  {
-    id: 1,
-    title: "Daily Cat Visits",
-    description: "We offer a vast variety of cat visits. You can choose from a daily 30, 45, 60min, or a twice daily service option.",
-    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80",
-    category: "Cats",
-    duration: "30-60 min",
-    price: "Starting at $35"
+// Type definitions
+interface Service {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  duration: string;
+  price: string;
+}
+
+interface ServiceCategory {
+  icon: string;
+  description: string;
+  services: Service[];
+}
+
+type ServiceCategories = {
+  "Pet Sitting": ServiceCategory;
+  "Dog Walking": ServiceCategory;
+  "Extended Care": ServiceCategory;
+};
+
+// Organized service categories based on the wireframe
+const serviceCategories: ServiceCategories = {
+  "Pet Sitting": {
+    icon: "🏠",
+    description: "In-home care for your beloved pets",
+    services: [
+      {
+        id: 1,
+        title: "Cat Sitting",
+        description: "Daily visits for your feline friends. 30, 45, or 60-minute visits available.",
+        image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80",
+        duration: "30-60 min",
+        price: "Starting at $35"
+      },
+      {
+        id: 2,
+        title: "Dog Sitting",
+        description: "Premium in-home dog sitting service offering comfort and care in familiar surroundings.",
+        image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
+        duration: "Full day",
+        price: "Starting at $80"
+      },
+      {
+        id: 3,
+        title: "Rabbit Sitting",
+        description: "Specialized care for bunnies of all breeds, from Holland Lops to English Spots.",
+        image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
+        duration: "30-45 min",
+        price: "Starting at $30"
+      },
+      {
+        id: 4,
+        title: "Bird Sitting",
+        description: "Professional care for your feathered companions with specialized knowledge.",
+        image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
+        duration: "30-45 min",
+        price: "Starting at $30"
+      },
+      {
+        id: 5,
+        title: "Pocket Pet Sitting",
+        description: "Expert care for small pets including hamsters, guinea pigs, chinchillas, and sugar gliders.",
+        image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&q=80",
+        duration: "30 min",
+        price: "Starting at $25"
+      },
+      {
+        id: 6,
+        title: "Multiple Pet Types",
+        description: "Comprehensive care for households with various pet types and species.",
+        image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=80",
+        duration: "Variable",
+        price: "Custom pricing"
+      }
+    ]
   },
-  {
-    id: 2,
-    title: "Private Dog Walks",
-    description: "This premium in home dog sitting service offers your canine companions all the comforts of being at home.",
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
-    category: "Dogs",
-    duration: "30-60 min",
-    price: "Starting at $40"
+  "Dog Walking": {
+    icon: "🚶‍♂️",
+    description: "Professional dog walking services",
+    services: [
+      {
+        id: 7,
+        title: "Private Dog Walks",
+        description: "One-on-one walks tailored to your dog's pace and preferences.",
+        image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
+        duration: "30-60 min",
+        price: "Starting at $40"
+      },
+      {
+        id: 8,
+        title: "Group Dog Walks",
+        description: "Socialized walks with other friendly dogs for exercise and companionship.",
+        image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=400&q=80",
+        duration: "45-60 min",
+        price: "Starting at $30"
+      },
+      {
+        id: 9,
+        title: "Puppy Walks",
+        description: "Gentle, short walks perfect for puppies and senior dogs with special needs.",
+        image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=400&q=80",
+        duration: "15-30 min",
+        price: "Starting at $25"
+      }
+    ]
   },
-  {
-    id: 3,
-    title: "In Home Dog Sitting",
-    description: "Comprehensive in-home care for your dogs while you're away, ensuring they stay comfortable in their familiar environment.",
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
-    category: "Dogs",
-    duration: "Full day",
-    price: "Starting at $80"
-  },
-  {
-    id: 4,
-    title: "Bird Sitting",
-    description: "We provide daily Bird Sitting to our loyal clients throughout the neighbourhoods of Toronto. Choose from a range of services.",
-    image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
-    category: "Birds",
-    duration: "30-45 min",
-    price: "Starting at $30"
-  },
-  {
-    id: 5,
-    title: "Daily Bunny Visits",
-    description: "Whether its your Holland Lop, English Spot, Netherland Dwarf, or other exotic breed or just your garden variety rabbit.",
-    image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
-    category: "Rabbits",
-    duration: "30-45 min",
-    price: "Starting at $30"
-  },
-  {
-    id: 6,
-    title: "Overnight & Live-in Services",
-    description: "We can provide a combination overnight and/or live-in service for your pets when you need extended care.",
-    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80",
-    category: "All Pets",
-    duration: "Overnight",
-    price: "Starting at $120"
-  },
-  {
-    id: 7,
-    title: "AM & PM Visits",
-    description: "Perfect for pets that need multiple check-ins throughout the day. Morning and evening care to maintain routine.",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=400&q=80",
-    category: "All Pets",
-    duration: "2 visits/day",
-    price: "Starting at $65"
-  },
-  {
-    id: 8,
-    title: "Multiple Pet Households",
-    description: "Variety is the spice of life. Whether it's two cats and a dog or the other way around, we've got you covered.",
-    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=80",
-    category: "Multiple Pets",
-    duration: "Variable",
-    price: "Custom pricing"
-  },
-  {
-    id: 9,
-    title: "Pocket Pet Sitting",
-    description: "From sugar gliders to hamsters, guinea pigs to chinchillas our experienced sitters will make a big impression on your pocket pets.",
-    image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&q=80",
-    category: "Small Pets",
-    duration: "30 min",
-    price: "Starting at $25"
+  "Extended Care": {
+    icon: "🌙",
+    description: "Overnight and extended pet care services",
+    services: [
+      {
+        id: 10,
+        title: "Overnight Pet Sitting",
+        description: "Overnight care in your pet's familiar environment while you're away.",
+        image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80",
+        duration: "Overnight",
+        price: "Starting at $120"
+      },
+      {
+        id: 11,
+        title: "Live-in Pet Care",
+        description: "Full-time live-in care for extended periods, ensuring constant companionship.",
+        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=400&q=80",
+        duration: "24/7 care",
+        price: "Starting at $200/day"
+      },
+      {
+        id: 12,
+        title: "AM & PM Visits",
+        description: "Morning and evening visits to maintain your pet's daily routine.",
+        image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=400&q=80",
+        duration: "2 visits/day",
+        price: "Starting at $65"
+      },
+      {
+        id: 13,
+        title: "Holiday Pet Care",
+        description: "Special holiday packages ensuring your pets are well-cared for during festive seasons.",
+        image: "https://images.unsplash.com/photo-1512236393941-ef5c2b150d7b?auto=format&fit=crop&w=400&q=80",
+        duration: "Custom schedule",
+        price: "Holiday rates apply"
+      }
+    ]
   }
-];
+};
 
 const features = [
   "★ Experienced",
@@ -100,6 +164,7 @@ const features = [
 ];
 
 export default function ServicesPage() {
+  const [activeCategory, setActiveCategory] = useState<keyof ServiceCategories>("Pet Sitting");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -160,12 +225,69 @@ export default function ServicesPage() {
           </Button>
         </div>
 
-        {/* Services Grid */}
+        {/* Services Categories and Grid */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Our Services</h2>
+          
+          {/* Category Navigation */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {Object.entries(serviceCategories).map(([categoryName, category]) => (
+              <button
+                key={categoryName}
+                onClick={() => {
+                  if (categoryName === "Dog Walking") {
+                    router.push('/services/dog-walking');
+                  } else if (categoryName === "Cat Sitting") {
+                    router.push('/services/cat-sitting');
+                  } else {
+                    setActiveCategory(categoryName as keyof ServiceCategories);
+                  }
+                }}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
+                  activeCategory === categoryName
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                }`}
+              >
+                <span className="text-lg">{category.icon}</span>
+                <span>{categoryName}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active Category Description */}
+          <div className="text-center mb-8">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {serviceCategories[activeCategory].description}
+            </p>
+          </div>
+
+          {/* Services Grid for Active Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <Card key={service.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {serviceCategories[activeCategory].services.map((service: Service) => (
+              <Card 
+                key={service.id} 
+                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => {
+                  // Navigate to specific service pages
+                  if (service.title === "Cat Sitting") {
+                    router.push('/services/cat-sitting');
+                  } else if (service.title === "Dog Sitting") {
+                    router.push('/services/dog-sitting');
+                  } else if (service.title === "Rabbit Sitting") {
+                    router.push('/services/rabbit-sitting');
+                  } else if (service.title === "Bird Sitting") {
+                    router.push('/services/bird-sitting');
+                  } else if (service.title === "Pocket Pet Sitting") {
+                    router.push('/services/pocket-pet-sitting');
+                  } else if (service.title === "Multiple Pet Types") {
+                    router.push('/services/multiple-pet-types');
+                  } else {
+                    // For other services, go to service inquiry
+                    router.push('/service-inquiry');
+                  }
+                }}
+              >
                 <div className="aspect-video overflow-hidden">
                   <img 
                     src={service.image} 
@@ -176,8 +298,8 @@ export default function ServicesPage() {
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <span className="text-sm bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                      {service.category}
+                    <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      Pet Sitting
                     </span>
                   </div>
                   <CardDescription>{service.description}</CardDescription>
@@ -187,15 +309,30 @@ export default function ServicesPage() {
                     <span className="text-sm text-gray-600">Duration: {service.duration}</span>
                     <span className="font-semibold text-green-600">{service.price}</span>
                   </div>
-                  <Button 
-                    className="w-full rounded-full" 
-                    onClick={() => router.push('/service-inquiry')}
-                  >
-                    Book This Service
-                  </Button>
+                  <div className="text-center">
+                    <span className="text-blue-600 font-medium">Click to view details →</span>
+                  </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          {/* View All Services Button */}
+          <div className="text-center mt-8">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                // Cycle through categories to show all services
+                const categories = Object.keys(serviceCategories) as Array<keyof ServiceCategories>;
+                const currentIndex = categories.indexOf(activeCategory);
+                const nextIndex = (currentIndex + 1) % categories.length;
+                setActiveCategory(categories[nextIndex]);
+              }}
+              className="rounded-full px-8"
+            >
+              Browse More Services
+            </Button>
           </div>
         </section>
 
