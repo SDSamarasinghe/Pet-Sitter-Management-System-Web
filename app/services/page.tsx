@@ -31,7 +31,7 @@ type ServiceCategories = {
 // Organized service categories based on the wireframe
 const serviceCategories: ServiceCategories = {
   "Pet Sitting": {
-    icon: "🏠",
+    icon: "",
     description: "In-home care for your beloved pets",
     services: [
       {
@@ -85,7 +85,7 @@ const serviceCategories: ServiceCategories = {
     ]
   },
   "Dog Walking": {
-    icon: "🚶‍♂️",
+    icon: "",
     description: "Professional dog walking services",
     services: [
       {
@@ -115,7 +115,7 @@ const serviceCategories: ServiceCategories = {
     ]
   },
   "Extended Care": {
-    icon: "🌙",
+    icon: "",
     description: "Overnight and extended pet care services",
     services: [
       {

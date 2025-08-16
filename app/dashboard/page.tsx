@@ -892,20 +892,29 @@ export default function DashboardPage() {
   const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="h-full bg-transparent">
-      <main className="w-full max-w-none sm:max-w-4xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto py-4 sm:py-6 md:py-8 lg:py-10 px-2 sm:px-4 md:px-6 lg:px-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8">Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <main className="container-modern section-padding">
+        <div className="mb-8 animate-fadeIn">
+          <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}
+          </h1>
+          <p className="text-gray-600">
+            {user?.role === 'admin' ? 'Manage your pet care business' : 
+             user?.role === 'sitter' ? 'Manage your clients and bookings' : 
+             'Manage your pets and bookings'}
+          </p>
+        </div>
 
-        {/* Tab Navigation */}
-        <section className="mb-6 sm:mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-2 sm:space-x-4 md:space-x-6 lg:space-x-8 overflow-x-auto scrollbar-hide pb-0">
+        {/* Modern Tab Navigation */}
+        <section className="mb-8">
+          <div className="card-modern p-2 inline-flex animate-slideUp">
+            <nav className="flex space-x-1 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setActiveTab("communication")}
-                className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === "communication"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                 }`}
               >
                 Communication
@@ -914,10 +923,10 @@ export default function DashboardPage() {
                 <>
                   <button
                     onClick={() => setActiveTab("users")}
-                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Users ({adminUsers.length})</span>
@@ -925,10 +934,10 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("sitters")}
-                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "sitters"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
@@ -936,10 +945,10 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("bookings")}
-                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "bookings"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
@@ -947,10 +956,10 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("address-changes")}
-                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "address-changes"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
@@ -958,10 +967,10 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("pets")}
-                    className={`py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Pets ({adminPets.length})</span>
@@ -972,40 +981,40 @@ export default function DashboardPage() {
                 <>
                   <button
                     onClick={() => setActiveTab("users")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     My Users
                   </button>
                   <button
                     onClick={() => setActiveTab("scheduling")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "scheduling"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     Scheduling
                   </button>
                   <button
                     onClick={() => setActiveTab("profile")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     My Profile
                   </button>
                   <button
                     onClick={() => setActiveTab("dashboard")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "dashboard"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     Dashboard
@@ -1015,50 +1024,50 @@ export default function DashboardPage() {
                 <>
                   <button
                     onClick={() => setActiveTab("profile")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     My Profile
                   </button>
                   <button
                     onClick={() => setActiveTab("pets")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     My Pets
                   </button>
                   <button
                     onClick={() => setActiveTab("security")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "security"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     Key Security
                   </button>
                   <button
                     onClick={() => setActiveTab("booking")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "booking"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     Book Now
                   </button>
                   <button
                     onClick={() => setActiveTab("invoices")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "invoices"
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     Invoices
@@ -1069,20 +1078,20 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Tab Content */}
-        <section className="mb-8">
+        {/* Modern Tab Content */}
+        <section className="animate-fadeIn">
           {activeTab === "communication" && (
             <div className="space-y-6">
               {/* Add Note Section (not for clients) */}
               {user?.role !== 'client' && (
-                <div className="bg-white p-6 rounded-lg border">
-                  <h2 className="text-xl font-semibold mb-4">ADD NOTE</h2>
+                <div className="card-modern p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-900">ADD NOTE</h2>
                   {/* Client Selection Dropdown */}
                   <div className="mb-4">
                     <select
                       value={selectedClient}
                       onChange={(e) => setSelectedClient(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-700"
+                      className="input-modern w-full"
                     >
                       <option value="">Select the person to add note</option>
                       {availableUsers.map((user) => (
@@ -1098,7 +1107,7 @@ export default function DashboardPage() {
                       value={noteText}
                       onChange={(e) => setNoteText(e.target.value)}
                       placeholder="Write your note here..."
-                      className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                      className="input-modern w-full resize-none"
                       rows={4}
                     />
                   </div>
@@ -1163,15 +1172,15 @@ export default function DashboardPage() {
               )}
 
               {/* Recent Notes Section */}
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="card-modern p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Recent Notes</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Notes</h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Filter by user</span>
                     <select
                       value={filterByUser}
                       onChange={(e) => setFilterByUser(e.target.value)}
-                      className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+                      className="text-sm border border-gray-300 rounded-xl px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">All</option>
                       {availableUsers.map((user) => (
@@ -1183,7 +1192,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 {/* Notes List */}
-                <div className="space-y-4 h-[40rem] overflow-y-auto pr-2">
+                <div className="space-y-4 h-[40rem] overflow-y-auto scrollbar-modern pr-2">
                   {notes.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
                       No notes yet. Add your first note above!
@@ -1863,20 +1872,21 @@ export default function DashboardPage() {
        
 
           {activeTab === "profile" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">My Profile</h2>
-              <div className="bg-white p-6 rounded-lg border">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-600">{user?.firstName?.[0]}</span>
+            <div className="space-y-6">
+              <div className="card-modern p-8">
+                <div className="flex items-center space-x-6 mb-6">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                    <span className="text-3xl font-bold text-white">{user?.firstName?.[0]}</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">{user?.firstName} {user?.lastName}</h3>
-                    <p className="text-gray-600">{user?.email}</p>
-                    <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-1">{user?.firstName} {user?.lastName}</h3>
+                    <p className="text-gray-600 mb-2">{user?.email}</p>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 capitalize">
+                      {user?.role}
+                    </span>
                   </div>
                 </div>
-                <Button onClick={() => router.push('/profile')} className="w-full sm:w-auto">
+                <Button onClick={() => router.push('/profile')} className="btn-primary">
                   Edit Profile
                 </Button>
               </div>
@@ -2059,11 +2069,29 @@ export default function DashboardPage() {
 
           {activeTab === "security" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Key Security</h2>
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Key Security
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  Manage your home access and security information
+                </p>
+              </div>
               
               {/* Key Access Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-4">Key Access</h3>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Key Access
+                  </CardTitle>
+                  <CardDescription>
+                    Provide secure access information for your pet sitter
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="space-y-4">
                   {/* Lockbox Code */}
@@ -2076,7 +2104,7 @@ export default function DashboardPage() {
                         type="text"
                         value={lockboxCode}
                         onChange={(e) => setLockboxCode(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Enter lockbox code"
                       />
                       <p className="text-xs text-gray-500 mt-1">
@@ -2093,7 +2121,7 @@ export default function DashboardPage() {
                         type="text"
                         value={lockboxLocation}
                         onChange={(e) => setLockboxLocation(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Describe lockbox location"
                       />
                     </div>
@@ -2107,7 +2135,7 @@ export default function DashboardPage() {
                         type="text"
                         value={alarmCompanyName}
                         onChange={(e) => setAlarmCompanyName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Enter alarm company name"
                       />
                     </div>
@@ -2121,7 +2149,7 @@ export default function DashboardPage() {
                         type="text"
                         value={alarmCompanyPhone}
                         onChange={(e) => setAlarmCompanyPhone(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Enter phone number"
                       />
                     </div>
@@ -2135,7 +2163,7 @@ export default function DashboardPage() {
                         type="password"
                         value={alarmCodeToEnter}
                         onChange={(e) => setAlarmCodeToEnter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Enter alarm code"
                       />
                     </div>
@@ -2149,7 +2177,7 @@ export default function DashboardPage() {
                         type="password"
                         value={alarmCodeToExit}
                         onChange={(e) => setAlarmCodeToExit(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full"
                         placeholder="Enter exit code"
                       />
                     </div>
@@ -2165,17 +2193,29 @@ export default function DashboardPage() {
                         value={additionalComments}
                         onChange={(e) => setAdditionalComments(e.target.value)}
                         rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full resize-none"
                         placeholder="Enter any additional comments..."
                       />
                     </div>
                   </div>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Others Who Have Access Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-4">Others Who Have Access To Your Home</h3>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Others Who Have Access To Your Home
+                  </CardTitle>
+                  <CardDescription>
+                    Specify who else has access to your home for emergencies
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="space-y-4">
                   {/* Access Checkboxes */}
@@ -2217,40 +2257,72 @@ export default function DashboardPage() {
                         value={homeAccessList}
                         onChange={(e) => setHomeAccessList(e.target.value)}
                         rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-modern w-full resize-none"
                         placeholder="Eg. My Mum (Rhoda Smith) - 416-123-4567"
                       />
                     </div>
                   </div>
                 </div>
+                </CardContent>
 
                 {/* Update Button */}
-                <div className="mt-6 flex justify-start">
-                  <Button onClick={handleUpdateKeySecurity} size="sm" className="px-6">
+                <div className="mt-6 flex justify-start px-6 pb-6">
+                  <Button onClick={handleUpdateKeySecurity} size="sm" className="button-modern">
                     Update
                   </Button>
                 </div>
-              </div>
+              </Card>
             </div>
           )}
 
           {activeTab === "booking" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Book Now</h2>
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Book Now
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  Schedule your pet care services quickly and easily
+                </p>
+              </div>
               
               {/* Addon Booking Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <p className="text-sm text-gray-600 mb-4">
-                  To book Add-ons only, e.g. consultation, key pickup/dropoff, purchase a lockbox, click here:
-                </p>
-                <Button className="bg-primary text-white px-6 py-2">
-                  Book Add-on Only
-                </Button>
-              </div>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add-on Services
+                  </CardTitle>
+                  <CardDescription>
+                    Book additional services like consultations or key management
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-4">
+                    To book Add-ons only, e.g. consultation, key pickup/dropoff, purchase a lockbox, click here:
+                  </p>
+                  <Button className="button-modern">
+                    Book Add-on Only
+                  </Button>
+                </CardContent>
+              </Card>
 
               {/* Main Booking Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <p className="text-sm font-medium mb-4">Book your pet visit services here:</p>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 10V9m6 8V9m0 0a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9z" />
+                    </svg>
+                    Pet Care Services
+                  </CardTitle>
+                  <CardDescription>
+                    Book your regular pet visit services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   {/* Service Selection */}
@@ -2281,17 +2353,26 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <Button className="bg-primary text-white px-6 py-2">
+                <Button className="button-modern">
                   Check Availability
                 </Button>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Other Payments Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-2">Other Payments</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Make payments for late bookings, booking changes, etc here:
-                </p>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Other Payments
+                  </CardTitle>
+                  <CardDescription>
+                    Make payments for late bookings, booking changes, etc
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -2299,26 +2380,38 @@ export default function DashboardPage() {
                     <input
                       type="number"
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                     <textarea
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full resize-none"
                     />
                   </div>
                 </div>
 
-                <Button className="bg-primary text-white px-6 py-2">
+                <Button className="button-modern">
                   Other Payments
                 </Button>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Assigned Sitters Section */}
-              <div className="bg-white p-6 rounded-lg border">
-                <h3 className="text-lg font-semibold mb-4">Assigned Sitters</h3>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    Assigned Sitters
+                  </CardTitle>
+                  <CardDescription>
+                    View and manage your assigned pet care specialists
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
@@ -2347,14 +2440,34 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
           {activeTab === "invoices" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Invoices</h2>
-              <div className="bg-white p-6 rounded-lg border">
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Invoices
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  View and manage your payment history
+                </p>
+              </div>
+              <Card className="card-modern">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Payment History
+                  </CardTitle>
+                  <CardDescription>
+                    Your service booking invoices and payment status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                 {user?.role === 'client' ? (
                   <>
                     <div className="overflow-x-auto">
@@ -2427,7 +2540,8 @@ export default function DashboardPage() {
                     </div>
                   </>
                 )}
-              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </section>

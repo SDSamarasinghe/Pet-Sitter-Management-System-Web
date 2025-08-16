@@ -58,59 +58,125 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] flex flex-col">
-      {/* Login Form */}
-      <main className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-md mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8 mt-4 text-gray-900">Welcome back</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center section-padding">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8 animate-fadeIn">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p className="text-gray-600">Sign in to your PetCare account</p>
+        </div>
+
+        {/* Login Form */}
+        <div className="card-modern p-8 animate-slideUp">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-base font-medium text-gray-800">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address
+              </label>
               <input
                 id="email"
                 type="email"
-                placeholder="Email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 "
+                className="input-modern w-full"
+                disabled={isLoading}
               />
             </div>
+
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-base font-medium text-gray-800">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
-                placeholder="Password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 rounded border"
+                className="input-modern w-full"
+                disabled={isLoading}
               />
             </div>
-            <div className="flex justify-start items-center">
-              <a href="/forgot-password" className="text-[#5b9cf6] text-sm hover:underline">Forgot password?</a>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <a href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                  Forgot password?
+                </a>
+              </div>
             </div>
+
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full btn-primary py-3 text-base font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Logging in...
+                  Signing in...
                 </>
               ) : (
-                'Log in'
+                'Sign In'
               )}
             </Button>
           </form>
-          <div className="text-center mt-6">
-            <a href="/signup" className="text-sm text-gray-700 hover:underline">Don't have an account? <span className="text-[#5b9cf6]">Sign up</span></a>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/signup')}
+                className="w-full btn-outline py-3 text-base font-medium"
+                disabled={isLoading}
+              >
+                Create Account
+              </Button>
+            </div>
           </div>
         </div>
-      </main>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-gray-500">
+          By signing in, you agree to our{' '}
+          <a href="/terms" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a href="/privacy" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+            Privacy Policy
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
