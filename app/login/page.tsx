@@ -18,11 +18,8 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated()) {
       const userRole = getUserRole();
-      if (userRole === 'admin') {
-        router.replace('/admin');
-      } else {
-        router.replace('/dashboard');
-      }
+  // Regardless of role, authenticated users should land on the unified dashboard
+  router.replace('/dashboard');
     }
   }, [router]);
 
@@ -38,13 +35,9 @@ export default function LoginPage() {
         description: "Welcome back to your dashboard.",
       });
       // Redirect based on user role and force reload to update header state
-      const userRole = getUserRole();
+      // Redirect all users to the unified dashboard after login to keep routes consistent
       if (typeof window !== 'undefined') {
-        if (userRole === 'admin') {
-          window.location.href = '/admin';
-        } else {
-          window.location.href = '/dashboard';
-        }
+        window.location.href = '/dashboard';
       }
     } catch (error: any) {
       toast({
