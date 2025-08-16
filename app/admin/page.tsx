@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,6 +121,15 @@ export default function AdminPage() {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [filterByUser, setFilterByUser] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // Image attachment state
+  const [noteImages, setNoteImages] = useState<File[]>([]);
+  const [noteImagePreviews, setNoteImagePreviews] = useState<string[]>([]);
+  const [replyImages, setReplyImages] = useState<File[]>([]);
+  const [replyImagePreviews, setReplyImagePreviews] = useState<string[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const noteImageInputRef = useRef<HTMLInputElement>(null);
+  const replyImageInputRef = useRef<HTMLInputElement>(null);
   
   const router = useRouter();
 
@@ -352,22 +361,44 @@ export default function AdminPage() {
     
     setIsSubmittingNote(true);
     try {
+      let attachments: any[] = [];
+      
+      // Upload images if any
+      if (noteImages.length > 0) {
+        setIsUploadingImages(true);
+        try {
+          attachments = await uploadImages(noteImages);
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          toast({
+            title: "Image upload failed",
+            description: "Failed to upload images. Note will be created without images.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+      
       const noteData = {
         recipientId: selectedClient,
         text: noteText,
-        attachments: []
+        attachments: attachments
       };
       
       await api.post('/notes', noteData);
       
+      // Clear form
       setNoteText("");
       setSelectedClient("");
+      setNoteImages([]);
+      setNoteImagePreviews([]);
       
       await refreshNotes();
       
       toast({
         title: 'Note added successfully!',
-        description: 'Your note has been posted.',
+        description: attachments.length > 0 ? `Note with ${attachments.length} image(s) added` : "Note added",
       });
     } catch (error) {
       console.error("Error creating note:", error);
@@ -386,15 +417,37 @@ export default function AdminPage() {
     
     setIsSubmittingReply(true);
     try {
+      let attachments: any[] = [];
+      
+      // Upload images if any
+      if (replyImages.length > 0) {
+        setIsUploadingImages(true);
+        try {
+          attachments = await uploadImages(replyImages);
+        } catch (error) {
+          console.error("Error uploading reply images:", error);
+          toast({
+            title: "Image upload failed",
+            description: "Failed to upload images. Reply will be created without images.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploadingImages(false);
+        }
+      }
+      
       const replyData = {
         text: replyText,
-        attachments: []
+        attachments: attachments
       };
       
       await api.post(`/notes/${noteId}/replies`, replyData);
       
+      // Clear form
       setReplyText("");
       setReplyingNoteId(null);
+      setReplyImages([]);
+      setReplyImagePreviews([]);
       
       await refreshNotes();
       
@@ -412,6 +465,138 @@ export default function AdminPage() {
     } finally {
       setIsSubmittingReply(false);
     }
+  };
+
+  // Image handling functions for notes
+  const handleNoteImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const validFiles: File[] = [];
+    const validPreviews: string[] = [];
+
+    files.forEach(file => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: `${file.name} is not a valid image type. Please select JPEG, PNG, GIF, or WebP images.`,
+        });
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: `${file.name} is larger than 5MB. Please choose a smaller image.`,
+        });
+        return;
+      }
+
+      validFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        validPreviews.push(e.target?.result as string);
+        if (validPreviews.length === validFiles.length) {
+          setNoteImages(prev => [...prev, ...validFiles]);
+          setNoteImagePreviews(prev => [...prev, ...validPreviews]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeNoteImage = (index: number) => {
+    setNoteImages(prev => prev.filter((_, i) => i !== index));
+    setNoteImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleReplyImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const validFiles: File[] = [];
+    const validPreviews: string[] = [];
+
+    files.forEach(file => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: `${file.name} is not a valid image type. Please select JPEG, PNG, GIF, or WebP images.`,
+        });
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: `${file.name} is larger than 5MB. Please choose a smaller image.`,
+        });
+        return;
+      }
+
+      validFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        validPreviews.push(e.target?.result as string);
+        if (validPreviews.length === validFiles.length) {
+          setReplyImages(prev => [...prev, ...validFiles]);
+          setReplyImagePreviews(prev => [...prev, ...validPreviews]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeReplyImage = (index: number) => {
+    setReplyImages(prev => prev.filter((_, i) => i !== index));
+    setReplyImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (images: File[]): Promise<any[]> => {
+    if (images.length === 0) return [];
+
+    const uploadPromises = images.map(async (image) => {
+      const formData = new FormData();
+      formData.append('file', image);
+
+      try {
+        const response = await api.post('/upload/note-image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (response.data.success) {
+          return {
+            type: 'image',
+            url: response.data.url,
+            filename: image.name
+          };
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (error) {
+        console.error(`Error uploading ${image.name}:`, error);
+        toast({
+          variant: "destructive",
+          title: "Upload failed",
+          description: `Failed to upload ${image.name}`,
+        });
+        throw error;
+      }
+    });
+
+    return Promise.all(uploadPromises);
   };
 
   const refreshNotes = async () => {
@@ -949,12 +1134,68 @@ export default function AdminPage() {
                       className="w-full mt-1"
                     />
                   </div>
+                  
+                  {/* File Upload Section */}
+                  <div className="space-y-2">
+                    <Label htmlFor="note-attachments">Attachments (Optional)</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => noteImageInputRef.current?.click()}
+                        disabled={isUploadingImages}
+                        className="flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Add Images
+                      </Button>
+                      <input
+                        ref={noteImageInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleNoteImageSelect}
+                        className="hidden"
+                      />
+                      {noteImages.length > 0 && (
+                        <span className="text-sm text-gray-600">
+                          {noteImages.length} file(s) selected
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Image Previews */}
+                    {noteImagePreviews.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {noteImagePreviews.map((preview, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={preview}
+                              alt={`Preview ${index + 1}`}
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeNoteImage(index)}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
                   <Button 
                     onClick={handleAddNote}
-                    disabled={!noteText.trim()}
+                    disabled={!noteText.trim() || isSubmittingNote || isUploadingImages}
                     className="w-full sm:w-auto"
                   >
-                    Add Note
+                    {isSubmittingNote ? 'Adding Note...' : isUploadingImages ? 'Uploading Images...' : 'Add Note'}
                   </Button>
                 </div>
               </div>
@@ -988,6 +1229,39 @@ export default function AdminPage() {
                         </div>
                         <p className="text-gray-700 mb-3">{note.text}</p>
                         
+                        {/* Note Attachments */}
+                        {note.attachments && note.attachments.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-sm text-gray-600 mb-2">Attachments:</div>
+                            <div className="flex flex-wrap gap-2">
+                              {note.attachments.map((attachment: any, idx: number) => (
+                                <div key={idx} className="relative group">
+                                  {attachment.type === 'image' ? (
+                                    <img
+                                      src={attachment.url}
+                                      alt={attachment.filename || `Attachment ${idx + 1}`}
+                                      className="w-24 h-24 object-cover rounded border cursor-pointer hover:opacity-80"
+                                      onClick={() => window.open(attachment.url, '_blank')}
+                                    />
+                                  ) : (
+                                    <a
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded border text-sm hover:bg-gray-200"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      {attachment.filename || `File ${idx + 1}`}
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* Replies */}
                         {note.replies && note.replies.length > 0 && (
                           <div className="ml-4 border-l-2 border-gray-200 pl-4 space-y-3">
@@ -1004,6 +1278,38 @@ export default function AdminPage() {
                                   </span>
                                 </div>
                                 <p className="text-gray-700 text-sm">{reply.text}</p>
+                                
+                                {/* Reply Attachments */}
+                                {reply.attachments && reply.attachments.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="flex flex-wrap gap-1">
+                                      {reply.attachments.map((attachment: any, attachIdx: number) => (
+                                        <div key={attachIdx} className="relative group">
+                                          {attachment.type === 'image' ? (
+                                            <img
+                                              src={attachment.url}
+                                              alt={attachment.filename || `Reply attachment ${attachIdx + 1}`}
+                                              className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80"
+                                              onClick={() => window.open(attachment.url, '_blank')}
+                                            />
+                                          ) : (
+                                            <a
+                                              href={attachment.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center gap-1 px-2 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                                            >
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                              </svg>
+                                              {attachment.filename || `File ${attachIdx + 1}`}
+                                            </a>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -1020,13 +1326,68 @@ export default function AdminPage() {
                                 rows={2}
                                 className="w-full"
                               />
+                              
+                              {/* Reply Attachments */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => replyImageInputRef.current?.click()}
+                                    disabled={isUploadingImages}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Add Images
+                                  </Button>
+                                  <input
+                                    ref={replyImageInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleReplyImageSelect}
+                                    className="hidden"
+                                  />
+                                  {replyImages.length > 0 && (
+                                    <span className="text-sm text-gray-600">
+                                      {replyImages.length} file(s) selected
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Reply Image Previews */}
+                                {replyImagePreviews.length > 0 && (
+                                  <div className="flex flex-wrap gap-2">
+                                    {replyImagePreviews.map((preview, index) => (
+                                      <div key={index} className="relative group">
+                                        <img
+                                          src={preview}
+                                          alt={`Reply preview ${index + 1}`}
+                                          className="w-12 h-12 object-cover rounded border"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => removeReplyImage(index)}
+                                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              
                               <div className="flex gap-2">
                                 <Button 
                                   size="sm" 
                                   onClick={() => handleReply(note._id)}
-                                  disabled={!replyText.trim()}
+                                  disabled={!replyText.trim() || isSubmittingReply || isUploadingImages}
                                 >
-                                  Submit Reply
+                                  {isSubmittingReply ? 'Submitting...' : isUploadingImages ? 'Uploading...' : 'Submit Reply'}
                                 </Button>
                                 <Button 
                                   size="sm" 
@@ -1034,6 +1395,8 @@ export default function AdminPage() {
                                   onClick={() => {
                                     setReplyingNoteId(null);
                                     setReplyText('');
+                                    setReplyImages([]);
+                                    setReplyImagePreviews([]);
                                   }}
                                 >
                                   Cancel
