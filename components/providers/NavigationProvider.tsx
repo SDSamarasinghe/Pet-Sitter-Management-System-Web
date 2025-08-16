@@ -29,9 +29,9 @@ const getNavigationItems = (userRole: string | null, isLoggedIn: boolean): Navig
 
   if (isLoggedIn) {
     items.push(
-      { name: 'Dashboard', href: userRole === 'admin' ? '/admin' : '/dashboard', show: 'authenticated' },
+      // Admins should also land on the unified /dashboard route
+      { name: 'Dashboard', href: '/dashboard', show: 'authenticated' },
       { name: 'Bookings', href: '/bookings', show: 'authenticated' },
-      { name: 'Messages', href: '/messages', show: 'authenticated' },
       { name: 'Profile', href: '/profile', show: 'authenticated' }
     );
 
