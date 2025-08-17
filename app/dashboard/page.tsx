@@ -255,6 +255,8 @@ interface User {
   emergencyContact?: string;
   homeCareInfo?: string;
   pets?: Pet[];
+  status?: 'pending' | 'approved' | 'rejected'; // Add status for user approval
+  createdAt?: string;
 }
 
 interface Pet {
@@ -284,6 +286,14 @@ export default function DashboardPage() {
   const [sitterForm, setSitterForm] = useState({ password: '', confirmPassword: '', notes: '' });
   const [sitterError, setSitterError] = useState('');
   const [sitterLoading, setSitterLoading] = useState(false);
+
+  // User approval modal state (similar to sitter approval)
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userActionType, setUserActionType] = useState<'approve' | 'reject'>('approve');
+  const [userForm, setUserForm] = useState({ password: '', confirmPassword: '', notes: '' });
+  const [userError, setUserError] = useState('');
+  const [userLoading, setUserLoading] = useState(false);
 
   // Open modal and set sitter/action
   const openSitterDialog = (sitter: any, action: 'approve' | 'reject') => {
@@ -334,6 +344,57 @@ export default function DashboardPage() {
       setSitterLoading(false);
     }
   };
+
+  // Open user approval/rejection modal (similar to sitter modal)
+  const openUserDialog = (user: any, action: 'approve' | 'reject') => {
+    setSelectedUser(user);
+    setUserActionType(action);
+    setUserForm({ password: '', confirmPassword: '', notes: '' });
+    setUserError('');
+    setIsUserDialogOpen(true);
+  };
+
+  // Approve/reject user handler
+  const handleUserAction = async () => {
+    if (!selectedUser?._id && !selectedUser?.id) return;
+    setUserLoading(true);
+    setUserError('');
+    if (userActionType === 'approve') {
+      if (userForm.password.length < 6) {
+        setUserError('Password must be at least 6 characters long');
+        setUserLoading(false);
+        return;
+      }
+      if (userForm.password !== userForm.confirmPassword) {
+        setUserError('Passwords do not match');
+        setUserLoading(false);
+        return;
+      }
+    }
+    try {
+      const userId = selectedUser._id || selectedUser.id;
+      if (userActionType === 'approve') {
+        await api.put(`/users/${userId}/approve`, {
+          password: userForm.password,
+          confirmPassword: userForm.confirmPassword,
+        });
+        toast({ title: 'User approved', description: `${selectedUser.firstName} ${selectedUser.lastName} approved.` });
+      } else {
+        await api.put(`/users/${userId}/reject`, { notes: userForm.notes });
+        toast({ title: 'User rejected', description: `${selectedUser.firstName} ${selectedUser.lastName} rejected.` });
+      }
+      // Refresh users
+      const res = await api.get('/users/admin/clients');
+      setAdminUsers(res.data ?? []);
+      setIsUserDialogOpen(false);
+      setSelectedUser(null);
+    } catch (err: any) {
+      setUserError(err.response?.data?.message || 'Failed to update user.');
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   // Helper: Status badge for sitters/bookings
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -1395,9 +1456,11 @@ export default function DashboardPage() {
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Address</TableHead>
                         <TableHead>Emergency Contact</TableHead>
                         <TableHead>Created At</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1410,16 +1473,28 @@ export default function DashboardPage() {
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.phone || 'N/A'}</TableCell>
                             <TableCell className="capitalize">{user.role}</TableCell>
+                            <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
                             <TableCell>
                               {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString() : 'N/A'}
                             </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                {user.status === 'pending' && (
+                                  <>
+                                    <Button size="sm" onClick={() => openUserDialog(user, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                    <Button size="sm" variant="destructive" onClick={() => openUserDialog(user, 'reject')}>Reject</Button>
+                                  </>
+                                )}
+                                <Button size="sm" variant="outline" onClick={() => alert(`Name: ${user.firstName} ${user.lastName}\nEmail: ${user.email}\nPhone: ${user.phone}\nRole: ${user.role}\nAddress: ${user.address}\nEmergency Contact: ${user.emergencyContact}`)}>View Details</Button>
+                              </div>
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
+                          <TableCell colSpan={9} className="text-center py-8">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -1523,16 +1598,7 @@ export default function DashboardPage() {
                         </div>
                       </>
                     )}
-                    <div className="mb-4">
-                      <label className="block font-medium mb-1">Notes (Optional)</label>
-                      <textarea
-                        className="w-full border rounded px-3 py-2"
-                        placeholder={`Add any notes about this ${sitterActionType}...`}
-                        value={sitterForm.notes}
-                        onChange={e => setSitterForm(f => ({ ...f, notes: e.target.value }))}
-                        rows={3}
-                      />
-                    </div>
+
                     {sitterError && <div className="text-red-600 mb-3">{sitterError}</div>}
                     <div className="flex justify-end gap-3 mt-6">
                       <Button variant="outline" onClick={() => setIsSitterDialogOpen(false)} disabled={sitterLoading}>Cancel</Button>
@@ -1544,6 +1610,54 @@ export default function DashboardPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* User Approve/Reject Modal */}
+          {isUserDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                <h2 className="text-2xl font-bold mb-1">{userActionType === 'approve' ? 'Approve' : 'Reject'} User Account</h2>
+                <p className="mb-4 text-gray-600">
+                  {userActionType === 'approve'
+                    ? `Approve ${selectedUser?.firstName} ${selectedUser?.lastName} as a user. A temporary password will be set for their account.`
+                    : `Reject ${selectedUser?.firstName} ${selectedUser?.lastName}'s user account.`}
+                </p>
+                {userActionType === 'approve' && (
+                  <>
+                    <div className="mb-4">
+                      <label className="block font-medium mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Enter temporary password"
+                        value={userForm.password}
+                        onChange={e => setUserForm(f => ({ ...f, password: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block font-medium mb-1">Confirm Password *</label>
+                      <input
+                        type="password"
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Confirm temporary password"
+                        value={userForm.confirmPassword}
+                        onChange={e => setUserForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+               
+                {userError && <div className="text-red-600 mb-3">{userError}</div>}
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setIsUserDialogOpen(false)} disabled={userLoading}>Cancel</Button>
+                  <Button onClick={handleUserAction} disabled={userLoading} className={userActionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''} variant={userActionType === 'reject' ? 'destructive' : 'default'}>
+                    {userLoading ? (userActionType === 'approve' ? 'Approving...' : 'Rejecting...') : (userActionType === 'approve' ? 'Approve User' : 'Reject User')}
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Admin: Bookings Tab */}
@@ -1603,7 +1717,6 @@ export default function DashboardPage() {
                                 <select id={`booking-status-${booking._id}`} value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-0">
                                   <option value="pending">Pending</option>
                                   <option value="confirmed">Confirmed</option>
-                                  <option value="in-progress">In Progress</option>
                                   <option value="completed">Completed</option>
                                   <option value="cancelled">Cancelled</option>
                                 </select>
