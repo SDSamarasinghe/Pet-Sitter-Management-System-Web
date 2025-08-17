@@ -501,6 +501,18 @@ export default function DashboardPage() {
   const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
   const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
   
+  // Availability checking state
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [bookingFormData, setBookingFormData] = useState({
+    service: 'Once A Day Pet Sitting 45min - C$40',
+    startDate: '',
+    endDate: '',
+    startTime: '09:00',
+    endTime: '09:45'
+  });
+  
   // Add-on booking modal state
   const [isAddonModalOpen, setIsAddonModalOpen] = useState(false);
   const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
@@ -885,6 +897,97 @@ export default function DashboardPage() {
       setNotes(response.data.notes || response.data || []);
     } catch (error) {
       console.error("Error refreshing notes:", error);
+    }
+  };
+
+  // Check availability for assigned sitters
+  const checkSitterAvailability = async () => {
+    if (!bookingFormData.startDate || !bookingFormData.endDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both start and end dates",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!assignedSitters || assignedSitters.length === 0) {
+      toast({
+        title: "No Sitters Available",
+        description: "You don't have any assigned sitters yet",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCheckingAvailability(true);
+    const results: any[] = [];
+
+    try {
+      // Check each assigned sitter's availability
+      for (const sitter of assignedSitters) {
+        try {
+          const sitterId = sitter._id || sitter.id;
+          
+          // Prepare query parameters for GET request
+          const queryParams = {
+            startDate: bookingFormData.startDate, // Already in YYYY-MM-DD format
+            endDate: bookingFormData.endDate,     // Already in YYYY-MM-DD format
+            ...(bookingFormData.startTime && { startTime: bookingFormData.startTime }),
+            ...(bookingFormData.endTime && { endTime: bookingFormData.endTime })
+          };
+
+          const response = await api.get(`/api/availability/check/${sitterId}`, {
+            params: queryParams
+          });
+
+          // Handle the backend response structure
+          const responseData = response.data.data || response.data;
+          
+          results.push({
+            sitter: sitter,
+            availability: {
+              isAvailable: responseData.isAvailable,
+              availableSlots: responseData.availableSlots || [],
+              workingHours: responseData.workingHours,
+              remainingBookings: responseData.remainingBookings,
+              reason: responseData.conflicts && responseData.conflicts.length > 0 
+                ? responseData.conflicts.join(', ') 
+                : undefined
+            },
+            status: responseData.isAvailable ? 'available' : 'busy'
+          });
+        } catch (error: any) {
+          console.error(`Error checking availability for sitter ${sitter.firstName}:`, error);
+          
+          // Extract error message from response
+          let errorMessage = 'Failed to check availability';
+          if (error?.response?.data?.message) {
+            errorMessage = Array.isArray(error.response.data.message) 
+              ? error.response.data.message.join(', ')
+              : error.response.data.message;
+          }
+          
+          results.push({
+            sitter: sitter,
+            availability: null,
+            status: 'error',
+            error: errorMessage
+          });
+        }
+      }
+
+      setAvailabilityResults(results);
+      setShowAvailabilityModal(true);
+    } catch (error) {
+      console.error('Error checking sitter availability:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check sitter availability",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingAvailability(false);
     }
   };
 
@@ -2516,8 +2619,15 @@ export default function DashboardPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
                     <p className="text-xs text-gray-500 mb-2">Select from drop down</p>
                     <div className="relative">
-                      <select className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300">
+                      <select 
+                        value={bookingFormData.service}
+                        onChange={(e) => setBookingFormData(prev => ({ ...prev, service: e.target.value }))}
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                      >
                         <option>Once A Day Pet Sitting 45min - C$40</option>
+                        <option>Twice A Day Pet Sitting 30min each - C$55</option>
+                        <option>Dog Walking 30min - C$25</option>
+                        <option>Extended Pet Sitting 60min - C$50</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2533,7 +2643,10 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
+                      value={bookingFormData.startDate}
+                      onChange={(e) => setBookingFormData(prev => ({ ...prev, startDate: e.target.value }))}
                       className="input-modern w-full"
+                      min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
 
@@ -2543,13 +2656,52 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
+                      value={bookingFormData.endDate}
+                      onChange={(e) => setBookingFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="input-modern w-full"
+                      min={bookingFormData.startDate || new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+
+                {/* Time Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                    <input
+                      type="time"
+                      value={bookingFormData.startTime}
+                      onChange={(e) => setBookingFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                      className="input-modern w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                    <input
+                      type="time"
+                      value={bookingFormData.endTime}
+                      onChange={(e) => setBookingFormData(prev => ({ ...prev, endTime: e.target.value }))}
                       className="input-modern w-full"
                     />
                   </div>
                 </div>
 
-                <Button className="button-modern">
-                  Check Availability
+                <Button 
+                  className="button-modern"
+                  onClick={checkSitterAvailability}
+                  disabled={isCheckingAvailability || !bookingFormData.startDate || !bookingFormData.endDate}
+                >
+                  {isCheckingAvailability ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Checking Availability...
+                    </>
+                  ) : (
+                    'Check Availability'
+                  )}
                 </Button>
                 </CardContent>
               </Card>
@@ -2857,6 +3009,224 @@ export default function DashboardPage() {
                         </Button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sitter Availability Results Modal */}
+              {showAvailabilityModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative animate-fadeIn max-h-[90vh] overflow-y-auto">
+                    <div className="flex justify-between items-center mb-6">
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Sitter Availability Results</h2>
+                        <p className="text-gray-600 mt-1">
+                          Availability for {bookingFormData.service} on {new Date(bookingFormData.startDate).toLocaleDateString()} 
+                          {bookingFormData.startDate !== bookingFormData.endDate && ` to ${new Date(bookingFormData.endDate).toLocaleDateString()}`}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Time: {bookingFormData.startTime} - {bookingFormData.endTime}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowAvailabilityModal(false);
+                          setAvailabilityResults([]);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {availabilityResults.map((result, index) => (
+                        <div 
+                          key={result.sitter._id || result.sitter.id || index}
+                          className={`border rounded-lg p-4 ${
+                            result.status === 'available' 
+                              ? 'border-green-200 bg-green-50' 
+                              : result.status === 'busy' 
+                                ? 'border-red-200 bg-red-50'
+                                : 'border-gray-200 bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {/* Sitter Avatar */}
+                              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span className="text-lg font-medium text-blue-600">
+                                  {result.sitter.firstName?.charAt(0)}{result.sitter.lastName?.charAt(0)}
+                                </span>
+                              </div>
+                              
+                              {/* Sitter Info */}
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                  {result.sitter.firstName} {result.sitter.lastName}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {result.sitter.email} • {result.sitter.phone || result.sitter.emergencyContact || 'No phone'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Status Badge */}
+                            <div className="flex items-center space-x-3">
+                              {result.status === 'available' ? (
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex items-center">
+                                    <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span className="text-green-700 font-semibold">Available</span>
+                                  </div>
+                                  <Button 
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    onClick={() => {
+                                      toast({
+                                        title: "Booking Confirmed!",
+                                        description: `Booking confirmed with ${result.sitter.firstName} ${result.sitter.lastName}`,
+                                      });
+                                      setShowAvailabilityModal(false);
+                                    }}
+                                  >
+                                    Book Now
+                                  </Button>
+                                </div>
+                              ) : result.status === 'busy' ? (
+                                <div className="flex items-center">
+                                  <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span className="text-red-700 font-semibold">Busy</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center">
+                                  <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                  </svg>
+                                  <span className="text-gray-700 font-semibold">Error</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Availability Details */}
+                          {result.availability && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              {result.status === 'available' ? (
+                                <div className="space-y-2">
+                                  <p className="text-sm text-green-700">
+                                    ✓ Available for the requested time slot
+                                  </p>
+                                  {result.availability.workingHours && (
+                                    <p className="text-sm text-gray-600">
+                                      Working hours: {result.availability.workingHours.startTime} - {result.availability.workingHours.endTime}
+                                    </p>
+                                  )}
+                                  {result.availability.remainingBookings !== undefined && (
+                                    <p className="text-sm text-gray-600">
+                                      Can take {result.availability.remainingBookings} more booking(s) today
+                                    </p>
+                                  )}
+                                  {result.availability.availableSlots && result.availability.availableSlots.length > 0 && (
+                                    <div className="mt-2">
+                                      <p className="text-sm text-gray-600 mb-1">Other available time slots:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {result.availability.availableSlots.slice(0, 3).map((slot: any, slotIndex: number) => (
+                                          <span 
+                                            key={slotIndex}
+                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                          >
+                                            {slot.startTime} - {slot.endTime}
+                                          </span>
+                                        ))}
+                                        {result.availability.availableSlots.length > 3 && (
+                                          <span className="text-xs text-gray-500">+{result.availability.availableSlots.length - 3} more</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : result.status === 'busy' && result.availability ? (
+                                <div className="space-y-2">
+                                  <p className="text-sm text-red-700">
+                                    ✗ {result.availability.reason || 'Not available for the requested time'}
+                                  </p>
+                                  {result.availability.availableSlots && result.availability.availableSlots.length > 0 && (
+                                    <div className="mt-2">
+                                      <p className="text-sm text-gray-600 mb-1">Available alternative time slots:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {result.availability.availableSlots.slice(0, 3).map((slot: any, slotIndex: number) => (
+                                          <span 
+                                            key={slotIndex}
+                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                          >
+                                            {slot.startTime} - {slot.endTime}
+                                          </span>
+                                        ))}
+                                        {result.availability.availableSlots.length > 3 && (
+                                          <span className="text-xs text-gray-500">+{result.availability.availableSlots.length - 3} more</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {result.availability.workingHours && (
+                                    <p className="text-sm text-gray-600">
+                                      Working hours: {result.availability.workingHours.startTime} - {result.availability.workingHours.endTime}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : result.error && (
+                                <p className="text-sm text-gray-600">{result.error}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {availabilityResults.length === 0 && (
+                        <div className="text-center py-8">
+                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p className="text-gray-600">No availability results to show</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Summary */}
+                    {availabilityResults.length > 0 && (
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <div className="flex space-x-4">
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              {availabilityResults.filter(r => r.status === 'available').length} Available
+                            </span>
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              {availabilityResults.filter(r => r.status === 'busy').length} Busy
+                            </span>
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                              {availabilityResults.filter(r => r.status === 'error').length} Error
+                            </span>
+                          </div>
+                          <Button 
+                            variant="outline"
+                            onClick={() => {
+                              setShowAvailabilityModal(false);
+                              setAvailabilityResults([]);
+                            }}
+                          >
+                            Close
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
