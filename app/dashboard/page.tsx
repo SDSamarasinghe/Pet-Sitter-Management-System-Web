@@ -501,6 +501,12 @@ export default function DashboardPage() {
   const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
   const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
   
+  // Add-on booking modal state
+  const [isAddonModalOpen, setIsAddonModalOpen] = useState(false);
+  const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
   // Key Security form state
   const [lockboxCode, setLockboxCode] = useState("4242");
   const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
@@ -2480,7 +2486,10 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600 mb-4">
                     To book Add-ons only, e.g. consultation, key pickup/dropoff, purchase a lockbox, click here:
                   </p>
-                  <Button className="button-modern">
+                  <Button 
+                    className="button-modern"
+                    onClick={() => setIsAddonModalOpen(true)}
+                  >
                     Book Add-on Only
                   </Button>
                 </CardContent>
@@ -2521,6 +2530,7 @@ export default function DashboardPage() {
                   {/* Start Date */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
                       className="input-modern w-full"
@@ -2530,6 +2540,7 @@ export default function DashboardPage() {
                   {/* End Date */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
                       className="input-modern w-full"
@@ -2701,6 +2712,150 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                       <Button variant="outline" onClick={() => { setIsSitterDetailsModalOpen(false); setSelectedSitterDetails(null); }}>Close</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add-on Booking Modal */}
+              {isAddonModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative animate-fadeIn">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-bold">Book Add-on Only</h2>
+                      <button
+                        onClick={() => {
+                          setIsAddonModalOpen(false);
+                          setSelectedAddonSitter('');
+                          setSelectedAddons([]);
+                          setAgreedToTerms(false);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Select Sitter */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Sitter
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={selectedAddonSitter}
+                            onChange={(e) => setSelectedAddonSitter(e.target.value)}
+                            className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                          >
+                            <option value="">CarolC</option>
+                            {assignedSitters.map((sitter) => (
+                              <option key={sitter._id || sitter.id} value={sitter._id || sitter.id}>
+                                {sitter.firstName} {sitter.lastName}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Add-ons */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Add-ons
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedAddons.includes('virtual-consultation')}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedAddons([...selectedAddons, 'virtual-consultation']);
+                                } else {
+                                  setSelectedAddons(selectedAddons.filter(addon => addon !== 'virtual-consultation'));
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">Virtual Consultation - C$25</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedAddons.includes('in-home-consultation')}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedAddons([...selectedAddons, 'in-home-consultation']);
+                                } else {
+                                  setSelectedAddons(selectedAddons.filter(addon => addon !== 'in-home-consultation'));
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">In Home Consultation - C$30</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Terms and Conditions */}
+                      <div>
+                        <label className="flex items-start space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+                          />
+                          <span className="text-sm text-gray-700">
+                            I have read and agree to the{' '}
+                            <a href="#" className="text-blue-600 underline">
+                              Flying Duchess Pet Sitters Policies, Terms and Conditions
+                            </a>
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsAddonModalOpen(false);
+                            setSelectedAddonSitter('');
+                            setSelectedAddons([]);
+                            setAgreedToTerms(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={selectedAddons.length === 0 || !agreedToTerms}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            // Handle checkout logic here
+                            console.log('Checkout:', {
+                              sitter: selectedAddonSitter,
+                              addons: selectedAddons,
+                              agreedToTerms
+                            });
+                            toast({
+                              title: "Add-on services booked!",
+                              description: `Selected ${selectedAddons.length} service(s)`
+                            });
+                            setIsAddonModalOpen(false);
+                            setSelectedAddonSitter('');
+                            setSelectedAddons([]);
+                            setAgreedToTerms(false);
+                          }}
+                        >
+                          Checkout
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
