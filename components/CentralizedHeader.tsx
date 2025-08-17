@@ -10,6 +10,7 @@ import {
   getUserRole 
 } from "@/lib/auth";
 import { useNavigation } from "./providers/NavigationProvider";
+import api from "@/lib/api";
 
 interface User {
   id: string;
@@ -17,6 +18,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   role: string;
+  profilePicture?: string;
 }
 
 const CentralizedHeader: React.FC = () => {
@@ -32,8 +34,23 @@ const CentralizedHeader: React.FC = () => {
     const userToken = getUserFromToken();
     if (userToken) {
       setUser(userToken);
+      // Fetch full user profile to get profile picture
+      fetchUserProfile();
     }
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await api.get('/users/profile');
+      setUser(prev => ({
+        ...prev,
+        ...response.data,
+        id: response.data._id || response.data.id
+      }));
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,10 +159,18 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-                    <span className="text-white font-semibold text-sm lg:text-base">
-                      {getUserDisplayName(user).charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                    {user?.profilePicture ? (
+                      <img 
+                        src={user.profilePicture} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-sm lg:text-base">
+                        {getUserDisplayName(user).charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="hidden lg:block text-left">
                     <div className="text-sm font-semibold text-gray-900">

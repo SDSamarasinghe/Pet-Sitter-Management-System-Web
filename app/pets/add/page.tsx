@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { Spinner } from '@/components/ui/spinner';
-import { uploadToCloudinary, testCloudinaryConnection } from '@/lib/cloudinary';
 import { isAuthenticated } from '@/lib/auth';
 
 export default function AddPetPage() {
@@ -21,7 +20,7 @@ export default function AddPetPage() {
     breed: '',
     age: '',
     species: '',
-    weight: '',
+    weight: 0,
     microchipNumber: '',
     vaccinations: '',
     medications: '',
@@ -32,7 +31,7 @@ export default function AddPetPage() {
     veterinarianInfo: '',
     careInstructions: '',
     info: '',
-  });
+  });``
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -84,35 +83,63 @@ export default function AddPetPage() {
     setSuccess('');
 
     try {
-      let photo = '';
-      // Upload photo to Cloudinary if provided
+      // Create FormData for multipart/form-data request
+      const formDataToSend = new FormData();
+      
+      // Add all text fields
+      formDataToSend.append('name', formData.name);
+      if (formData.type) formDataToSend.append('type', formData.type);
+      if (formData.breed) formDataToSend.append('breed', formData.breed);
+      if (formData.age) formDataToSend.append('age', formData.age);
+      if (formData.species) formDataToSend.append('species', formData.species);
+      if (formData.weight) formDataToSend.append('weight', formData.weight.toString());
+      if (formData.microchipNumber) formDataToSend.append('microchipNumber', formData.microchipNumber);
+      if (formData.vaccinations) formDataToSend.append('vaccinations', formData.vaccinations);
+      if (formData.medications) formDataToSend.append('medications', formData.medications);
+      if (formData.allergies) formDataToSend.append('allergies', formData.allergies);
+      if (formData.dietaryRestrictions) formDataToSend.append('dietaryRestrictions', formData.dietaryRestrictions);
+      if (formData.behaviorNotes) formDataToSend.append('behaviorNotes', formData.behaviorNotes);
+      if (formData.emergencyContact) formDataToSend.append('emergencyContact', formData.emergencyContact);
+      if (formData.veterinarianInfo) formDataToSend.append('veterinarianInfo', formData.veterinarianInfo);
+      if (formData.careInstructions) formDataToSend.append('careInstructions', formData.careInstructions);
+      if (formData.info) formDataToSend.append('info', formData.info);
+      
+      // Add photo file if provided
       if (photoFile) {
-        photo = await uploadToCloudinary(photoFile);
+        formDataToSend.append('petImage', photoFile);
       }
 
-      // Prepare pet data according to DTO
-      const petData = {
-        name: formData.name,
-        type: formData.type || undefined,
-        photo: photo || undefined,
-        breed: formData.breed || undefined,
-        age: formData.age || undefined,
-        species: formData.species || undefined,
-        weight: formData.weight ? Number(formData.weight) : undefined,
-        microchipNumber: formData.microchipNumber || undefined,
-        vaccinations: formData.vaccinations || undefined,
-        medications: formData.medications || undefined,
-        allergies: formData.allergies || undefined,
-        dietaryRestrictions: formData.dietaryRestrictions || undefined,
-        behaviorNotes: formData.behaviorNotes || undefined,
-        emergencyContact: formData.emergencyContact || undefined,
-        veterinarianInfo: formData.veterinarianInfo || undefined,
-        careInstructions: formData.careInstructions || undefined,
-        info: formData.info || undefined,
-      };
+      // Send multipart/form-data request to backend API
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/pets`, {
+        method: 'POST',
+        body: formDataToSend,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      await api.post('/pets', petData);
+      if (!response.ok) {
+        // Log the response for debugging
+        const responseText = await response.text();
+        console.error('Response status:', response.status);
+        console.error('Response text:', responseText);
+        
+        // Try to parse as JSON, fallback to text
+        let errorMessage = 'Failed to add pet';
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = responseText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
       setSuccess('Pet added successfully!');
+      
       // Reset form
       setFormData({
         name: '',
@@ -121,7 +148,7 @@ export default function AddPetPage() {
         breed: '',
         age: '',
         species: '',
-        weight: '',
+        weight: 0,
         microchipNumber: '',
         vaccinations: '',
         medications: '',
@@ -135,11 +162,13 @@ export default function AddPetPage() {
       });
       setPhotoFile(null);
       setPhotoPreview('');
+      
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
+      
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to add pet');
+      setError(error.message || 'Failed to add pet');
     } finally {
       setIsLoading(false);
     }
@@ -147,17 +176,6 @@ export default function AddPetPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Add New Pet</h1>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
         <Card>
           <CardHeader>
@@ -168,7 +186,8 @@ export default function AddPetPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Basic Information - 3 columns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Pet Name *</Label>
                   <Input
@@ -214,22 +233,22 @@ export default function AddPetPage() {
                     onChange={handleInputChange}
                   />
                 </div>
+              </div>
 
+              {/* Physical Details - 3 columns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
                   <Input
                     id="age"
                     name="age"
                     type="text"
-                    placeholder="e.g., 3"
+                    placeholder="e.g., 3 years"
                     value={formData.age}
                     onChange={handleInputChange}
                   />
                 </div>
-              </div>
 
-              {/* Additional Pet Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="weight">Weight (lbs)</Label>
                   <Input
@@ -341,24 +360,57 @@ export default function AddPetPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* Pet Photo Upload Section */}
+              <div className="space-y-4">
                 <Label htmlFor="photo">Pet Photo</Label>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                />
-                {photoPreview && (
-                  <div className="mt-2">
-                    <img 
-                      src={photoPreview} 
-                      alt="Pet preview" 
-                      className="w-32 h-32 object-cover rounded-lg"
-                    />
-                  </div>
-                )}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  {photoPreview ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-center">
+                        <img 
+                          src={photoPreview} 
+                          alt="Pet preview" 
+                          className="w-40 h-40 object-cover rounded-lg shadow-md"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">Photo uploaded successfully!</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPhotoFile(null);
+                            setPhotoPreview('');
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800 underline"
+                        >
+                          Remove photo
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="mx-auto w-16 h-16 text-gray-400">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <label htmlFor="photo" className="cursor-pointer">
+                          <span className="text-blue-600 hover:text-blue-800 font-medium">Upload a photo</span>
+                          <span className="text-gray-600"> or drag and drop</span>
+                        </label>
+                        <p className="text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -411,16 +463,6 @@ export default function AddPetPage() {
                   ) : (
                     'Add Pet'
                   )}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="secondary"
-                  onClick={async () => {
-                    console.log('Testing Cloudinary connection...');
-                    await testCloudinaryConnection();
-                  }}
-                >
-                  Test Cloudinary
                 </Button>
                 <Button 
                   type="button" 
