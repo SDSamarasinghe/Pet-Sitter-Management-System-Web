@@ -496,6 +496,11 @@ export default function DashboardPage() {
   const [adminPets, setAdminPets] = useState<any[]>([]);
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
   
+  // Client assigned sitters state
+  const [assignedSitters, setAssignedSitters] = useState<any[]>([]);
+  const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
+  const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
+  
   // Key Security form state
   const [lockboxCode, setLockboxCode] = useState("4242");
   const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
@@ -549,6 +554,16 @@ export default function DashboardPage() {
           setClients(clientsResponse.data ?? []);
         } else {
           bookingsResponse = await api.get(`/bookings/user/${userId}`);
+          // Fetch assigned sitters for this client
+          if (userRole === 'client') {
+            try {
+              const assignedSittersResponse = await api.get(`/bookings/user/${userId}/assigned-sitters`);
+              setAssignedSitters(assignedSittersResponse.data ?? []);
+            } catch (error) {
+              console.error("Error fetching assigned sitters:", error);
+              setAssignedSitters([]);
+            }
+          }
         }
         setUser(profileResponse.data);
         setBookings(bookingsResponse.data);
@@ -1149,18 +1164,25 @@ export default function DashboardPage() {
                   <h2 className="text-xl font-semibold mb-4 text-gray-900">ADD NOTE</h2>
                   {/* Client Selection Dropdown */}
                   <div className="mb-4">
-                    <select
-                      value={selectedClient}
-                      onChange={(e) => setSelectedClient(e.target.value)}
-                      className="input-modern w-full"
-                    >
-                      <option value="">Select the person to add note</option>
-                      {availableUsers.map((user) => (
-                        <option key={user._id || user.id} value={user._id || user.id}>
-                          {user.firstName} {user.lastName} ({user.role === 'admin' ? 'Admin' : user.role})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={selectedClient}
+                        onChange={(e) => setSelectedClient(e.target.value)}
+                        className="input-modern w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                      >
+                        <option value="" className="text-gray-500">Select the person to add note</option>
+                        {availableUsers.map((user) => (
+                          <option key={user._id || user.id} value={user._id || user.id} className="text-gray-900">
+                            {user.firstName} {user.lastName} ({user.role === 'admin' ? 'Admin' : user.role})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                   {/* Note Text Area */}
                   <div className="mb-4">
@@ -1238,18 +1260,25 @@ export default function DashboardPage() {
                   <h3 className="text-lg font-semibold text-gray-900">Recent Notes</h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Filter by user</span>
-                    <select
-                      value={filterByUser}
-                      onChange={(e) => setFilterByUser(e.target.value)}
-                      className="text-sm border border-gray-300 rounded-xl px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">All</option>
-                      {availableUsers.map((user) => (
-                        <option key={user._id || user.id} value={user._id || user.id}>
-                          {user.firstName} {user.lastName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={filterByUser}
+                        onChange={(e) => setFilterByUser(e.target.value)}
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]"
+                      >
+                        <option value="" className="text-gray-500">All Users</option>
+                        {availableUsers.map((user) => (
+                          <option key={user._id || user.id} value={user._id || user.id} className="text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {/* Notes List */}
@@ -1354,7 +1383,7 @@ export default function DashboardPage() {
                                     value={replyText}
                                     onChange={e => setReplyText(e.target.value)}
                                     placeholder="Add Reply"
-                                    className="w-full p-2 border border-gray-300 rounded-md resize-none"
+                                    className="input-modern w-full resize-none"
                                     rows={2}
                                   />
                                   
@@ -1578,7 +1607,7 @@ export default function DashboardPage() {
                           <label className="block font-medium mb-1">Temporary Password *</label>
                           <input
                             type="password"
-                            className="w-full border rounded px-3 py-2"
+                            className="input-modern w-full"
                             placeholder="Enter temporary password"
                             value={sitterForm.password}
                             onChange={e => setSitterForm(f => ({ ...f, password: e.target.value }))}
@@ -1589,7 +1618,7 @@ export default function DashboardPage() {
                           <label className="block font-medium mb-1">Confirm Password *</label>
                           <input
                             type="password"
-                            className="w-full border rounded px-3 py-2"
+                            className="input-modern w-full"
                             placeholder="Confirm temporary password"
                             value={sitterForm.confirmPassword}
                             onChange={e => setSitterForm(f => ({ ...f, confirmPassword: e.target.value }))}
@@ -1628,7 +1657,7 @@ export default function DashboardPage() {
                       <label className="block font-medium mb-1">Temporary Password *</label>
                       <input
                         type="password"
-                        className="w-full border rounded px-3 py-2"
+                        className="input-modern w-full"
                         placeholder="Enter temporary password"
                         value={userForm.password}
                         onChange={e => setUserForm(f => ({ ...f, password: e.target.value }))}
@@ -1639,7 +1668,7 @@ export default function DashboardPage() {
                       <label className="block font-medium mb-1">Confirm Password *</label>
                       <input
                         type="password"
-                        className="w-full border rounded px-3 py-2"
+                        className="input-modern w-full"
                         placeholder="Confirm temporary password"
                         value={userForm.confirmPassword}
                         onChange={e => setUserForm(f => ({ ...f, confirmPassword: e.target.value }))}
@@ -1700,12 +1729,23 @@ export default function DashboardPage() {
                                 <div className="flex space-x-2">
                                   {/* Assign sitter dropdown if no sitter assigned */}
                                   {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
-                                    <select onChange={e => assignSitter(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1" defaultValue="">
-                                      <option value="">Select Sitter</option>
-                                      {adminSitters.map((sitter) => (
-                                        <option key={sitter._id} value={sitter._id}>{sitter.firstName} {sitter.lastName}</option>
-                                      ))}
-                                    </select>
+                                    <div className="relative">
+                                      <select 
+                                        onChange={e => assignSitter(booking._id, e.target.value)} 
+                                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]" 
+                                        defaultValue=""
+                                      >
+                                        <option value="" className="text-gray-500">Select Sitter</option>
+                                        {adminSitters.map((sitter) => (
+                                          <option key={sitter._id} value={sitter._id} className="text-gray-900">{sitter.firstName} {sitter.lastName}</option>
+                                        ))}
+                                      </select>
+                                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   )}
                                   {/* Unassign button if sitter assigned */}
                                   {booking.sitterId && booking.sitterId.firstName && (
@@ -1714,31 +1754,55 @@ export default function DashboardPage() {
                                 </div>
                                 {/* Status dropdown */}
                                 <label className="text-xs text-gray-600 font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
-                                <select id={`booking-status-${booking._id}`} value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-0">
-                                  <option value="pending">Pending</option>
-                                  <option value="confirmed">Confirmed</option>
-                                  <option value="completed">Completed</option>
-                                  <option value="cancelled">Cancelled</option>
-                                </select>
+                                <div className="relative">
+                                  <select 
+                                    id={`booking-status-${booking._id}`} 
+                                    value={booking.status} 
+                                    onChange={e => updateBookingStatus(booking._id, e.target.value)} 
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                  </select>
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
                                 {/* Payment status dropdown */}
                                 <label className="text-xs text-gray-600 font-medium mt-2 mb-0.5" htmlFor={`payment-status-${booking._id}`}>Payment Status</label>
-                                <select id={`payment-status-${booking._id}`} value={booking.paymentStatus || 'pending'} onChange={async e => {
-                                  const newStatus = e.target.value;
-                                  try {
-                                    await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
-                                    toast({ title: 'Payment status updated', description: `Payment status changed to ${newStatus}` });
-                                    // Refresh bookings
-                                    const res = await api.get('/bookings');
-                                    setAdminBookings(res.data ?? []);
-                                  } catch (err: any) {
-                                    toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
-                                  }
-                                }} className="text-sm border rounded px-2 py-1 mt-0">
-                                  <option value="pending">Pending</option>
-                                  <option value="partial">Partial</option>
-                                  <option value="paid">Paid</option>
-                                  <option value="refunded">Refunded</option>
-                                </select>
+                                <div className="relative">
+                                  <select 
+                                    id={`payment-status-${booking._id}`} 
+                                    value={booking.paymentStatus || 'pending'} 
+                                    onChange={async e => {
+                                      const newStatus = e.target.value;
+                                      try {
+                                        await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
+                                        toast({ title: 'Payment status updated', description: `Payment status changed to ${newStatus}` });
+                                        // Refresh bookings
+                                        const res = await api.get('/bookings');
+                                        setAdminBookings(res.data ?? []);
+                                      } catch (err: any) {
+                                        toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
+                                      }
+                                    }} 
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="refunded">Refunded</option>
+                                  </select>
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1864,7 +1928,7 @@ export default function DashboardPage() {
                 <input 
                   type="text" 
                   placeholder="Search users..." 
-                  className="mb-4 w-full border rounded px-3 py-2" 
+                  className="input-modern mb-4 w-full" 
                   value={clientSearch}
                   onChange={e => setClientSearch(e.target.value)}
                 />
@@ -2442,9 +2506,16 @@ export default function DashboardPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
                     <p className="text-xs text-gray-500 mb-2">Select from drop down</p>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option>Once A Day Pet Sitting 45min - C$40</option>
-                    </select>
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300">
+                        <option>Once A Day Pet Sitting 45min - C$40</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Start Date */}
@@ -2452,7 +2523,7 @@ export default function DashboardPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                     <input
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full"
                     />
                   </div>
 
@@ -2461,7 +2532,7 @@ export default function DashboardPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
                     <input
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full"
                     />
                   </div>
                 </div>
@@ -2531,30 +2602,109 @@ export default function DashboardPage() {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2 text-sm font-medium text-gray-700">Name</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Email</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Phone</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Active Bookings</th>
                         <th className="text-right py-2"></th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b">
-                        <td className="py-3">
-                          <span className="text-green-600 font-medium">Dharani A</span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm" className="text-xs px-3 py-1">
-                              View Details
-                            </Button>
-                            <Button className="bg-primary text-white text-xs px-3 py-1">
-                              Add Note
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                      {assignedSitters.length > 0 ? (
+                        assignedSitters.map((sitter, index) => (
+                          <tr key={sitter._id || sitter.id || `sitter-${index}`} className="border-b hover:bg-gray-50">
+                            <td className="py-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-blue-600">
+                                    {sitter.firstName?.charAt(0)}{sitter.lastName?.charAt(0)}
+                                  </span>
+                                </div>
+                                <span className="text-green-600 font-medium">
+                                  {sitter.firstName} {sitter.lastName}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 text-sm text-gray-600">
+                              {sitter.email}
+                            </td>
+                            <td className="py-3 text-sm text-gray-600">
+                              {sitter.phone || sitter.emergencyContact || 'N/A'}
+                            </td>
+                            <td className="py-3">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {sitter.activeBookingsCount || 0} booking(s)
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-xs px-3 py-1"
+                                  onClick={() => {
+                                    setSelectedSitterDetails(sitter);
+                                    setIsSitterDetailsModalOpen(true);
+                                  }}
+                                >
+                                  View Details
+                                </Button>
+                                <Button 
+                                  className="bg-primary text-white text-xs px-3 py-1"
+                                  onClick={() => {
+                                    setSelectedClient(sitter._id || sitter.id);
+                                    setNoteText('');
+                                  }}
+                                >
+                                  Add Note
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="text-center py-8 text-gray-500">
+                            No sitters assigned to your bookings yet.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
                 </CardContent>
               </Card>
+
+              {/* Sitter Details Modal */}
+              {isSitterDetailsModalOpen && selectedSitterDetails && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                    <h2 className="text-2xl font-bold mb-1">Sitter Details</h2>
+                    <div className="mb-4">
+                      <div className="mb-2"><span className="font-semibold">Name:</span> {selectedSitterDetails.firstName} {selectedSitterDetails.lastName}</div>
+                      <div className="mb-2"><span className="font-semibold">Email:</span> {selectedSitterDetails.email}</div>
+                      <div className="mb-2"><span className="font-semibold">Phone:</span> {selectedSitterDetails.phone || selectedSitterDetails.emergencyContact || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Address:</span> {selectedSitterDetails.address || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Experience:</span> {selectedSitterDetails.homeCareInfo || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Active Bookings:</span> {selectedSitterDetails.activeBookingsCount || 0}</div>
+                      {selectedSitterDetails.specializations && selectedSitterDetails.specializations.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold">Specializations:</span> 
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedSitterDetails.specializations.map((spec: string, index: number) => (
+                              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button variant="outline" onClick={() => { setIsSitterDetailsModalOpen(false); setSelectedSitterDetails(null); }}>Close</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
