@@ -87,9 +87,12 @@ export default function SchedulingPage() {
 
   const monthDays = getDaysInMonth(currentDate);
 
-  // Format date for API
+  // Format date for API - use local date to avoid timezone issues
   const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Get schedule items for a specific date
@@ -169,43 +172,44 @@ export default function SchedulingPage() {
       
       console.log('Raw API response:', response.data);
       console.log('API data to transform:', apiData);
+      console.log('Weekend rates from API:', apiData.weekendRates);
       
       // Transform API data to frontend format
       const frontendSettings: AvailabilitySettings = {
         sitterId: userId,
         weeklySchedule: {
           Monday: {
-            isAvailable: apiData.weeklySchedule?.monday?.isAvailable || true,
+            isAvailable: apiData.weeklySchedule?.monday?.isAvailable ?? true,
             startTime: apiData.weeklySchedule?.monday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.monday?.endTime || '17:00'
           },
           Tuesday: {
-            isAvailable: apiData.weeklySchedule?.tuesday?.isAvailable || true,
+            isAvailable: apiData.weeklySchedule?.tuesday?.isAvailable ?? true,
             startTime: apiData.weeklySchedule?.tuesday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.tuesday?.endTime || '17:00'
           },
           Wednesday: {
-            isAvailable: apiData.weeklySchedule?.wednesday?.isAvailable || true,
+            isAvailable: apiData.weeklySchedule?.wednesday?.isAvailable ?? true,
             startTime: apiData.weeklySchedule?.wednesday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.wednesday?.endTime || '17:00'
           },
           Thursday: {
-            isAvailable: apiData.weeklySchedule?.thursday?.isAvailable || true,
+            isAvailable: apiData.weeklySchedule?.thursday?.isAvailable ?? true,
             startTime: apiData.weeklySchedule?.thursday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.thursday?.endTime || '17:00'
           },
           Friday: {
-            isAvailable: apiData.weeklySchedule?.friday?.isAvailable || true,
+            isAvailable: apiData.weeklySchedule?.friday?.isAvailable ?? true,
             startTime: apiData.weeklySchedule?.friday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.friday?.endTime || '17:00'
           },
           Saturday: {
-            isAvailable: apiData.weeklySchedule?.saturday?.isAvailable || false,
+            isAvailable: apiData.weeklySchedule?.saturday?.isAvailable ?? false,
             startTime: apiData.weeklySchedule?.saturday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.saturday?.endTime || '17:00'
           },
           Sunday: {
-            isAvailable: apiData.weeklySchedule?.sunday?.isAvailable || false,
+            isAvailable: apiData.weeklySchedule?.sunday?.isAvailable ?? false,
             startTime: apiData.weeklySchedule?.sunday?.startTime || '09:00',
             endTime: apiData.weeklySchedule?.sunday?.endTime || '17:00'
           }
@@ -217,8 +221,8 @@ export default function SchedulingPage() {
         holidayRates: {
           chargeExtraOnHolidays: apiData.holidayRates?.enabled || false,
           holidayRateIncrease: apiData.holidayRates?.percentage || 25,
-          chargeExtraOnWeekends: false, // Not supported by API yet
-          weekendRateIncrease: 15
+          chargeExtraOnWeekends: apiData.weekendRates?.enabled || false,
+          weekendRateIncrease: apiData.weekendRates?.percentage || 15
         }
       };
       
@@ -321,6 +325,10 @@ export default function SchedulingPage() {
           percentage: settings.holidayRates?.holidayRateIncrease || 25,
           holidays: ['christmas', 'new-year', 'thanksgiving'] // Default holidays
         },
+        weekendRates: {
+          enabled: settings.holidayRates?.chargeExtraOnWeekends || false,
+          percentage: settings.holidayRates?.weekendRateIncrease || 15
+        },
         isActive: true
       };
 
@@ -329,8 +337,15 @@ export default function SchedulingPage() {
       console.log('Sent data to API:', JSON.stringify(apiData, null, 2));
       console.log('API Response:', response.data);
       
-      // Refresh the settings from the server to ensure UI is in sync
-      await fetchAvailabilitySettings(currentUserId);
+      // Update local state immediately with saved settings to ensure UI reflects changes
+      setAvailabilitySettings(settings);
+      
+      // Also refresh from server to ensure synchronization, but don't rely on it exclusively
+      try {
+        await fetchAvailabilitySettings(currentUserId);
+      } catch (fetchError) {
+        console.warn('Failed to refresh settings from server, keeping local state:', fetchError);
+      }
       
       toast({
         title: 'Success',
@@ -676,26 +691,131 @@ export default function SchedulingPage() {
                 {/* Special Dates */}
                 <div className="border rounded-lg p-4">
                   <h3 className="font-medium mb-3">Special Dates & Holiday Rates</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Unavailable Dates Calendar */}
                     <div>
-                      <label className="text-sm font-medium">Unavailable dates</label>
-                      <textarea 
-                        className="w-full mt-1 border rounded px-3 py-2" 
-                        rows={3}
-                        placeholder="Enter dates you're unavailable (YYYY-MM-DD format, one per line)"
-                        value={availabilitySettings.unavailableDates?.join('\n') || ''}
-                        onChange={(e) => {
-                          const dates = e.target.value.split('\n').filter(date => date.trim());
-                          setAvailabilitySettings({
-                            ...availabilitySettings,
-                            unavailableDates: dates
-                          });
-                        }}
-                      />
+                      <label className="text-sm font-medium mb-3 block">Unavailable Dates</label>
+                      <div className="border rounded-lg p-3 bg-gray-50">
+                        {/* Calendar Header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newDate = new Date(currentDate);
+                              newDate.setMonth(newDate.getMonth() - 1);
+                              setCurrentDate(newDate);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            ←
+                          </button>
+                          <h4 className="font-medium text-sm">
+                            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newDate = new Date(currentDate);
+                              newDate.setMonth(newDate.getMonth() + 1);
+                              setCurrentDate(newDate);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            →
+                          </button>
+                        </div>
+
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1 text-xs">
+                          {/* Day headers */}
+                          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                            <div key={day} className="text-center font-medium p-1 text-gray-600">
+                              {day}
+                            </div>
+                          ))}
+                          
+                          {/* Calendar days */}
+                          {getDaysInMonth(currentDate).map((day, index) => {
+                            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
+                            const dateStr = formatDate(day);
+                            const isUnavailable = availabilitySettings.unavailableDates?.includes(dateStr);
+                            const isPast = day < new Date(formatDate(new Date()));
+                            
+                            return (
+                              <button
+                                key={index}
+                                type="button"
+                                disabled={!isCurrentMonth || isPast}
+                                onClick={() => {
+                                  if (!isCurrentMonth || isPast) return;
+                                  
+                                  const currentUnavailable = availabilitySettings.unavailableDates || [];
+                                  const newUnavailable = isUnavailable
+                                    ? currentUnavailable.filter(date => date !== dateStr)
+                                    : [...currentUnavailable, dateStr];
+                                  
+                                  setAvailabilitySettings({
+                                    ...availabilitySettings,
+                                    unavailableDates: newUnavailable.sort()
+                                  });
+                                }}
+                                className={`
+                                  p-1 text-xs rounded transition-colors
+                                  ${!isCurrentMonth 
+                                    ? 'text-gray-300 cursor-not-allowed' 
+                                    : isPast
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : isUnavailable
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'hover:bg-blue-100 text-gray-700'
+                                  }
+                                `}
+                              >
+                                {day.getDate()}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Selected unavailable dates display */}
+                        {availabilitySettings.unavailableDates && availabilitySettings.unavailableDates.length > 0 && (
+                          <div className="mt-3 p-2 bg-white rounded border">
+                            <div className="text-xs font-medium text-gray-600 mb-1">Selected Unavailable Dates:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {availabilitySettings.unavailableDates.map(date => (
+                                <span
+                                  key={date}
+                                  className="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs rounded"
+                                >
+                                  {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newUnavailable = availabilitySettings.unavailableDates?.filter(d => d !== date) || [];
+                                      setAvailabilitySettings({
+                                        ...availabilitySettings,
+                                        unavailableDates: newUnavailable
+                                      });
+                                    }}
+                                    className="ml-1 hover:text-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-2 text-xs text-gray-500">
+                          Click on dates to mark them as unavailable. Past dates cannot be selected.
+                        </div>
+                      </div>
                     </div>
+                    {/* Holiday & Weekend Rates */}
                     <div>
-                      <label className="text-sm font-medium">Holiday rates</label>
-                      <div className="space-y-2 mt-1">
+                      <label className="text-sm font-medium mb-3 block">Holiday & Weekend Rates</label>
+                      <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
                         <div className="flex items-center">
                           <input 
                             type="checkbox" 
@@ -729,6 +849,13 @@ export default function SchedulingPage() {
                             }}
                           />
                           <span className="text-sm">Charge extra on weekends (+{availabilitySettings.holidayRates?.weekendRateIncrease || 15}%)</span>
+                        </div>
+                        
+                        <div className="mt-3 p-2 bg-white rounded border">
+                          <div className="text-xs font-medium text-gray-600 mb-1">Holiday Rate Details:</div>
+                          <div className="text-xs text-gray-500">
+                            Holiday rates apply to: Christmas, New Year, and Thanksgiving
+                          </div>
                         </div>
                       </div>
                     </div>
