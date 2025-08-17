@@ -539,6 +539,14 @@ export default function DashboardPage() {
     none: true
   });
   
+  // Helper function to format date without timezone issues
+  const formatDateLocal = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -897,6 +905,153 @@ export default function DashboardPage() {
       setNotes(response.data.notes || response.data || []);
     } catch (error) {
       console.error("Error refreshing notes:", error);
+    }
+  };
+
+  // Booking confirmation function
+  const confirmBooking = (sitterData: any) => {
+    if (window.confirm(
+      `🏠 CREATE NEW BOOKING 🏠\n\n` +
+      `Are you sure you want to create a booking with ${sitterData.firstName} ${sitterData.lastName}?\n\n` +
+      `📋 BOOKING DETAILS:\n` +
+      `• Service: ${bookingFormData.service}\n` +
+      `• Date: ${bookingFormData.startDate} to ${bookingFormData.endDate}\n` +
+      `• Time: ${bookingFormData.startTime} - ${bookingFormData.endTime}\n\n` +
+      `✅ This will create a NEW BOOKING with "PENDING" status.\n` +
+      `✅ The booking will appear in the admin dashboard for approval.\n` +
+      `✅ The system will check for conflicts with existing bookings.\n` +
+      `✅ You will be notified once the booking is approved.\n\n` +
+      `Click OK to proceed with booking creation.`
+    )) {
+      createBooking(sitterData);
+    }
+  };
+
+  // Create actual booking function
+  const createBooking = async (sitterData: any) => {
+    try {
+      // Validate required fields
+      if (!bookingFormData.startDate || !bookingFormData.endDate || !bookingFormData.startTime || !bookingFormData.endTime) {
+        toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please fill in all required booking fields.",
+        });
+        return;
+      }
+
+      if (!user?.id) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Please log in to create a booking.",
+        });
+        return;
+      }
+
+      setIsCheckingAvailability(true);
+      
+      // Get service type mapping
+      const serviceTypeMap: { [key: string]: string } = {
+        'Once A Day Pet Sitting 45min - C$40': 'pet-sitting',
+        'Twice A Day Pet Sitting 30min each - C$55': 'pet-sitting',
+        'Dog Walking 30min - C$25': 'dog-walking',
+        'Extended Pet Sitting 60min - C$50': 'pet-sitting'
+      };
+      
+      // Extract price from service string
+      const priceMatch = bookingFormData.service.match(/C\$(\d+)/);
+      const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 40;
+      
+      // Map pet species to the enum values expected by the backend
+      const mapPetTypeToEnum = (species: string): string => {
+        const speciesMap: { [key: string]: string } = {
+          'cat': 'Cat(s)',
+          'dog': 'Dog(s)', 
+          'rabbit': 'Rabbit(s)',
+          'bird': 'Bird(s)',
+          'guinea pig': 'Guinea pig(s)',
+          'ferret': 'Ferret(s)',
+          // Add more mappings as needed
+        };
+        return speciesMap[species.toLowerCase()] || 'Other';
+      };
+
+      // Create proper local datetime strings without forcing UTC
+      const startDateTime = new Date(`${bookingFormData.startDate}T${bookingFormData.startTime}:00`);
+      const endDateTime = new Date(`${bookingFormData.endDate}T${bookingFormData.endTime}:00`);
+
+      const payload = {
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime.toISOString(),
+        serviceType: serviceTypeMap[bookingFormData.service] || 'pet-sitting',
+        numberOfPets: pets.length || 1,
+        petTypes: pets.length > 0 
+          ? pets.map(pet => mapPetTypeToEnum(pet.species)).filter(Boolean)
+          : ['Dog(s)'], // Default to Dog(s) if no pets
+        notes: `Booking created from dashboard availability check.`,
+        sitterId: sitterData._id || sitterData.id, // Changed from preferredSitterId to sitterId
+        totalAmount: totalAmount,
+        clientNotes: `Preferred sitter: ${sitterData.firstName} ${sitterData.lastName}. Selected based on availability check.`,
+        specialInstructions: `Service: ${bookingFormData.service}. Time: ${bookingFormData.startTime} - ${bookingFormData.endTime}`
+      };
+
+      console.log('Creating booking with payload:', payload);
+
+      const response = await api.post('/bookings', payload);
+      
+      console.log('Booking creation response:', response.data);
+      
+      toast({
+        title: "Booking Created Successfully! 🎉",
+        description: `Your booking with ${sitterData.firstName} ${sitterData.lastName} has been created with status "pending". An admin will review and approve your booking soon.`,
+      });
+      
+      setShowAvailabilityModal(false);
+      setAvailabilityResults([]);
+      
+      // Reset form
+      setBookingFormData({
+        service: 'Once A Day Pet Sitting 45min - C$40',
+        startDate: '',
+        endDate: '',
+        startTime: '09:00',
+        endTime: '09:45'
+      });
+      
+      // Refresh dashboard data to show the new booking
+      if (user?.role === 'admin') {
+        const updatedBookingsResponse = await api.get('/bookings');
+        setBookings(updatedBookingsResponse.data);
+        setAdminBookings(updatedBookingsResponse.data); // Also update admin bookings
+      } else if (user?.role === 'client') {
+        const updatedBookingsResponse = await api.get(`/bookings/user/${user.id}`);
+        setBookings(updatedBookingsResponse.data);
+      }
+      
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      
+      // Handle specific error messages from the backend
+      let errorMessage = 'Failed to create booking. Please try again.';
+      
+      if (error.response?.data?.message) {
+        if (error.response.data.message.includes('conflicts with existing bookings')) {
+          errorMessage = 'The selected time slot conflicts with existing bookings. Please choose a different time.';
+        } else if (Array.isArray(error.response.data.message)) {
+          errorMessage = error.response.data.message.join(', ');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      }
+      
+      toast({
+        variant: "destructive",
+        title: "Booking Creation Failed",
+        description: errorMessage,
+      });
+    } finally {
+      setIsCheckingAvailability(false);
     }
   };
 
@@ -2646,7 +2801,7 @@ export default function DashboardPage() {
                       value={bookingFormData.startDate}
                       onChange={(e) => setBookingFormData(prev => ({ ...prev, startDate: e.target.value }))}
                       className="input-modern w-full"
-                      min={new Date().toISOString().split('T')[0]}
+                      min={formatDateLocal(new Date())}
                     />
                   </div>
 
@@ -2659,7 +2814,7 @@ export default function DashboardPage() {
                       value={bookingFormData.endDate}
                       onChange={(e) => setBookingFormData(prev => ({ ...prev, endDate: e.target.value }))}
                       className="input-modern w-full"
-                      min={bookingFormData.startDate || new Date().toISOString().split('T')[0]}
+                      min={bookingFormData.startDate || formatDateLocal(new Date())}
                     />
                   </div>
                 </div>
@@ -3084,15 +3239,10 @@ export default function DashboardPage() {
                                   <Button 
                                     size="sm"
                                     className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Booking Confirmed!",
-                                        description: `Booking confirmed with ${result.sitter.firstName} ${result.sitter.lastName}`,
-                                      });
-                                      setShowAvailabilityModal(false);
-                                    }}
+                                    disabled={isCheckingAvailability}
+                                    onClick={() => confirmBooking(result.sitter)}
                                   >
-                                    Book Now
+                                    {isCheckingAvailability ? 'Creating...' : 'Book Now'}
                                   </Button>
                                 </div>
                               ) : result.status === 'busy' ? (
