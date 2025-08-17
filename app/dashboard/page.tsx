@@ -255,6 +255,8 @@ interface User {
   emergencyContact?: string;
   homeCareInfo?: string;
   pets?: Pet[];
+  status?: 'pending' | 'approved' | 'rejected'; // Add status for user approval
+  createdAt?: string;
 }
 
 interface Pet {
@@ -284,6 +286,14 @@ export default function DashboardPage() {
   const [sitterForm, setSitterForm] = useState({ password: '', confirmPassword: '', notes: '' });
   const [sitterError, setSitterError] = useState('');
   const [sitterLoading, setSitterLoading] = useState(false);
+
+  // User approval modal state (similar to sitter approval)
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userActionType, setUserActionType] = useState<'approve' | 'reject'>('approve');
+  const [userForm, setUserForm] = useState({ password: '', confirmPassword: '', notes: '' });
+  const [userError, setUserError] = useState('');
+  const [userLoading, setUserLoading] = useState(false);
 
   // Open modal and set sitter/action
   const openSitterDialog = (sitter: any, action: 'approve' | 'reject') => {
@@ -334,6 +344,57 @@ export default function DashboardPage() {
       setSitterLoading(false);
     }
   };
+
+  // Open user approval/rejection modal (similar to sitter modal)
+  const openUserDialog = (user: any, action: 'approve' | 'reject') => {
+    setSelectedUser(user);
+    setUserActionType(action);
+    setUserForm({ password: '', confirmPassword: '', notes: '' });
+    setUserError('');
+    setIsUserDialogOpen(true);
+  };
+
+  // Approve/reject user handler
+  const handleUserAction = async () => {
+    if (!selectedUser?._id && !selectedUser?.id) return;
+    setUserLoading(true);
+    setUserError('');
+    if (userActionType === 'approve') {
+      if (userForm.password.length < 6) {
+        setUserError('Password must be at least 6 characters long');
+        setUserLoading(false);
+        return;
+      }
+      if (userForm.password !== userForm.confirmPassword) {
+        setUserError('Passwords do not match');
+        setUserLoading(false);
+        return;
+      }
+    }
+    try {
+      const userId = selectedUser._id || selectedUser.id;
+      if (userActionType === 'approve') {
+        await api.put(`/users/${userId}/approve`, {
+          password: userForm.password,
+          confirmPassword: userForm.confirmPassword,
+        });
+        toast({ title: 'User approved', description: `${selectedUser.firstName} ${selectedUser.lastName} approved.` });
+      } else {
+        await api.put(`/users/${userId}/reject`, { notes: userForm.notes });
+        toast({ title: 'User rejected', description: `${selectedUser.firstName} ${selectedUser.lastName} rejected.` });
+      }
+      // Refresh users
+      const res = await api.get('/users/admin/clients');
+      setAdminUsers(res.data ?? []);
+      setIsUserDialogOpen(false);
+      setSelectedUser(null);
+    } catch (err: any) {
+      setUserError(err.response?.data?.message || 'Failed to update user.');
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   // Helper: Status badge for sitters/bookings
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -435,6 +496,17 @@ export default function DashboardPage() {
   const [adminPets, setAdminPets] = useState<any[]>([]);
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
   
+  // Client assigned sitters state
+  const [assignedSitters, setAssignedSitters] = useState<any[]>([]);
+  const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
+  const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
+  
+  // Add-on booking modal state
+  const [isAddonModalOpen, setIsAddonModalOpen] = useState(false);
+  const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
   // Key Security form state
   const [lockboxCode, setLockboxCode] = useState("4242");
   const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
@@ -488,6 +560,16 @@ export default function DashboardPage() {
           setClients(clientsResponse.data ?? []);
         } else {
           bookingsResponse = await api.get(`/bookings/user/${userId}`);
+          // Fetch assigned sitters for this client
+          if (userRole === 'client') {
+            try {
+              const assignedSittersResponse = await api.get(`/bookings/user/${userId}/assigned-sitters`);
+              setAssignedSitters(assignedSittersResponse.data ?? []);
+            } catch (error) {
+              console.error("Error fetching assigned sitters:", error);
+              setAssignedSitters([]);
+            }
+          }
         }
         setUser(profileResponse.data);
         setBookings(bookingsResponse.data);
@@ -1088,18 +1170,25 @@ export default function DashboardPage() {
                   <h2 className="text-xl font-semibold mb-4 text-gray-900">ADD NOTE</h2>
                   {/* Client Selection Dropdown */}
                   <div className="mb-4">
-                    <select
-                      value={selectedClient}
-                      onChange={(e) => setSelectedClient(e.target.value)}
-                      className="input-modern w-full"
-                    >
-                      <option value="">Select the person to add note</option>
-                      {availableUsers.map((user) => (
-                        <option key={user._id || user.id} value={user._id || user.id}>
-                          {user.firstName} {user.lastName} ({user.role === 'admin' ? 'Admin' : user.role})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={selectedClient}
+                        onChange={(e) => setSelectedClient(e.target.value)}
+                        className="input-modern w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                      >
+                        <option value="" className="text-gray-500">Select the person to add note</option>
+                        {availableUsers.map((user) => (
+                          <option key={user._id || user.id} value={user._id || user.id} className="text-gray-900">
+                            {user.firstName} {user.lastName} ({user.role === 'admin' ? 'Admin' : user.role})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                   {/* Note Text Area */}
                   <div className="mb-4">
@@ -1177,18 +1266,25 @@ export default function DashboardPage() {
                   <h3 className="text-lg font-semibold text-gray-900">Recent Notes</h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Filter by user</span>
-                    <select
-                      value={filterByUser}
-                      onChange={(e) => setFilterByUser(e.target.value)}
-                      className="text-sm border border-gray-300 rounded-xl px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">All</option>
-                      {availableUsers.map((user) => (
-                        <option key={user._id || user.id} value={user._id || user.id}>
-                          {user.firstName} {user.lastName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={filterByUser}
+                        onChange={(e) => setFilterByUser(e.target.value)}
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]"
+                      >
+                        <option value="" className="text-gray-500">All Users</option>
+                        {availableUsers.map((user) => (
+                          <option key={user._id || user.id} value={user._id || user.id} className="text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {/* Notes List */}
@@ -1293,7 +1389,7 @@ export default function DashboardPage() {
                                     value={replyText}
                                     onChange={e => setReplyText(e.target.value)}
                                     placeholder="Add Reply"
-                                    className="w-full p-2 border border-gray-300 rounded-md resize-none"
+                                    className="input-modern w-full resize-none"
                                     rows={2}
                                   />
                                   
@@ -1395,9 +1491,11 @@ export default function DashboardPage() {
                         <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Address</TableHead>
                         <TableHead>Emergency Contact</TableHead>
                         <TableHead>Created At</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1410,16 +1508,28 @@ export default function DashboardPage() {
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.phone || 'N/A'}</TableCell>
                             <TableCell className="capitalize">{user.role}</TableCell>
+                            <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
                             <TableCell>
                               {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString() : 'N/A'}
                             </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                {user.status === 'pending' && (
+                                  <>
+                                    <Button size="sm" onClick={() => openUserDialog(user, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
+                                    <Button size="sm" variant="destructive" onClick={() => openUserDialog(user, 'reject')}>Reject</Button>
+                                  </>
+                                )}
+                                <Button size="sm" variant="outline" onClick={() => alert(`Name: ${user.firstName} ${user.lastName}\nEmail: ${user.email}\nPhone: ${user.phone}\nRole: ${user.role}\nAddress: ${user.address}\nEmergency Contact: ${user.emergencyContact}`)}>View Details</Button>
+                              </div>
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
+                          <TableCell colSpan={9} className="text-center py-8">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -1503,7 +1613,7 @@ export default function DashboardPage() {
                           <label className="block font-medium mb-1">Temporary Password *</label>
                           <input
                             type="password"
-                            className="w-full border rounded px-3 py-2"
+                            className="input-modern w-full"
                             placeholder="Enter temporary password"
                             value={sitterForm.password}
                             onChange={e => setSitterForm(f => ({ ...f, password: e.target.value }))}
@@ -1514,7 +1624,7 @@ export default function DashboardPage() {
                           <label className="block font-medium mb-1">Confirm Password *</label>
                           <input
                             type="password"
-                            className="w-full border rounded px-3 py-2"
+                            className="input-modern w-full"
                             placeholder="Confirm temporary password"
                             value={sitterForm.confirmPassword}
                             onChange={e => setSitterForm(f => ({ ...f, confirmPassword: e.target.value }))}
@@ -1523,16 +1633,7 @@ export default function DashboardPage() {
                         </div>
                       </>
                     )}
-                    <div className="mb-4">
-                      <label className="block font-medium mb-1">Notes (Optional)</label>
-                      <textarea
-                        className="w-full border rounded px-3 py-2"
-                        placeholder={`Add any notes about this ${sitterActionType}...`}
-                        value={sitterForm.notes}
-                        onChange={e => setSitterForm(f => ({ ...f, notes: e.target.value }))}
-                        rows={3}
-                      />
-                    </div>
+
                     {sitterError && <div className="text-red-600 mb-3">{sitterError}</div>}
                     <div className="flex justify-end gap-3 mt-6">
                       <Button variant="outline" onClick={() => setIsSitterDialogOpen(false)} disabled={sitterLoading}>Cancel</Button>
@@ -1544,6 +1645,54 @@ export default function DashboardPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* User Approve/Reject Modal */}
+          {isUserDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                <h2 className="text-2xl font-bold mb-1">{userActionType === 'approve' ? 'Approve' : 'Reject'} User Account</h2>
+                <p className="mb-4 text-gray-600">
+                  {userActionType === 'approve'
+                    ? `Approve ${selectedUser?.firstName} ${selectedUser?.lastName} as a user. A temporary password will be set for their account.`
+                    : `Reject ${selectedUser?.firstName} ${selectedUser?.lastName}'s user account.`}
+                </p>
+                {userActionType === 'approve' && (
+                  <>
+                    <div className="mb-4">
+                      <label className="block font-medium mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        className="input-modern w-full"
+                        placeholder="Enter temporary password"
+                        value={userForm.password}
+                        onChange={e => setUserForm(f => ({ ...f, password: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block font-medium mb-1">Confirm Password *</label>
+                      <input
+                        type="password"
+                        className="input-modern w-full"
+                        placeholder="Confirm temporary password"
+                        value={userForm.confirmPassword}
+                        onChange={e => setUserForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+               
+                {userError && <div className="text-red-600 mb-3">{userError}</div>}
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setIsUserDialogOpen(false)} disabled={userLoading}>Cancel</Button>
+                  <Button onClick={handleUserAction} disabled={userLoading} className={userActionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''} variant={userActionType === 'reject' ? 'destructive' : 'default'}>
+                    {userLoading ? (userActionType === 'approve' ? 'Approving...' : 'Rejecting...') : (userActionType === 'approve' ? 'Approve User' : 'Reject User')}
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Admin: Bookings Tab */}
@@ -1586,12 +1735,23 @@ export default function DashboardPage() {
                                 <div className="flex space-x-2">
                                   {/* Assign sitter dropdown if no sitter assigned */}
                                   {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
-                                    <select onChange={e => assignSitter(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1" defaultValue="">
-                                      <option value="">Select Sitter</option>
-                                      {adminSitters.map((sitter) => (
-                                        <option key={sitter._id} value={sitter._id}>{sitter.firstName} {sitter.lastName}</option>
-                                      ))}
-                                    </select>
+                                    <div className="relative">
+                                      <select 
+                                        onChange={e => assignSitter(booking._id, e.target.value)} 
+                                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]" 
+                                        defaultValue=""
+                                      >
+                                        <option value="" className="text-gray-500">Select Sitter</option>
+                                        {adminSitters.map((sitter) => (
+                                          <option key={sitter._id} value={sitter._id} className="text-gray-900">{sitter.firstName} {sitter.lastName}</option>
+                                        ))}
+                                      </select>
+                                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   )}
                                   {/* Unassign button if sitter assigned */}
                                   {booking.sitterId && booking.sitterId.firstName && (
@@ -1600,32 +1760,55 @@ export default function DashboardPage() {
                                 </div>
                                 {/* Status dropdown */}
                                 <label className="text-xs text-gray-600 font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
-                                <select id={`booking-status-${booking._id}`} value={booking.status} onChange={e => updateBookingStatus(booking._id, e.target.value)} className="text-sm border rounded px-2 py-1 mt-0">
-                                  <option value="pending">Pending</option>
-                                  <option value="confirmed">Confirmed</option>
-                                  <option value="in-progress">In Progress</option>
-                                  <option value="completed">Completed</option>
-                                  <option value="cancelled">Cancelled</option>
-                                </select>
+                                <div className="relative">
+                                  <select 
+                                    id={`booking-status-${booking._id}`} 
+                                    value={booking.status} 
+                                    onChange={e => updateBookingStatus(booking._id, e.target.value)} 
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                  </select>
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
                                 {/* Payment status dropdown */}
                                 <label className="text-xs text-gray-600 font-medium mt-2 mb-0.5" htmlFor={`payment-status-${booking._id}`}>Payment Status</label>
-                                <select id={`payment-status-${booking._id}`} value={booking.paymentStatus || 'pending'} onChange={async e => {
-                                  const newStatus = e.target.value;
-                                  try {
-                                    await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
-                                    toast({ title: 'Payment status updated', description: `Payment status changed to ${newStatus}` });
-                                    // Refresh bookings
-                                    const res = await api.get('/bookings');
-                                    setAdminBookings(res.data ?? []);
-                                  } catch (err: any) {
-                                    toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
-                                  }
-                                }} className="text-sm border rounded px-2 py-1 mt-0">
-                                  <option value="pending">Pending</option>
-                                  <option value="partial">Partial</option>
-                                  <option value="paid">Paid</option>
-                                  <option value="refunded">Refunded</option>
-                                </select>
+                                <div className="relative">
+                                  <select 
+                                    id={`payment-status-${booking._id}`} 
+                                    value={booking.paymentStatus || 'pending'} 
+                                    onChange={async e => {
+                                      const newStatus = e.target.value;
+                                      try {
+                                        await api.put(`/bookings/${booking._id}/payment-status`, { paymentStatus: newStatus });
+                                        toast({ title: 'Payment status updated', description: `Payment status changed to ${newStatus}` });
+                                        // Refresh bookings
+                                        const res = await api.get('/bookings');
+                                        setAdminBookings(res.data ?? []);
+                                      } catch (err: any) {
+                                        toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
+                                      }
+                                    }} 
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="refunded">Refunded</option>
+                                  </select>
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1751,7 +1934,7 @@ export default function DashboardPage() {
                 <input 
                   type="text" 
                   placeholder="Search users..." 
-                  className="mb-4 w-full border rounded px-3 py-2" 
+                  className="input-modern mb-4 w-full" 
                   value={clientSearch}
                   onChange={e => setClientSearch(e.target.value)}
                 />
@@ -2303,7 +2486,10 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600 mb-4">
                     To book Add-ons only, e.g. consultation, key pickup/dropoff, purchase a lockbox, click here:
                   </p>
-                  <Button className="button-modern">
+                  <Button 
+                    className="button-modern"
+                    onClick={() => setIsAddonModalOpen(true)}
+                  >
                     Book Add-on Only
                   </Button>
                 </CardContent>
@@ -2329,26 +2515,35 @@ export default function DashboardPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
                     <p className="text-xs text-gray-500 mb-2">Select from drop down</p>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option>Once A Day Pet Sitting 45min - C$40</option>
-                    </select>
+                    <div className="relative">
+                      <select className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300">
+                        <option>Once A Day Pet Sitting 45min - C$40</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Start Date */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full"
                     />
                   </div>
 
                   {/* End Date */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <p className="text-xs text-gray-500 mb-2">Select Date from drop down</p>
                     <input
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-modern w-full"
                     />
                   </div>
                 </div>
@@ -2418,30 +2613,253 @@ export default function DashboardPage() {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2 text-sm font-medium text-gray-700">Name</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Email</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Phone</th>
+                        <th className="text-left py-2 text-sm font-medium text-gray-700">Active Bookings</th>
                         <th className="text-right py-2"></th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b">
-                        <td className="py-3">
-                          <span className="text-green-600 font-medium">Dharani A</span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm" className="text-xs px-3 py-1">
-                              View Details
-                            </Button>
-                            <Button className="bg-primary text-white text-xs px-3 py-1">
-                              Add Note
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                      {assignedSitters.length > 0 ? (
+                        assignedSitters.map((sitter, index) => (
+                          <tr key={sitter._id || sitter.id || `sitter-${index}`} className="border-b hover:bg-gray-50">
+                            <td className="py-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-blue-600">
+                                    {sitter.firstName?.charAt(0)}{sitter.lastName?.charAt(0)}
+                                  </span>
+                                </div>
+                                <span className="text-green-600 font-medium">
+                                  {sitter.firstName} {sitter.lastName}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 text-sm text-gray-600">
+                              {sitter.email}
+                            </td>
+                            <td className="py-3 text-sm text-gray-600">
+                              {sitter.phone || sitter.emergencyContact || 'N/A'}
+                            </td>
+                            <td className="py-3">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {sitter.activeBookingsCount || 0} booking(s)
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-xs px-3 py-1"
+                                  onClick={() => {
+                                    setSelectedSitterDetails(sitter);
+                                    setIsSitterDetailsModalOpen(true);
+                                  }}
+                                >
+                                  View Details
+                                </Button>
+                                <Button 
+                                  className="bg-primary text-white text-xs px-3 py-1"
+                                  onClick={() => {
+                                    setSelectedClient(sitter._id || sitter.id);
+                                    setNoteText('');
+                                  }}
+                                >
+                                  Add Note
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="text-center py-8 text-gray-500">
+                            No sitters assigned to your bookings yet.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
                 </CardContent>
               </Card>
+
+              {/* Sitter Details Modal */}
+              {isSitterDetailsModalOpen && selectedSitterDetails && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                    <h2 className="text-2xl font-bold mb-1">Sitter Details</h2>
+                    <div className="mb-4">
+                      <div className="mb-2"><span className="font-semibold">Name:</span> {selectedSitterDetails.firstName} {selectedSitterDetails.lastName}</div>
+                      <div className="mb-2"><span className="font-semibold">Email:</span> {selectedSitterDetails.email}</div>
+                      <div className="mb-2"><span className="font-semibold">Phone:</span> {selectedSitterDetails.phone || selectedSitterDetails.emergencyContact || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Address:</span> {selectedSitterDetails.address || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Experience:</span> {selectedSitterDetails.homeCareInfo || 'N/A'}</div>
+                      <div className="mb-2"><span className="font-semibold">Active Bookings:</span> {selectedSitterDetails.activeBookingsCount || 0}</div>
+                      {selectedSitterDetails.specializations && selectedSitterDetails.specializations.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold">Specializations:</span> 
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedSitterDetails.specializations.map((spec: string, index: number) => (
+                              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button variant="outline" onClick={() => { setIsSitterDetailsModalOpen(false); setSelectedSitterDetails(null); }}>Close</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add-on Booking Modal */}
+              {isAddonModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative animate-fadeIn">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-bold">Book Add-on Only</h2>
+                      <button
+                        onClick={() => {
+                          setIsAddonModalOpen(false);
+                          setSelectedAddonSitter('');
+                          setSelectedAddons([]);
+                          setAgreedToTerms(false);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Select Sitter */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Sitter
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={selectedAddonSitter}
+                            onChange={(e) => setSelectedAddonSitter(e.target.value)}
+                            className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                          >
+                            <option value="">CarolC</option>
+                            {assignedSitters.map((sitter) => (
+                              <option key={sitter._id || sitter.id} value={sitter._id || sitter.id}>
+                                {sitter.firstName} {sitter.lastName}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Add-ons */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Add-ons
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedAddons.includes('virtual-consultation')}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedAddons([...selectedAddons, 'virtual-consultation']);
+                                } else {
+                                  setSelectedAddons(selectedAddons.filter(addon => addon !== 'virtual-consultation'));
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">Virtual Consultation - C$25</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedAddons.includes('in-home-consultation')}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedAddons([...selectedAddons, 'in-home-consultation']);
+                                } else {
+                                  setSelectedAddons(selectedAddons.filter(addon => addon !== 'in-home-consultation'));
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">In Home Consultation - C$30</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Terms and Conditions */}
+                      <div>
+                        <label className="flex items-start space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+                          />
+                          <span className="text-sm text-gray-700">
+                            I have read and agree to the{' '}
+                            <a href="#" className="text-blue-600 underline">
+                              Flying Duchess Pet Sitters Policies, Terms and Conditions
+                            </a>
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsAddonModalOpen(false);
+                            setSelectedAddonSitter('');
+                            setSelectedAddons([]);
+                            setAgreedToTerms(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={selectedAddons.length === 0 || !agreedToTerms}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            // Handle checkout logic here
+                            console.log('Checkout:', {
+                              sitter: selectedAddonSitter,
+                              addons: selectedAddons,
+                              agreedToTerms
+                            });
+                            toast({
+                              title: "Add-on services booked!",
+                              description: `Selected ${selectedAddons.length} service(s)`
+                            });
+                            setIsAddonModalOpen(false);
+                            setSelectedAddonSitter('');
+                            setSelectedAddons([]);
+                            setAgreedToTerms(false);
+                          }}
+                        >
+                          Checkout
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
