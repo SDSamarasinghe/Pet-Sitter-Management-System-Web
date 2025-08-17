@@ -29,6 +29,28 @@ interface AvailabilitySlot {
   startTime: string;
   endTime: string;
   isAvailable: boolean;
+  isBooked?: boolean;
+}
+
+interface AvailabilitySettings {
+  sitterId: string;
+  weeklySchedule: {
+    [key: string]: {
+      isAvailable: boolean;
+      startTime: string;
+      endTime: string;
+    };
+  };
+  maxDailyBookings: number;
+  advanceNotice: number;
+  travelDistance: number;
+  unavailableDates: string[];
+  holidayRates: {
+    chargeExtraOnHolidays: boolean;
+    holidayRateIncrease: number;
+    chargeExtraOnWeekends: boolean;
+    weekendRateIncrease: number;
+  };
 }
 
 export default function SchedulingPage() {
@@ -37,9 +59,12 @@ export default function SchedulingPage() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'availability'>('schedule');
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
+  const [availabilitySettings, setAvailabilitySettings] = useState<AvailabilitySettings | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Get current month dates
   const getDaysInMonth = (date: Date) => {
@@ -62,9 +87,12 @@ export default function SchedulingPage() {
 
   const monthDays = getDaysInMonth(currentDate);
 
-  // Format date for API
+  // Format date for API - use local date to avoid timezone issues
   const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Get schedule items for a specific date
@@ -73,7 +101,7 @@ export default function SchedulingPage() {
     return scheduleItems.filter(item => item.date === dateStr);
   };
 
-  // Fetch schedule data from backend (no sample data)
+  // Fetch schedule and availability data from backend
   const fetchScheduleData = async () => {
     try {
       const userToken = getUserFromToken();
@@ -84,6 +112,7 @@ export default function SchedulingPage() {
 
       const profileResponse = await api.get('/users/profile');
       const userId = profileResponse.data._id;
+      setCurrentUserId(userId);
 
       // Fetch sitter's bookings from backend
       const bookingsResponse = await api.get(`/bookings/sitter/${userId}`);
@@ -117,7 +146,12 @@ export default function SchedulingPage() {
       });
 
       setScheduleItems(scheduleData);
-      setAvailability([]); // No availability API yet
+
+      // Fetch availability settings
+      await fetchAvailabilitySettings(userId);
+      
+      // Fetch availability slots
+      await fetchAvailabilitySlots(userId);
     } catch (error) {
       console.error('Error fetching schedule data:', error);
       toast({
@@ -130,6 +164,205 @@ export default function SchedulingPage() {
     }
   };
 
+  // Fetch availability settings
+  const fetchAvailabilitySettings = async (userId: string) => {
+    try {
+      const response = await api.get(`/api/availability/settings/${userId}`);
+      const apiData = response.data.data || response.data; // Handle both wrapped and unwrapped responses
+      
+      console.log('Raw API response:', response.data);
+      console.log('API data to transform:', apiData);
+      console.log('Weekend rates from API:', apiData.weekendRates);
+      
+      // Transform API data to frontend format
+      const frontendSettings: AvailabilitySettings = {
+        sitterId: userId,
+        weeklySchedule: {
+          Monday: {
+            isAvailable: apiData.weeklySchedule?.monday?.isAvailable ?? true,
+            startTime: apiData.weeklySchedule?.monday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.monday?.endTime || '17:00'
+          },
+          Tuesday: {
+            isAvailable: apiData.weeklySchedule?.tuesday?.isAvailable ?? true,
+            startTime: apiData.weeklySchedule?.tuesday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.tuesday?.endTime || '17:00'
+          },
+          Wednesday: {
+            isAvailable: apiData.weeklySchedule?.wednesday?.isAvailable ?? true,
+            startTime: apiData.weeklySchedule?.wednesday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.wednesday?.endTime || '17:00'
+          },
+          Thursday: {
+            isAvailable: apiData.weeklySchedule?.thursday?.isAvailable ?? true,
+            startTime: apiData.weeklySchedule?.thursday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.thursday?.endTime || '17:00'
+          },
+          Friday: {
+            isAvailable: apiData.weeklySchedule?.friday?.isAvailable ?? true,
+            startTime: apiData.weeklySchedule?.friday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.friday?.endTime || '17:00'
+          },
+          Saturday: {
+            isAvailable: apiData.weeklySchedule?.saturday?.isAvailable ?? false,
+            startTime: apiData.weeklySchedule?.saturday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.saturday?.endTime || '17:00'
+          },
+          Sunday: {
+            isAvailable: apiData.weeklySchedule?.sunday?.isAvailable ?? false,
+            startTime: apiData.weeklySchedule?.sunday?.startTime || '09:00',
+            endTime: apiData.weeklySchedule?.sunday?.endTime || '17:00'
+          }
+        },
+        maxDailyBookings: apiData.maxDailyBookings || 3,
+        advanceNotice: apiData.advanceNoticeHours || 1,
+        travelDistance: apiData.travelDistance || 10,
+        unavailableDates: apiData.unavailableDates || [],
+        holidayRates: {
+          chargeExtraOnHolidays: apiData.holidayRates?.enabled || false,
+          holidayRateIncrease: apiData.holidayRates?.percentage || 25,
+          chargeExtraOnWeekends: apiData.weekendRates?.enabled || false,
+          weekendRateIncrease: apiData.weekendRates?.percentage || 15
+        }
+      };
+      
+      console.log('Transformed frontend settings:', frontendSettings);
+      setAvailabilitySettings(frontendSettings);
+    } catch (error) {
+      console.error('Error fetching availability settings:', error);
+      // Set default settings on error
+      setAvailabilitySettings({
+        sitterId: userId,
+        weeklySchedule: {
+          Monday: { isAvailable: true, startTime: '09:00', endTime: '17:00' },
+          Tuesday: { isAvailable: true, startTime: '09:00', endTime: '17:00' },
+          Wednesday: { isAvailable: true, startTime: '09:00', endTime: '17:00' },
+          Thursday: { isAvailable: true, startTime: '09:00', endTime: '17:00' },
+          Friday: { isAvailable: true, startTime: '09:00', endTime: '17:00' },
+          Saturday: { isAvailable: false, startTime: '09:00', endTime: '17:00' },
+          Sunday: { isAvailable: false, startTime: '09:00', endTime: '17:00' },
+        },
+        maxDailyBookings: 3,
+        advanceNotice: 1,
+        travelDistance: 10,
+        unavailableDates: [],
+        holidayRates: {
+          chargeExtraOnHolidays: false,
+          holidayRateIncrease: 25,
+          chargeExtraOnWeekends: false,
+          weekendRateIncrease: 15,
+        },
+      });
+    }
+  };
+
+  // Fetch availability slots
+  const fetchAvailabilitySlots = async (userId: string) => {
+    try {
+      const startDate = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+      const endDate = formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+      
+      const response = await api.get(`/api/availability/slots/${userId}?startDate=${startDate}&endDate=${endDate}`);
+      setAvailability(response.data || []);
+    } catch (error) {
+      console.error('Error fetching availability slots:', error);
+    }
+  };
+
+  // Save availability settings
+  const saveAvailabilitySettings = async (settings: AvailabilitySettings) => {
+    if (!currentUserId) return;
+    
+    setIsSaving(true);
+    try {
+      console.log('Original settings:', settings);
+      
+      // Transform frontend data structure to match API expectations
+      const apiData = {
+        weeklySchedule: {
+          monday: {
+            isAvailable: settings.weeklySchedule?.Monday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Monday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Monday?.endTime || '17:00'
+          },
+          tuesday: {
+            isAvailable: settings.weeklySchedule?.Tuesday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Tuesday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Tuesday?.endTime || '17:00'
+          },
+          wednesday: {
+            isAvailable: settings.weeklySchedule?.Wednesday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Wednesday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Wednesday?.endTime || '17:00'
+          },
+          thursday: {
+            isAvailable: settings.weeklySchedule?.Thursday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Thursday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Thursday?.endTime || '17:00'
+          },
+          friday: {
+            isAvailable: settings.weeklySchedule?.Friday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Friday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Friday?.endTime || '17:00'
+          },
+          saturday: {
+            isAvailable: settings.weeklySchedule?.Saturday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Saturday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Saturday?.endTime || '17:00'
+          },
+          sunday: {
+            isAvailable: settings.weeklySchedule?.Sunday?.isAvailable || false,
+            startTime: settings.weeklySchedule?.Sunday?.startTime || '09:00',
+            endTime: settings.weeklySchedule?.Sunday?.endTime || '17:00'
+          }
+        },
+        maxDailyBookings: settings.maxDailyBookings || 1,
+        advanceNoticeHours: settings.advanceNotice || 1,
+        travelDistance: settings.travelDistance || 10,
+        unavailableDates: settings.unavailableDates || [],
+        holidayRates: {
+          enabled: settings.holidayRates?.chargeExtraOnHolidays || false,
+          percentage: settings.holidayRates?.holidayRateIncrease || 25,
+          holidays: ['christmas', 'new-year', 'thanksgiving'] // Default holidays
+        },
+        weekendRates: {
+          enabled: settings.holidayRates?.chargeExtraOnWeekends || false,
+          percentage: settings.holidayRates?.weekendRateIncrease || 15
+        },
+        isActive: true
+      };
+
+      const response = await api.put(`/api/availability/settings/${currentUserId}`, apiData);
+      
+      console.log('Sent data to API:', JSON.stringify(apiData, null, 2));
+      console.log('API Response:', response.data);
+      
+      // Update local state immediately with saved settings to ensure UI reflects changes
+      setAvailabilitySettings(settings);
+      
+      // Also refresh from server to ensure synchronization, but don't rely on it exclusively
+      try {
+        await fetchAvailabilitySettings(currentUserId);
+      } catch (fetchError) {
+        console.warn('Failed to refresh settings from server, keeping local state:', fetchError);
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Availability settings saved successfully',
+      });
+    } catch (error) {
+      console.error('Error saving availability settings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save availability settings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
@@ -138,6 +371,14 @@ export default function SchedulingPage() {
     fetchScheduleData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refetch availability when month changes
+  useEffect(() => {
+    if (currentUserId && activeTab === 'availability') {
+      fetchAvailabilitySlots(currentUserId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate, currentUserId, activeTab]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -288,7 +529,15 @@ export default function SchedulingPage() {
               <CardDescription>Set your available times for clients to book</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              {!availabilitySettings || !availabilitySettings.weeklySchedule ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading availability settings...</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
                 {/* Quick Availability Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border rounded-lg p-4">
@@ -298,17 +547,76 @@ export default function SchedulingPage() {
                         <div key={day} className="flex items-center justify-between">
                           <label className="text-sm font-medium">{day}</label>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" className="rounded" defaultChecked />
-                            <select className="text-xs border rounded px-2 py-1">
-                              <option>9:00 AM</option>
-                              <option>10:00 AM</option>
-                              <option>11:00 AM</option>
+                            <input 
+                              type="checkbox" 
+                              className="rounded" 
+                              checked={availabilitySettings.weeklySchedule?.[day]?.isAvailable || false}
+                              onChange={(e) => {
+                                const newSettings = {
+                                  ...availabilitySettings,
+                                  weeklySchedule: {
+                                    ...availabilitySettings.weeklySchedule,
+                                    [day]: {
+                                      ...availabilitySettings.weeklySchedule?.[day],
+                                      isAvailable: e.target.checked
+                                    }
+                                  }
+                                };
+                                setAvailabilitySettings(newSettings);
+                              }}
+                            />
+                            <select 
+                              className="text-xs border rounded px-2 py-1"
+                              value={availabilitySettings.weeklySchedule?.[day]?.startTime || '09:00'}
+                              onChange={(e) => {
+                                const newSettings = {
+                                  ...availabilitySettings,
+                                  weeklySchedule: {
+                                    ...availabilitySettings.weeklySchedule,
+                                    [day]: {
+                                      ...availabilitySettings.weeklySchedule?.[day],
+                                      startTime: e.target.value
+                                    }
+                                  }
+                                };
+                                setAvailabilitySettings(newSettings);
+                              }}
+                            >
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const hour = i.toString().padStart(2, '0');
+                                return (
+                                  <option key={hour} value={`${hour}:00`}>
+                                    {hour}:00
+                                  </option>
+                                );
+                              })}
                             </select>
                             <span className="text-xs">to</span>
-                            <select className="text-xs border rounded px-2 py-1">
-                              <option>5:00 PM</option>
-                              <option>6:00 PM</option>
-                              <option>7:00 PM</option>
+                            <select 
+                              className="text-xs border rounded px-2 py-1"
+                              value={availabilitySettings.weeklySchedule?.[day]?.endTime || '17:00'}
+                              onChange={(e) => {
+                                const newSettings = {
+                                  ...availabilitySettings,
+                                  weeklySchedule: {
+                                    ...availabilitySettings.weeklySchedule,
+                                    [day]: {
+                                      ...availabilitySettings.weeklySchedule?.[day],
+                                      endTime: e.target.value
+                                    }
+                                  }
+                                };
+                                setAvailabilitySettings(newSettings);
+                              }}
+                            >
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const hour = i.toString().padStart(2, '0');
+                                return (
+                                  <option key={hour} value={`${hour}:00`}>
+                                    {hour}:00
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
                         </div>
@@ -321,32 +629,59 @@ export default function SchedulingPage() {
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm font-medium">Maximum daily bookings</label>
-                        <select className="w-full mt-1 border rounded px-3 py-2">
-                          <option>1 booking</option>
-                          <option>2 bookings</option>
-                          <option>3 bookings</option>
-                          <option>4 bookings</option>
-                          <option>5+ bookings</option>
+                        <select 
+                          className="w-full mt-1 border rounded px-3 py-2"
+                          value={availabilitySettings.maxDailyBookings}
+                          onChange={(e) => {
+                            setAvailabilitySettings({
+                              ...availabilitySettings,
+                              maxDailyBookings: parseInt(e.target.value)
+                            });
+                          }}
+                        >
+                          <option value="1">1 booking</option>
+                          <option value="2">2 bookings</option>
+                          <option value="3">3 bookings</option>
+                          <option value="4">4 bookings</option>
+                          <option value="5">5+ bookings</option>
                         </select>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Advance notice required</label>
-                        <select className="w-full mt-1 border rounded px-3 py-2">
-                          <option>Same day</option>
-                          <option>1 day</option>
-                          <option>2 days</option>
-                          <option>3 days</option>
-                          <option>1 week</option>
+                        <select 
+                          className="w-full mt-1 border rounded px-3 py-2"
+                          value={availabilitySettings.advanceNotice}
+                          onChange={(e) => {
+                            setAvailabilitySettings({
+                              ...availabilitySettings,
+                              advanceNotice: parseInt(e.target.value)
+                            });
+                          }}
+                        >
+                          <option value="0">Same day</option>
+                          <option value="1">1 day</option>
+                          <option value="2">2 days</option>
+                          <option value="3">3 days</option>
+                          <option value="7">1 week</option>
                         </select>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Travel distance</label>
-                        <select className="w-full mt-1 border rounded px-3 py-2">
-                          <option>Within 5km</option>
-                          <option>Within 10km</option>
-                          <option>Within 20km</option>
-                          <option>Within 50km</option>
-                          <option>Any distance</option>
+                        <select 
+                          className="w-full mt-1 border rounded px-3 py-2"
+                          value={availabilitySettings.travelDistance}
+                          onChange={(e) => {
+                            setAvailabilitySettings({
+                              ...availabilitySettings,
+                              travelDistance: parseInt(e.target.value)
+                            });
+                          }}
+                        >
+                          <option value="5">Within 5km</option>
+                          <option value="10">Within 10km</option>
+                          <option value="20">Within 20km</option>
+                          <option value="50">Within 50km</option>
+                          <option value="999">Any distance</option>
                         </select>
                       </div>
                     </div>
@@ -355,26 +690,172 @@ export default function SchedulingPage() {
 
                 {/* Special Dates */}
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-medium mb-3">Special Dates & Holidays</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h3 className="font-medium mb-3">Special Dates & Holiday Rates</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Unavailable Dates Calendar */}
                     <div>
-                      <label className="text-sm font-medium">Unavailable dates</label>
-                      <textarea 
-                        className="w-full mt-1 border rounded px-3 py-2" 
-                        rows={3}
-                        placeholder="Enter dates you're unavailable (e.g., Dec 25, Jan 1)"
-                      />
+                      <label className="text-sm font-medium mb-3 block">Unavailable Dates</label>
+                      <div className="border rounded-lg p-3 bg-gray-50">
+                        {/* Calendar Header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newDate = new Date(currentDate);
+                              newDate.setMonth(newDate.getMonth() - 1);
+                              setCurrentDate(newDate);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            ←
+                          </button>
+                          <h4 className="font-medium text-sm">
+                            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newDate = new Date(currentDate);
+                              newDate.setMonth(newDate.getMonth() + 1);
+                              setCurrentDate(newDate);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            →
+                          </button>
+                        </div>
+
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1 text-xs">
+                          {/* Day headers */}
+                          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                            <div key={day} className="text-center font-medium p-1 text-gray-600">
+                              {day}
+                            </div>
+                          ))}
+                          
+                          {/* Calendar days */}
+                          {getDaysInMonth(currentDate).map((day, index) => {
+                            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
+                            const dateStr = formatDate(day);
+                            const isUnavailable = availabilitySettings.unavailableDates?.includes(dateStr);
+                            const isPast = day < new Date(formatDate(new Date()));
+                            
+                            return (
+                              <button
+                                key={index}
+                                type="button"
+                                disabled={!isCurrentMonth || isPast}
+                                onClick={() => {
+                                  if (!isCurrentMonth || isPast) return;
+                                  
+                                  const currentUnavailable = availabilitySettings.unavailableDates || [];
+                                  const newUnavailable = isUnavailable
+                                    ? currentUnavailable.filter(date => date !== dateStr)
+                                    : [...currentUnavailable, dateStr];
+                                  
+                                  setAvailabilitySettings({
+                                    ...availabilitySettings,
+                                    unavailableDates: newUnavailable.sort()
+                                  });
+                                }}
+                                className={`
+                                  p-1 text-xs rounded transition-colors
+                                  ${!isCurrentMonth 
+                                    ? 'text-gray-300 cursor-not-allowed' 
+                                    : isPast
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : isUnavailable
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'hover:bg-blue-100 text-gray-700'
+                                  }
+                                `}
+                              >
+                                {day.getDate()}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Selected unavailable dates display */}
+                        {availabilitySettings.unavailableDates && availabilitySettings.unavailableDates.length > 0 && (
+                          <div className="mt-3 p-2 bg-white rounded border">
+                            <div className="text-xs font-medium text-gray-600 mb-1">Selected Unavailable Dates:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {availabilitySettings.unavailableDates.map(date => (
+                                <span
+                                  key={date}
+                                  className="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs rounded"
+                                >
+                                  {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newUnavailable = availabilitySettings.unavailableDates?.filter(d => d !== date) || [];
+                                      setAvailabilitySettings({
+                                        ...availabilitySettings,
+                                        unavailableDates: newUnavailable
+                                      });
+                                    }}
+                                    className="ml-1 hover:text-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-2 text-xs text-gray-500">
+                          Click on dates to mark them as unavailable. Past dates cannot be selected.
+                        </div>
+                      </div>
                     </div>
+                    {/* Holiday & Weekend Rates */}
                     <div>
-                      <label className="text-sm font-medium">Holiday rates</label>
-                      <div className="space-y-2 mt-1">
+                      <label className="text-sm font-medium mb-3 block">Holiday & Weekend Rates</label>
+                      <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
                         <div className="flex items-center">
-                          <input type="checkbox" className="rounded mr-2" />
-                          <span className="text-sm">Charge extra on holidays (+25%)</span>
+                          <input 
+                            type="checkbox" 
+                            className="rounded mr-2"
+                            checked={availabilitySettings.holidayRates?.chargeExtraOnHolidays || false}
+                            onChange={(e) => {
+                              setAvailabilitySettings({
+                                ...availabilitySettings,
+                                holidayRates: {
+                                  ...availabilitySettings.holidayRates,
+                                  chargeExtraOnHolidays: e.target.checked
+                                }
+                              });
+                            }}
+                          />
+                          <span className="text-sm">Charge extra on holidays (+{availabilitySettings.holidayRates?.holidayRateIncrease || 25}%)</span>
                         </div>
                         <div className="flex items-center">
-                          <input type="checkbox" className="rounded mr-2" />
-                          <span className="text-sm">Charge extra on weekends (+15%)</span>
+                          <input 
+                            type="checkbox" 
+                            className="rounded mr-2"
+                            checked={availabilitySettings.holidayRates?.chargeExtraOnWeekends || false}
+                            onChange={(e) => {
+                              setAvailabilitySettings({
+                                ...availabilitySettings,
+                                holidayRates: {
+                                  ...availabilitySettings.holidayRates,
+                                  chargeExtraOnWeekends: e.target.checked
+                                }
+                              });
+                            }}
+                          />
+                          <span className="text-sm">Charge extra on weekends (+{availabilitySettings.holidayRates?.weekendRateIncrease || 15}%)</span>
+                        </div>
+                        
+                        <div className="mt-3 p-2 bg-white rounded border">
+                          <div className="text-xs font-medium text-gray-600 mb-1">Holiday Rate Details:</div>
+                          <div className="text-xs text-gray-500">
+                            Holiday rates apply to: Christmas, New Year, and Thanksgiving
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -382,10 +863,25 @@ export default function SchedulingPage() {
                 </div>
 
                 <div className="flex justify-end space-x-3">
-                  <Button variant="outline">Reset to Default</Button>
-                  <Button>Save Availability</Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      if (currentUserId) {
+                        fetchAvailabilitySettings(currentUserId);
+                      }
+                    }}
+                  >
+                    Reset to Default
+                  </Button>
+                  <Button 
+                    onClick={() => saveAvailabilitySettings(availabilitySettings)}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Availability'}
+                  </Button>
                 </div>
               </div>
+              )}
             </CardContent>
           </Card>
         )}
