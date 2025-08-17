@@ -32,7 +32,7 @@ const getNavigationItems = (userRole: string | null, isLoggedIn: boolean): Navig
       // Admins should also land on the unified /dashboard route
       { name: 'Dashboard', href: '/dashboard', show: 'authenticated' },
       { name: 'Bookings', href: '/bookings', show: 'authenticated' },
-      { name: 'Profile', href: '/profile', show: 'authenticated' }
+      // { name: 'Profile', href: '/profile', show: 'authenticated' }
     );
 
     if (userRole === 'admin') {
@@ -41,11 +41,11 @@ const getNavigationItems = (userRole: string | null, isLoggedIn: boolean): Navig
       );
     }
 
-    if (userRole === 'sitter') {
-      items.push(
-        { name: 'My Clients', href: '/dashboard?tab=users', show: 'sitter' }
-      );
-    }
+    // if (userRole === 'sitter') {
+    //   items.push(
+    //     { name: 'My Clients', href: '/dashboard?tab=users', show: 'sitter' }
+    //   );
+    // }
 
     if (userRole === 'client') {
       items.push(

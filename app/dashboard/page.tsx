@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -257,6 +257,7 @@ interface User {
   pets?: Pet[];
   status?: 'pending' | 'approved' | 'rejected'; // Add status for user approval
   createdAt?: string;
+  profilePicture?: string;
 }
 
 interface Pet {
@@ -276,7 +277,56 @@ interface Booking {
   status: string;
 }
 
+// UserAvatar component for consistent avatar display
+interface UserAvatarProps {
+  user: any;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = '' }) => {
+  const sizeClasses = {
+    sm: 'w-8 h-8 text-sm',
+    md: 'w-10 h-10 text-sm',
+    lg: 'w-12 h-12 text-lg'
+  };
+
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}`
+    : user?.firstName || user?.lastName || user?.email || 'User';
+  
+  const initials = displayName.split(' ').map((n: string) => n.charAt(0)).join('').toUpperCase().slice(0, 2);
+
+  // Only show image if profilePicture is a non-empty string and not a default/sample image
+  const isValidProfilePicture =
+    user?.profilePicture &&
+    typeof user.profilePicture === 'string' &&
+    user.profilePicture.trim() !== '' &&
+    !user.profilePicture.includes('test-avatar.jpg') &&
+    !user.profilePicture.includes('default-avatar') &&
+    !user.profilePicture.includes('sample');
+
+  return (
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 ${className}`}>
+      {isValidProfilePicture ? (
+        <img 
+          src={user.profilePicture} 
+          alt={displayName}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span className="text-white font-medium">
+          {initials}
+        </span>
+      )}
+    </div>
+  );
+};
+
 export default function DashboardPage() {
+  // Image modal state for chat images
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const closeModal = () => setModalImage(null);
   const { toast } = useToast();
   
   // Sitter approval modal state
@@ -520,11 +570,11 @@ export default function DashboardPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   
   // Key Security form state
-  const [lockboxCode, setLockboxCode] = useState("4242");
-  const [lockboxLocation, setLockboxLocation] = useState("Outside of the main entrance");
+  const [lockboxCode, setLockboxCode] = useState("");
+  const [lockboxLocation, setLockboxLocation] = useState("");
   const [alarmCompanyName, setAlarmCompanyName] = useState("");
-  const [alarmCompanyPhone, setAlarmCompanyPhone] = useState("Anjana");
-  const [alarmCodeToEnter, setAlarmCodeToEnter] = useState("*****");
+  const [alarmCompanyPhone, setAlarmCompanyPhone] = useState("");
+  const [alarmCodeToEnter, setAlarmCodeToEnter] = useState("");
   const [alarmCodeToExit, setAlarmCodeToExit] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [homeAccessList, setHomeAccessList] = useState("");
@@ -549,6 +599,47 @@ export default function DashboardPage() {
   
   const router = useRouter();
 
+  // Function to refresh pets data
+  const refreshPetsData = async () => {
+    try {
+      const userToken = getUserFromToken();
+      if (!userToken) {
+        return;
+      }
+      
+      const profileResponse = await api.get("/users/profile");
+      const userId = profileResponse.data._id;
+
+      // Fetch user's pets with care and medical information
+      const petsResponse = await api.get(`/pets/user/${userId}/with-details`);
+      const petsWithDetails = petsResponse?.data ?? [];
+      
+      // Transform to match the expected format for dashboard
+      const transformedPets = petsWithDetails.map((item: any) => ({
+        id: item.pet._id,
+        _id: item.pet._id,
+        name: item.pet.name,
+        species: item.pet.type || item.pet.species,
+        breed: item.pet.breed,
+        age: item.pet.age,
+        weight: item.pet.weight,
+        photo: item.pet.photo,
+        photoUrl: item.pet.photo,
+        careInstructions: item.care?.careInstructions || '',
+        feedingSchedule: item.care?.feedingSchedule || '',
+        exerciseRequirements: item.care?.exerciseRequirements || '',
+        vetName: item.medical?.vetBusinessName || '',
+        vetAddress: item.medical?.vetAddress || '',
+        vetPhone: item.medical?.vetPhoneNumber || '',
+        vaccines: item.medical?.currentOnVaccines || ''
+      }));
+      
+      setPets(transformedPets);
+    } catch (error) {
+      console.error('Error refreshing pets data:', error);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/login");
@@ -567,9 +658,31 @@ export default function DashboardPage() {
         const userId = profileResponse.data._id;
         const userRole = profileResponse.data.role;
 
-        // Fetch user's pets
-        const petsResponse = await api.get(`/pets/user/${userId}`);
-        setPets(petsResponse?.data ?? []);
+        // Fetch user's pets with care and medical information
+        const petsResponse = await api.get(`/pets/user/${userId}/with-details`);
+        const petsWithDetails = petsResponse?.data ?? [];
+        
+        // Transform to match the expected format for dashboard
+        const transformedPets = petsWithDetails.map((item: any) => ({
+          id: item.pet._id,
+          _id: item.pet._id,
+          name: item.pet.name,
+          species: item.pet.type || item.pet.species,
+          breed: item.pet.breed,
+          age: item.pet.age,
+          weight: item.pet.weight,
+          photo: item.pet.photo,
+          photoUrl: item.pet.photo,
+          careInstructions: item.care?.careInstructions || '',
+          feedingSchedule: item.care?.feedingSchedule || '',
+          exerciseRequirements: item.care?.exerciseRequirements || '',
+          vetName: item.medical?.vetBusinessName || '',
+          vetAddress: item.medical?.vetAddress || '',
+          vetPhone: item.medical?.vetPhoneNumber || '',
+          vaccines: item.medical?.currentOnVaccines || ''
+        }));
+        
+        setPets(transformedPets);
 
         // Fetch bookings based on user role
         let bookingsResponse;
@@ -666,7 +779,28 @@ export default function DashboardPage() {
         setIsLoading(false);
       }
     };
+    
     fetchDashboardData();
+
+    // Add window focus event listener to refresh data when user returns to tab
+    const handleFocus = () => {
+      if (isAuthenticated()) {
+        refreshPetsData();
+      }
+    };
+
+    // Add event listener for pet data updates
+    const handlePetDataUpdated = () => {
+      refreshPetsData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('petDataUpdated', handlePetDataUpdated);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('petDataUpdated', handlePetDataUpdated);
+    };
   }, [router]);
 
   const handleLogout = () => {
@@ -1372,7 +1506,7 @@ export default function DashboardPage() {
                   >
                     My Profile
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => setActiveTab("pets")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
@@ -1381,7 +1515,7 @@ export default function DashboardPage() {
                     }`}
                   >
                     My Pets
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => setActiveTab("security")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
@@ -1556,11 +1690,7 @@ export default function DashboardPage() {
                       <div key={note._id || note.id} className="border-b border-gray-200 pb-4 last:border-b-0">
                         <div className="flex items-start space-x-3">
                           {/* User Avatar */}
-                          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-bold text-gray-600">
-                              {(note.senderId?.firstName || note.author || 'U').charAt(0).toUpperCase()}
-                            </span>
-                          </div>
+                          <UserAvatar user={note.senderId} size="md" />
                           {/* Note Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
@@ -1585,7 +1715,8 @@ export default function DashboardPage() {
                                       key={index}
                                       src={attachment.url}
                                       alt={attachment.filename}
-                                      className="w-32 h-32 object-cover rounded-lg border"
+                                      className="w-32 h-32 object-cover rounded-lg border cursor-pointer"
+                                      onClick={() => setModalImage(attachment.url)}
                                     />
                                   ))}
                                 </div>
@@ -1600,7 +1731,8 @@ export default function DashboardPage() {
                                       key={index}
                                       src={image}
                                       alt={`Note attachment ${index + 1}`}
-                                      className="w-32 h-32 object-cover rounded-lg border"
+                                      className="w-32 h-32 object-cover rounded-lg border cursor-pointer"
+                                      onClick={() => setModalImage(image)}
                                     />
                                   ))}
                                 </div>
@@ -1611,30 +1743,59 @@ export default function DashboardPage() {
                               <div className="mt-4 space-y-2">
                                 {note.replies.map((reply: any) => (
                                   <div key={reply._id || reply.id} className="border-t pt-2">
-                                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-medium text-gray-900">
-                        {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}${reply.senderId.role === 'admin' ? ' (Admin)' : ''}` : reply.author)}
-                      </span>
-                                      <span className="text-sm text-gray-400">
-                                        {new Date(reply.createdAt || reply.timestamp).toLocaleDateString()} - {new Date(reply.createdAt || reply.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                      </span>
-                                    </div>
-                                    <p className="text-gray-700 text-sm leading-relaxed">{reply.text}</p>
-                                    {/* Reply Images (if any) */}
-                                    {reply.attachments && reply.attachments.length > 0 && (
-                                      <div className="mt-2">
-                                        <div className="flex space-x-2">
-                                          {reply.attachments.filter((att: any) => att.type === 'image').map((attachment: any, index: number) => (
-                                            <img
-                                              key={index}
-                                              src={attachment.url}
-                                              alt={attachment.filename}
-                                              className="w-24 h-24 object-cover rounded border"
-                                            />
-                                          ))}
+                                    <div className="flex items-start space-x-2">
+                                      {/* Reply Avatar */}
+                                      <UserAvatar user={reply.senderId} size="sm" />
+                                      <div className="flex-1">
+                                        <div className="flex items-center space-x-2 mb-1">
+                                          <span className="font-medium text-gray-900">
+                                            {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}${reply.senderId.role === 'admin' ? ' (Admin)' : ''}` : reply.author)}
+                                          </span>
+                                          <span className="text-sm text-gray-400">
+                                            {new Date(reply.createdAt || reply.timestamp).toLocaleDateString()} - {new Date(reply.createdAt || reply.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                          </span>
                                         </div>
+                                        {/* Reply Text/Body */}
+                                        <p className="text-gray-700 text-sm leading-relaxed mb-2">{reply.text}</p>
+                                        {/* Reply Images (if any) */}
+                                        {reply.attachments && reply.attachments.length > 0 && (
+                                          <div className="mt-2">
+                                            <div className="flex space-x-2">
+                                              {reply.attachments.filter((att: any) => att.type === 'image').map((attachment: any, index: number) => (
+                                                <img
+                                                  key={index}
+                                                  src={attachment.url}
+                                                  alt={attachment.filename}
+                                                  className="w-24 h-24 object-cover rounded border cursor-pointer"
+                                                  onClick={() => setModalImage(attachment.url)}
+                                                />
+                                              ))}
+    {/* Image Popup Modal for chat images */}
+    {modalImage && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+        onClick={closeModal}
+      >
+        <div className="relative" onClick={e => e.stopPropagation()}>
+          <img
+            src={modalImage}
+            alt="Chat Attachment"
+            className="max-w-full max-h-[80vh] rounded-lg shadow-xl"
+          />
+          <button
+            className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-2 text-gray-700 hover:bg-opacity-100"
+            onClick={closeModal}
+          >
+            <span className="material-icons">close</span>
+          </button>
+        </div>
+      </div>
+    )}
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -2408,19 +2569,19 @@ export default function DashboardPage() {
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Care Instructions</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {pet.careInstructions || 'No care instructions available.'}
+                                  {(pet as any)?.careData?.careInstructions || pet.careInstructions || 'No care instructions available.'}
                                 </div>
                               </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Feeding Schedule</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.feedingSchedule || 'No feeding schedule available.'}
+                                  {(pet as any)?.careData?.feedingSchedule || 'No feeding schedule available.'}
                                 </div>
                               </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Exercise Requirements</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.exerciseRequirements || 'No exercise requirements specified.'}
+                                  {(pet as any)?.careData?.exerciseRequirements || 'No exercise requirements specified.'}
                                 </div>
                               </div>
                             </div>
@@ -2432,22 +2593,26 @@ export default function DashboardPage() {
                               <table className="min-w-full text-left">
                                 <tbody className="divide-y divide-gray-200">
                                   <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Business Name and Dr. Name</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetName || "Chartwell Veterinary Clinic"}</td>
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Business Name</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetBusinessName || "Not specified"}</td>
+                                  </tr>
+                                  <tr className="hover:bg-gray-50">
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Doctor Name</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetDoctorName || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
                                     <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Address</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetAddress || "2375, Brimley Road, Scarborogh, M1S 3L6"}</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetAddress || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Phone number</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetPhone || "4162912364"}</td>
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Phone Number</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetPhoneNumber || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
                                     <td className="py-4 px-6 text-sm font-medium text-gray-700">Current on Vaccines</td>
                                     <td className="py-4 px-6 text-sm text-gray-900">
                                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        {(pet as any)?.vaccines || "Fully Vaccinated"}
+                                        {(pet as any)?.medicalData?.currentOnVaccines || "Not specified"}
                                       </span>
                                     </td>
                                   </tr>
@@ -2461,6 +2626,7 @@ export default function DashboardPage() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => router.push('/pets')}
                           className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2471,6 +2637,27 @@ export default function DashboardPage() {
                         <Button 
                           variant="destructive" 
                           size="sm"
+                          onClick={async () => {
+                            const petId = (pet as any)?._id || pet.id;
+                            if (confirm(`Are you sure you want to delete ${pet.name}? This will also delete all medical and care information.`)) {
+                              try {
+                                await api.delete(`/pets/${petId}`);
+                                toast({
+                                  title: "Success",
+                                  description: `${pet.name} has been deleted successfully`,
+                                });
+                                // Refresh the pets data immediately
+                                await refreshPetsData();
+                              } catch (error) {
+                                console.error('Error deleting pet:', error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete pet",
+                                  variant: "destructive",
+                                });
+                              }
+                            }
+                          }}
                           className="px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2481,6 +2668,21 @@ export default function DashboardPage() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={async () => {
+                            const petId = (pet as any)?._id || pet.id;
+                            try {
+                              const response = await api.get(`/pets/${petId}/profile`);
+                              // Create a modal or redirect to view the complete profile
+                              alert(`Complete Profile for ${pet.name}:\n\n${JSON.stringify(response.data, null, 2)}`);
+                            } catch (error) {
+                              console.error('Error fetching pet profile:', error);
+                              toast({
+                                title: "Error", 
+                                description: "Failed to load pet profile",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
                           className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2492,6 +2694,35 @@ export default function DashboardPage() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={async () => {
+                            const petId = (pet as any)?._id || pet.id;
+                            try {
+                              const response = await api.get(`/pets/${petId}/pdf`, {
+                                responseType: 'blob'
+                              });
+                              
+                              // Create blob link to download
+                              const url = window.URL.createObjectURL(new Blob([response.data]));
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.setAttribute('download', `pet-profile-${pet.name}.pdf`);
+                              document.body.appendChild(link);
+                              link.click();
+                              link.remove();
+                              
+                              toast({
+                                title: "Success",
+                                description: `Pet profile PDF downloaded successfully`,
+                              });
+                            } catch (error) {
+                              console.error('Error downloading PDF:', error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to download PDF",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
                           className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2932,11 +3163,7 @@ export default function DashboardPage() {
                           <tr key={sitter._id || sitter.id || `sitter-${index}`} className="border-b hover:bg-gray-50">
                             <td className="py-3">
                               <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-blue-600">
-                                    {sitter.firstName?.charAt(0)}{sitter.lastName?.charAt(0)}
-                                  </span>
-                                </div>
+                                <UserAvatar user={sitter} size="sm" />
                                 <span className="text-green-600 font-medium">
                                   {sitter.firstName} {sitter.lastName}
                                 </span>
@@ -3209,11 +3436,7 @@ export default function DashboardPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {/* Sitter Avatar */}
-                              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="text-lg font-medium text-blue-600">
-                                  {result.sitter.firstName?.charAt(0)}{result.sitter.lastName?.charAt(0)}
-                                </span>
-                              </div>
+                              <UserAvatar user={result.sitter} size="lg" />
                               
                               {/* Sitter Info */}
                               <div>
