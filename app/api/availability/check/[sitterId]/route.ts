@@ -91,8 +91,16 @@ export async function GET(
     const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
     
+    // Helper function to format date without timezone issues
+    const formatDateLocal = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
     for (let date = new Date(startDateObj); date <= endDateObj; date.setDate(date.getDate() + 1)) {
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatDateLocal(date);
       
       // Check if date is in unavailable dates
       if (settings.unavailableDates.includes(dateStr)) {
