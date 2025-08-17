@@ -2569,19 +2569,19 @@ export default function DashboardPage() {
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Care Instructions</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {pet.careInstructions || 'No care instructions available.'}
+                                  {(pet as any)?.careData?.careInstructions || pet.careInstructions || 'No care instructions available.'}
                                 </div>
                               </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Feeding Schedule</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.feedingSchedule || 'No feeding schedule available.'}
+                                  {(pet as any)?.careData?.feedingSchedule || 'No feeding schedule available.'}
                                 </div>
                               </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Exercise Requirements</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.exerciseRequirements || 'No exercise requirements specified.'}
+                                  {(pet as any)?.careData?.exerciseRequirements || 'No exercise requirements specified.'}
                                 </div>
                               </div>
                             </div>
@@ -2593,22 +2593,26 @@ export default function DashboardPage() {
                               <table className="min-w-full text-left">
                                 <tbody className="divide-y divide-gray-200">
                                   <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Business Name and Dr. Name</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetName || "Chartwell Veterinary Clinic"}</td>
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Business Name</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetBusinessName || "Not specified"}</td>
+                                  </tr>
+                                  <tr className="hover:bg-gray-50">
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Doctor Name</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetDoctorName || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
                                     <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Address</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetAddress || "2375, Brimley Road, Scarborogh, M1S 3L6"}</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetAddress || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Phone number</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.vetPhone || "4162912364"}</td>
+                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Phone Number</td>
+                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetPhoneNumber || "Not specified"}</td>
                                   </tr>
                                   <tr className="hover:bg-gray-50">
                                     <td className="py-4 px-6 text-sm font-medium text-gray-700">Current on Vaccines</td>
                                     <td className="py-4 px-6 text-sm text-gray-900">
                                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        {(pet as any)?.vaccines || "Fully Vaccinated"}
+                                        {(pet as any)?.medicalData?.currentOnVaccines || "Not specified"}
                                       </span>
                                     </td>
                                   </tr>
