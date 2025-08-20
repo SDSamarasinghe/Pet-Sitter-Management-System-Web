@@ -324,6 +324,27 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = 
 };
 
 export default function DashboardPage() {
+  // Helper to check if sitter is actually assigned (not just showing in UI)
+  const isSitterAssigned = (booking: any) => {
+    // Don't show unassign if booking is still pending
+    if (booking.status === 'pending') return false;
+    
+    const s = booking?.sitterId;
+    if (!s) return false;
+    if (typeof s === 'string') return s.trim() !== '';
+    if (typeof s === 'object') return Boolean(s._id || s.id || s.firstName || s.lastName);
+    return false;
+  };
+
+  const formatDateTime = (value?: string | number | Date) => {
+    if (!value) return 'N/A';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return 'N/A';
+    const date = d.toLocaleDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${date} ${time}`;
+  };
+
   // Image modal state for chat images
   const [modalImage, setModalImage] = useState<string | null>(null);
   const closeModal = () => setModalImage(null);
@@ -1931,7 +1952,7 @@ export default function DashboardPage() {
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
                             <TableCell>
-                              {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString() : 'N/A'}
+                              {(user as any).createdAt ? formatDateTime((user as any).createdAt) : 'N/A'}
                             </TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
@@ -1991,7 +2012,7 @@ export default function DashboardPage() {
                               <TableCell>{sitter.email}</TableCell>
                               <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
                               <TableCell>{getStatusBadge ? getStatusBadge(sitter.status) : sitter.status}</TableCell>
-                              <TableCell>{sitter.createdAt ? new Date(sitter.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                              <TableCell>{sitter.createdAt ? formatDateTime(sitter.createdAt) : 'N/A'}</TableCell>
                               <TableCell>
                                 <div className="flex space-x-2">
                                   {sitter.status === 'pending' && (
@@ -2134,6 +2155,7 @@ export default function DashboardPage() {
                         <TableHead>Start Date</TableHead>
                         <TableHead>End Date</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
                         <TableHead>Pets</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -2145,15 +2167,16 @@ export default function DashboardPage() {
                             <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
                             <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
                             <TableCell>{booking.serviceType || 'N/A'}</TableCell>
-                            <TableCell>{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
-                            <TableCell>{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell>{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</TableCell>
+                            <TableCell>{booking.endDate ? formatDateTime(booking.endDate) : 'N/A'}</TableCell>
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
+                            <TableCell>{booking.createdAt ? formatDateTime(booking.createdAt) : 'N/A'}</TableCell>
                             <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
                             <TableCell>
                               <div className="flex flex-col space-y-2 min-w-[160px]">
                                 <div className="flex space-x-2">
-                                  {/* Assign sitter dropdown if no sitter assigned */}
-                                  {(!booking.sitterId || !booking.sitterId.firstName) && adminSitters.length > 0 && (
+                                  {/* Assign sitter dropdown if no sitter assigned or booking is pending */}
+                                  {!isSitterAssigned(booking) && adminSitters.length > 0 && (
                                     <div className="relative">
                                       <select 
                                         onChange={e => assignSitter(booking._id, e.target.value)} 
@@ -2173,7 +2196,7 @@ export default function DashboardPage() {
                                     </div>
                                   )}
                                   {/* Unassign button if sitter assigned */}
-                                  {booking.sitterId && booking.sitterId.firstName && (
+                                  {isSitterAssigned(booking) && (
                                     <Button variant="outline" size="sm" onClick={() => unassignSitter(booking._id)} className="text-red-600 hover:text-red-700">Unassign Sitter</Button>
                                   )}
                                 </div>
@@ -2273,7 +2296,7 @@ export default function DashboardPage() {
                             <TableCell>{change.currentAddress}</TableCell>
                             <TableCell>{change.newAddress}</TableCell>
                             <TableCell>
-                              {change.createdAt ? new Date(change.createdAt).toLocaleDateString() : 'N/A'}
+                              {change.createdAt ? formatDateTime(change.createdAt) : 'N/A'}
                             </TableCell>
                             <TableCell className="capitalize">{change.status}</TableCell>
                           </TableRow>
@@ -2327,7 +2350,7 @@ export default function DashboardPage() {
                             </TableCell>
                             <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
                             <TableCell>
-                              {pet.createdAt ? new Date(pet.createdAt).toLocaleDateString() : 'N/A'}
+                              {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
                             </TableCell>
                           </TableRow>
                         ))
@@ -2435,7 +2458,7 @@ export default function DashboardPage() {
                           <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
                           <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
                           <td className="px-4 py-2">
-                            <div className="font-semibold">{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</div>
+                            <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
                             <div className="font-bold">{booking.serviceType}</div>
                             <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
                             {booking.startDate && booking.endDate && (
@@ -3403,8 +3426,8 @@ export default function DashboardPage() {
                       <div>
                         <h2 className="text-2xl font-bold text-gray-900">Sitter Availability Results</h2>
                         <p className="text-gray-600 mt-1">
-                          Availability for {bookingFormData.service} on {new Date(bookingFormData.startDate).toLocaleDateString()} 
-                          {bookingFormData.startDate !== bookingFormData.endDate && ` to ${new Date(bookingFormData.endDate).toLocaleDateString()}`}
+                          Availability for {bookingFormData.service} on {formatDateTime(bookingFormData.startDate)}
+                          {bookingFormData.startDate !== bookingFormData.endDate && ` to ${formatDateTime(bookingFormData.endDate)}`}
                         </p>
                         <p className="text-sm text-gray-500">
                           Time: {bookingFormData.startTime} - {bookingFormData.endTime}
