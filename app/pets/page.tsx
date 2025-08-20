@@ -50,7 +50,7 @@ interface Pet {
   careInstructions?: string;
 }
 
-interface PetCare {
+interface Whiskarz {
   _id?: string;
   petId: string;
   careInstructions?: string;
@@ -70,7 +70,7 @@ interface PetMedical {
 
 interface PetWithDetails {
   pet: Pet;
-  care: PetCare | null;
+  care: Whiskarz | null;
   medical: PetMedical | null;
 }
 
@@ -83,7 +83,7 @@ export default function MyPetsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editData, setEditData] = useState<{
     pet: Partial<Pet>;
-    care: Partial<PetCare>;
+    care: Partial<Whiskarz>;
     medical: Partial<PetMedical>;
   }>({
     pet: {},
