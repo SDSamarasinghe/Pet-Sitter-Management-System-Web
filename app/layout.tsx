@@ -5,10 +5,10 @@ import CentralizedHeader from "@/components/CentralizedHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PetCare - Professional Pet Sitting Services",
+  title: "Whiskarz - Professional Pet Sitting Services",
   description: "Toronto's most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.",
   keywords: "pet sitting, dog walking, cat care, pet care Toronto, professional pet sitters",
-  authors: [{ name: "PetCare Team" }],
+  authors: [{ name: "Whiskarz Team" }],
 };
 
 export const viewport = {
