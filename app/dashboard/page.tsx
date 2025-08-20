@@ -2134,6 +2134,7 @@ export default function DashboardPage() {
                         <TableHead>Start Date</TableHead>
                         <TableHead>End Date</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
                         <TableHead>Pets</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -2148,6 +2149,7 @@ export default function DashboardPage() {
                             <TableCell>{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell>{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
+                            <TableCell>{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
                             <TableCell>
                               <div className="flex flex-col space-y-2 min-w-[160px]">
