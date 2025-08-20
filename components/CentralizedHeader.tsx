@@ -124,7 +124,7 @@ const CentralizedHeader: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                PetCare
+                Whiskarz
               </span>
               <span className="text-xs text-gray-500 font-medium hidden sm:block">
                 Professional Pet Sitting
