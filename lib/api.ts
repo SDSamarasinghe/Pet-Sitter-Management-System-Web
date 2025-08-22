@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -32,5 +32,23 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Auth API functions
+export const authApi = {
+  // Forgot password
+  forgotPassword: async (email: string) => {
+    return api.post('/auth/forgot-password', { email });
+  },
+
+  // Reset password
+  resetPassword: async (token: string, newPassword: string) => {
+    return api.post('/auth/reset-password', { token, newPassword });
+  },
+
+  // Login
+  login: async (email: string, password: string) => {
+    return api.post('/auth/login', { email, password });
+  },
+};
 
 export default api;

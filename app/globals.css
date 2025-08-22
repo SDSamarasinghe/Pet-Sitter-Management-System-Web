@@ -281,6 +281,39 @@
     font-size: clamp(2.5rem, 6vw, 3.5rem);
   }
 
+  /* Custom color utilities for theme consistency */
+  .text-gold-600 {
+    color: hsl(45 69% 48%);
+  }
+  
+  .text-green-600 {
+    color: hsl(125 26% 54%);
+  }
+  
+  .bg-cream-50 {
+    background-color: hsl(40 33% 97%);
+  }
+  
+  .bg-gold-50 {
+    background-color: hsl(45 69% 95%);
+  }
+  
+  .from-cream-50 {
+    --tw-gradient-from: hsl(40 33% 97%);
+  }
+  
+  .to-gold-50 {
+    --tw-gradient-to: hsl(45 69% 95%);
+  }
+  
+  .from-gold-600 {
+    --tw-gradient-from: hsl(45 69% 48%);
+  }
+  
+  .to-green-600 {
+    --tw-gradient-to: hsl(125 26% 54%);
+  }
+
   /* Enhanced animation utilities */
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out;

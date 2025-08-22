@@ -134,7 +134,7 @@ export default function ServiceInquiryPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Pet Service Inquiry</h1>
             <p className="text-gray-600">
               After you fill out this service request, we will contact you to go over details and availability. 
-              Thank you for considering Flying Duchess for your pets!
+              Thank you for considering Whiskarz for your pets!
             </p>
           </div>
 

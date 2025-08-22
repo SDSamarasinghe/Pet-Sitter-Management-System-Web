@@ -117,19 +117,11 @@ const CentralizedHeader: React.FC = () => {
             className="flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200" 
             onClick={() => handleNavigation("/")}
           >
-            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-primary to-gold-600 bg-clip-text text-transparent">
-                Whiskarz
-              </span>
-              <span className="text-xs text-gray-500 font-medium hidden sm:block">
-                Professional Pet Sitting
-              </span>
-            </div>
+            <img 
+              src="/whiskarz-logo.svg" 
+              alt="Whiskarz Logo" 
+              className="h-10 lg:h-24 w-auto"
+            />
           </div>
 
           {/* Desktop Navigation */}

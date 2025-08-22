@@ -97,7 +97,7 @@ export default function DogSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Why Choose Flying Duchess for Your Dog?
+              Why Choose Whiskarz for Your Dog?
             </h2>
             <p className="text-gray-600">Professional care with the personal touch your dog deserves</p>
           </div>
