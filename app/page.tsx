@@ -7,12 +7,12 @@ export default function LandingPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50">
       {/* Hero Section */}
       <section className="section-padding">
         <div className="container-modern">
           <div className="max-w-4xl mx-auto text-center animate-fadeIn">
-            <h1 className="text-responsive-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-responsive-4xl font-bold mb-6 bg-gradient-to-r from-primary to-gold-700 bg-clip-text text-transparent leading-tight">
               Professional Pet Care You Can Trust
             </h1>
             <p className="text-responsive-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -45,7 +45,7 @@ export default function LandingPage() {
         <div className="container-modern">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 animate-stagger">
             <div className="card-modern p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-gold-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>

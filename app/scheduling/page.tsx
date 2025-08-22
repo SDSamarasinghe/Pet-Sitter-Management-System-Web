@@ -404,7 +404,7 @@ export default function SchedulingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Loading schedule...</p>
         </div>
       </div>
@@ -433,7 +433,7 @@ export default function SchedulingPage() {
               onClick={() => setActiveTab('schedule')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'schedule'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -443,7 +443,7 @@ export default function SchedulingPage() {
               onClick={() => setActiveTab('availability')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'availability'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -493,11 +493,11 @@ export default function SchedulingPage() {
                       key={index}
                       className={`min-h-[100px] p-2 border-r border-b border-gray-200 relative ${
                         isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                      } ${isToday ? 'bg-blue-50 ring-2 ring-blue-300 ring-inset' : ''} hover:bg-gray-50 transition-colors`}
+                      } ${isToday ? 'bg-gold-50 ring-2 ring-primary/30 ring-inset' : ''} hover:bg-gray-50 transition-colors`}
                     >
                       <div className={`text-sm font-medium mb-2 ${
                         isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                      } ${isToday ? 'text-blue-600 font-bold' : ''}`}>
+                      } ${isToday ? 'text-primary font-bold' : ''}`}>
                         {day.getDate()}
                       </div>
                       <div className="space-y-1">
@@ -532,7 +532,7 @@ export default function SchedulingPage() {
               {!availabilitySettings || !availabilitySettings.weeklySchedule ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                     <p className="text-gray-600">Loading availability settings...</p>
                   </div>
                 </div>
@@ -767,7 +767,7 @@ export default function SchedulingPage() {
                                     ? 'text-gray-400 cursor-not-allowed'
                                     : isUnavailable
                                     ? 'bg-red-500 text-white hover:bg-red-600'
-                                    : 'hover:bg-blue-100 text-gray-700'
+                                    : 'hover:bg-primary/10 text-gray-700'
                                   }
                                 `}
                               >
@@ -974,7 +974,7 @@ export default function SchedulingPage() {
               {/* Actions */}
               <div className="flex justify-between items-center px-6 py-4 bg-gray-50 rounded-b-lg">
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="text-blue-600">
+                  <Button variant="outline" size="sm" className="text-primary">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>

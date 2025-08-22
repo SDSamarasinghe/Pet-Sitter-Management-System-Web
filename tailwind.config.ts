@@ -55,6 +55,55 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Custom theme colors for direct usage
+        gold: {
+          50: '#fefcf0',
+          100: '#fef7e0',
+          200: '#fdecc4',
+          300: '#f9d99c',
+          400: '#f4c150',
+          500: '#D4AF37', // Primary gold
+          600: '#c9a023',
+          700: '#a67c1a',
+          800: '#89651a',
+          900: '#72531b',
+        },
+        green: {
+          50: '#f1f8f2',
+          100: '#e0ede1',
+          200: '#c3dcc6',
+          300: '#98c29e',
+          400: '#7BAE7F', // Secondary green
+          500: '#569760',
+          600: '#42794c',
+          700: '#35603e',
+          800: '#2d4e34',
+          900: '#25412b',
+        },
+        terracotta: {
+          50: '#fef5f0',
+          100: '#fde8dc',
+          200: '#fadfc9',
+          300: '#f7c59b',
+          400: '#f39a5b',
+          500: '#D88245', // Accent terracotta
+          600: '#c66a2b',
+          700: '#a75424',
+          800: '#864424',
+          900: '#6e3920',
+        },
+        cream: {
+          50: '#ffffff',
+          100: '#fefefe',
+          200: '#fdfdfd',
+          300: '#fbfbfb',
+          400: '#f8f8f8',
+          500: '#F5F0E6', // Secondary background
+          600: '#e8ddd0',
+          700: '#d4c4ad',
+          800: '#b8a284',
+          900: '#9b856a',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

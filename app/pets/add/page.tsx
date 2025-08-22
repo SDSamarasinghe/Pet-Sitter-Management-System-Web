@@ -396,7 +396,7 @@ export default function AddPetPage() {
                       </div>
                       <div>
                         <label htmlFor="photo" className="cursor-pointer">
-                          <span className="text-blue-600 hover:text-blue-800 font-medium">Upload a photo</span>
+                          <span className="text-primary hover:text-primary/80 font-medium">Upload a photo</span>
                           <span className="text-gray-600"> or drag and drop</span>
                         </label>
                         <p className="text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>

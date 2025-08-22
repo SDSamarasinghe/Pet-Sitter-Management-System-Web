@@ -309,7 +309,7 @@ export default function ServiceInquiryPage() {
             <div className="flex gap-4 justify-center pt-6">
               <Button 
                 type="submit" 
-                className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full max-w-sm bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 disabled={isLoading}
               >
                 {isLoading ? (

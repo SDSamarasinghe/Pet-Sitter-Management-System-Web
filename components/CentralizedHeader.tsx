@@ -96,9 +96,9 @@ const CentralizedHeader: React.FC = () => {
 
   const getRoleBadge = (role: string) => {
     const roleColors = {
-      admin: 'bg-red-100 text-red-800',
-      sitter: 'bg-green-100 text-green-800',
-      client: 'bg-blue-100 text-blue-800'
+      admin: 'bg-terracotta-100 text-terracotta-800',
+      sitter: 'bg-green-100 text-green-800', 
+      client: 'bg-gold-100 text-gold-800'
     };
     
     return (
@@ -117,13 +117,13 @@ const CentralizedHeader: React.FC = () => {
             className="flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200" 
             onClick={() => handleNavigation("/")}
           >
-            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-lg">
               <svg className="w-6 h-6 lg:w-7 lg:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-primary to-gold-600 bg-clip-text text-transparent">
                 Whiskarz
               </span>
               <span className="text-xs text-gray-500 font-medium hidden sm:block">
@@ -141,8 +141,8 @@ const CentralizedHeader: React.FC = () => {
                 onClick={() => handleNavigation(item.href)}
                 className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
                   isCurrentPath(item.href)
-                    ? 'bg-blue-50 text-blue-700 shadow-sm'
-                    : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50/50'
+                    ? 'bg-gold-50 text-primary shadow-sm'
+                    : 'text-gray-600 hover:text-primary hover:bg-gold-50/50'
                 }`}
               >
                 {item.name}
@@ -159,7 +159,7 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-md">
                     {user?.profilePicture ? (
                       <img 
                         src={user.profilePicture} 
@@ -203,7 +203,7 @@ const CentralizedHeader: React.FC = () => {
                     <div className="py-2">
                       <button
                         onClick={() => { setDropdownOpen(false); handleNavigation('/dashboard'); }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
                       >
                         <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -213,7 +213,7 @@ const CentralizedHeader: React.FC = () => {
                       
                       <button
                         onClick={() => { setDropdownOpen(false); handleNavigation('/profile'); }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
                       >
                         <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -224,7 +224,7 @@ const CentralizedHeader: React.FC = () => {
                       {user.role === 'client' && (
                         <button
                           onClick={() => { setDropdownOpen(false); handleNavigation('/pets'); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-700 transition-colors duration-150"
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -253,7 +253,7 @@ const CentralizedHeader: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => handleNavigation("/login")}
-                  className="px-6 py-2 rounded-xl font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50/50 transition-all duration-200"
+                  className="px-6 py-2 rounded-xl font-medium text-gray-600 hover:text-primary hover:bg-gold-50/50 transition-all duration-200"
                 >
                   Sign In
                 </Button>
@@ -294,8 +294,8 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => handleNavigation(item.href)}
                   className={`justify-start px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                     isCurrentPath(item.href)
-                      ? 'bg-blue-50 text-blue-700 shadow-sm'
-                      : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50/50'
+                      ? 'bg-gold-50 text-primary shadow-sm'
+                      : 'text-gray-600 hover:text-primary hover:bg-gold-50/50'
                   }`}
                 >
                   {item.name}
@@ -308,7 +308,7 @@ const CentralizedHeader: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleNavigation("/login")}
-                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50/50 transition-all duration-200"
+                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-gray-600 hover:text-primary hover:bg-gold-50/50 transition-all duration-200"
                     >
                       Sign In
                     </Button>

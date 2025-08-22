@@ -4,25 +4,40 @@
 
 @layer base {
   :root {
+    /* Main backgrounds */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 40 33% 92%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    
+    /* Text colors */
+    --foreground: 0 0% 20%;
+    --card-foreground: 0 0% 20%;
+    --popover-foreground: 0 0% 20%;
+    
+    /* Primary theme - Gold */
+    --primary: 45 69% 53%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary theme - Soft Green */
+    --secondary: 125 26% 59%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted elements */
+    --muted: 40 33% 92%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* Accent - Terracotta */
+    --accent: 23 65% 55%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive states */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders and inputs */
+    --border: 40 20% 85%;
+    --input: 40 20% 85%;
+    --ring: 45 69% 53%;
     --radius: 0.75rem;
     
     /* Enhanced design system variables */
@@ -32,35 +47,52 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
-    --gradient-primary: linear-gradient(135deg, hsl(221.2 83.2% 53.3%) 0%, hsl(217.2 91.2% 59.8%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(210 40% 96%) 0%, hsl(220 14.3% 95.9%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(220 14.3% 97.9%) 100%);
+    /* Updated gradients with new color scheme */
+    --gradient-primary: linear-gradient(135deg, hsl(45 69% 53%) 0%, hsl(45 69% 48%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(125 26% 59%) 0%, hsl(125 26% 54%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(23 65% 55%) 0%, hsl(23 65% 50%) 100%);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* Dark mode backgrounds */
+    --background: 0 0% 8%;
+    --card: 0 0% 12%;
+    --popover: 0 0% 8%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(217.2 91.2% 59.8%) 0%, hsl(221.2 83.2% 53.3%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(217.2 32.6% 17.5%) 0%, hsl(215.4 16.3% 25%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(217.2 32.6% 12%) 0%, hsl(215.4 16.3% 20%) 100%);
+    /* Dark mode text colors */
+    --foreground: 0 0% 95%;
+    --card-foreground: 0 0% 95%;
+    --popover-foreground: 0 0% 95%;
+    
+    /* Primary theme - Brighter Gold for dark mode */
+    --primary: 45 80% 60%;
+    --primary-foreground: 0 0% 8%;
+    
+    /* Secondary theme - Brighter Green for dark mode */
+    --secondary: 125 35% 65%;
+    --secondary-foreground: 0 0% 8%;
+    
+    /* Muted elements for dark mode */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    
+    /* Accent - Brighter Terracotta for dark mode */
+    --accent: 23 70% 60%;
+    --accent-foreground: 0 0% 8%;
+    
+    /* Destructive states */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 95%;
+    
+    /* Dark mode borders and inputs */
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 45 80% 60%;
+    
+    /* Updated gradients for dark mode */
+    --gradient-primary: linear-gradient(135deg, hsl(45 80% 60%) 0%, hsl(45 80% 55%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(125 35% 65%) 0%, hsl(125 35% 60%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(23 70% 60%) 0%, hsl(23 70% 55%) 100%);
   }
 }
 
@@ -147,15 +179,20 @@
   /* Button enhancements */
   .btn-primary {
     background: var(--gradient-primary);
-    @apply text-white border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-medium;
+    @apply text-primary-foreground border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-medium;
   }
   
   .btn-secondary {
-    @apply bg-gray-100 text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-200 hover:border-gray-300 transition-all duration-200 font-medium;
+    @apply bg-secondary text-secondary-foreground border border-green-300 rounded-xl hover:bg-secondary/80 hover:border-green-400 transition-all duration-200 font-medium;
   }
   
   .btn-outline {
     @apply bg-transparent text-primary border-2 border-primary/20 rounded-xl hover:bg-primary/5 hover:border-primary/40 transition-all duration-200 font-medium;
+  }
+  
+  .btn-accent {
+    background: var(--gradient-accent);
+    @apply text-accent-foreground border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-medium;
   }
   
   /* Input enhancements */

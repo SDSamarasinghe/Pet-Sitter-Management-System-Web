@@ -312,7 +312,7 @@ export default function SignupPage() {
                       type="file"
                       accept="image/jpeg,image/png,image/gif,image/webp"
                       onChange={handleFileChange}
-                      className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                      className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                     />
                     <p className="text-xs text-gray-500">Supported formats: JPEG, PNG, GIF, WebP (max 5MB)</p>
                     {!selectedFile && <p className="text-xs text-gray-400">No file chosen</p>}
@@ -538,7 +538,7 @@ export default function SignupPage() {
             <div className="flex justify-center pt-6">
               <Button 
                 type="submit" 
-                className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full max-w-sm bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 disabled={isLoading || isUploading}
               >
                 {isLoading ? (
@@ -558,7 +558,7 @@ export default function SignupPage() {
               Already have an account?{' '}
               <button 
                 onClick={() => router.push('/login')}
-                className="text-blue-600 hover:underline font-medium"
+                className="text-primary hover:underline font-medium"
               >
                 Log in
               </button>

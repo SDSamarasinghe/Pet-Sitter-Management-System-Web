@@ -15,7 +15,7 @@ const catVisitOptions = [
       "★ Kids"
     ],
     image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=300&q=80",
-    color: "bg-blue-600"
+    color: "bg-primary"
   },
   {
     title: "Outdoor",
@@ -27,7 +27,7 @@ const catVisitOptions = [
       "★★ Kids & Older Cats"
     ],
     image: "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?auto=format&fit=crop&w=300&q=80",
-    color: "bg-blue-700"
+    color: "bg-primary"
   },
   {
     title: "AristoCat",
@@ -39,7 +39,7 @@ const catVisitOptions = [
       "★ Meds mixed in with food only"
     ],
     image: "https://images.unsplash.com/photo-1487300023790-ffbb8016a78b?auto=format&fit=crop&w=300&q=80",
-    color: "bg-blue-700",
+    color: "bg-primary",
     special: "top"
   },
   {
@@ -53,7 +53,7 @@ const catVisitOptions = [
       "★ Needles (Insulin BDP Suit-Q)"
     ],
     image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80",
-    color: "bg-blue-800"
+    color: "bg-primary"
   },
   {
     title: "Therapeutic",
@@ -65,7 +65,7 @@ const catVisitOptions = [
       "★★★ Medical Care"
     ],
     image: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=300&q=80",
-    color: "bg-blue-800"
+    color: "bg-primary"
   }
 ];
 
@@ -110,13 +110,13 @@ export default function CatSittingPage() {
           
           {/* Three action buttons */}
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-sm font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-8 py-3 text-sm font-bold">
               CHECK OUT OUR PRICES →
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-sm font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-8 py-3 text-sm font-bold">
               WHAT IS INCLUDED IN EVERY VISIT →
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-sm font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-8 py-3 text-sm font-bold">
               THE FLYING DUCHESS DIFFERENCE →
             </Button>
           </div>
@@ -185,11 +185,11 @@ export default function CatSittingPage() {
       </div>
 
       {/* Banner Section */}
-      <div className="relative bg-blue-50 py-12">
+      <div className="relative bg-primary/10 py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-8">
             <div className="flex-1">
-              <h3 className="text-2xl md:text-3xl font-bold text-blue-800 leading-relaxed">
+              <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
                 We provide that much needed bright spot in your pet's day, while you are away ~ And being able to do that makes our day!
               </h3>
               <div className="font-bold text-gray-800 mt-4 text-lg">FLYING DUCHESS ©</div>
@@ -223,7 +223,7 @@ export default function CatSittingPage() {
                     className="w-24 h-20 object-cover mx-auto rounded-lg"
                   />
                 </div>
-                <h3 className="font-bold text-blue-600 text-sm">{service.title}</h3>
+                <h3 className="font-bold text-primary text-sm">{service.title}</h3>
               </div>
             ))}
           </div>
@@ -238,7 +238,7 @@ export default function CatSittingPage() {
                   className="w-24 h-20 object-cover mx-auto rounded-lg"
                 />
               </div>
-              <h3 className="font-bold text-blue-600 text-sm">{catVisitServices[6].title}</h3>
+              <h3 className="font-bold text-primary text-sm">{catVisitServices[6].title}</h3>
             </div>
           </div>
         </div>
@@ -256,21 +256,21 @@ export default function CatSittingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Comprehensive Insurance Coverage</h4>
                   <p className="text-sm text-gray-600">Insurance and Liability coverage for your pets, home and property for the duration of our walk-ins or in-home Canadian. We provide full local our clients have placed in us for over 20 years with their most valuable possessions.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Professional Delivery</h4>
                   <p className="text-sm text-gray-600">We treat our clients, their pets, and home, with a standard of professionalism and care that is extraordinary to continuously working set the bar high for pet sitting standards in our industry.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Certified/Certified</h4>
                   <p className="text-sm text-gray-600">Pet First Aid Certified Instructors. With emergency contingencies in place to handle any emergency situations that may arise our way.</p>
@@ -282,14 +282,14 @@ export default function CatSittingPage() {
             </div>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">4</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">4</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Accredited</h4>
                   <p className="text-sm text-gray-600">Accredited by the governing bodies of the industry NAPPS – National Association of Professional Pet Sitters Member IIAPSG NAPPS Membership ASPCA Membership OSPGA as affiliated and being open to honest feedback from our clients that allows. We honestly recognize that we can always do feel through mutual feedback and communication.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">5</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">5</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Honesty & Openness</h4>
                   <p className="text-sm text-gray-600">We conduct our service with honesty and truthfulness, professional integrity, which builds trust between clients and being open to honest feedback from our clients in return. We honestly recognize that we can always do feel through mutual feedback and communication.</p>

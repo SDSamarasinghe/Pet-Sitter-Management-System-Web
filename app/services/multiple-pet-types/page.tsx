@@ -26,7 +26,7 @@ export default function MultiplePetTypesPage() {
               />
             </div>
             
-            <div className="bg-blue-50 rounded-2xl p-6 mb-8">
+            <div className="bg-primary/10 rounded-2xl p-6 mb-8">
               <p className="text-gray-700 italic text-lg leading-relaxed">
                 "Variety is the spice of life. So whether its two cats and a dog or the other way around or a Bunny, Turtle and Budgie Flying 
                 Duchess can sit them all."
@@ -34,13 +34,13 @@ export default function MultiplePetTypesPage() {
             </div>
             
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold">
+              <Button className="bg-primary hover:bg-primary text-white px-6 py-3 rounded-full font-semibold">
                 Click Here to Request a Quote
               </Button>
-              <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-semibold">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 px-6 py-3 rounded-full font-semibold">
                 The Flying Duchess Difference
               </Button>
-              <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-semibold">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 px-6 py-3 rounded-full font-semibold">
                 Listen to a Sample of our Daily Reports
               </Button>
             </div>
@@ -63,10 +63,10 @@ export default function MultiplePetTypesPage() {
             </p>
           </div>
           
-          <div className="bg-blue-50 rounded-2xl p-8 text-center border border-blue-200">
-            <h3 className="text-2xl font-bold text-blue-700 mb-6">Click Here for our Secure Signup Form</h3>
+          <div className="bg-primary/10 rounded-2xl p-8 text-center border border-primary">
+            <h3 className="text-2xl font-bold text-primary mb-6">Click Here for our Secure Signup Form</h3>
             <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="bg-primary hover:bg-primary text-white px-12 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
               onClick={() => router.push('/service-inquiry')}
             >
               Get Started

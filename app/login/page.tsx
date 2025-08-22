@@ -51,11 +51,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center section-padding">
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary to-gold-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
@@ -105,7 +105,7 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
@@ -113,7 +113,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-sm">
-                <a href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                <a href="/forgot-password" className="font-medium text-primary hover:text-gold-600 transition-colors duration-200">
                   Forgot password?
                 </a>
               </div>
@@ -161,11 +161,11 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
           By signing in, you agree to our{' '}
-          <a href="/terms" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+          <a href="/terms" className="text-primary hover:text-gold-600 transition-colors duration-200">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="/privacy" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
+          <a href="/privacy" className="text-primary hover:text-gold-600 transition-colors duration-200">
             Privacy Policy
           </a>
         </div>

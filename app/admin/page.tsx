@@ -646,7 +646,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('users')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'users' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -656,7 +656,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('sitters')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'sitters' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -666,7 +666,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('bookings')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'bookings' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -676,7 +676,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('address-changes')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'address-changes' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -686,7 +686,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('communication')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'communication' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -696,7 +696,7 @@ export default function AdminPage() {
               onClick={() => setActiveTab('pets')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'pets' 
-                  ? 'border-blue-500 text-blue-600' 
+                  ? 'border-primary text-primary' 
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -877,7 +877,7 @@ export default function AdminPage() {
                           <TableCell>
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                               user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                              user.role === 'sitter' ? 'bg-blue-100 text-blue-800' :
+                              user.role === 'sitter' ? 'bg-primary/10 text-primary' :
                               'bg-green-100 text-green-800'
                             }`}>
                               {user.role}
@@ -923,7 +923,7 @@ export default function AdminPage() {
                           </p>
                           {/* Show assigned sitter info if available */}
                           {(booking.assignedSitter || booking.sitterName || booking.sitterId) ? (
-                            <p className="text-sm text-blue-600">
+                            <p className="text-sm text-primary">
                               Assigned Sitter: {
                                 booking.assignedSitter ? booking.assignedSitter :
                                 booking.sitterName ? booking.sitterName :
@@ -941,7 +941,7 @@ export default function AdminPage() {
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                           booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                           booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          booking.status === 'completed' ? 'bg-primary/10 text-primary' :
                           'bg-gray-100 text-gray-800'
                         }`}>
                           {booking.status}
