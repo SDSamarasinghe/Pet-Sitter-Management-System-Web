@@ -60,41 +60,36 @@ const dogWalkOptions = [
   }
 ];
 
-const walkServices = [
+  const walkServices = [
   {
     title: "Meet & Greet",
     image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-green-50"
   },
   {
     title: "Leash & Outfitting as Needed",
     image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-green-50"
   },
   {
     title: "Walk/Exercise/Play",
     image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-green-50"
   },
   {
     title: "Potty Break & Clean Up",
     image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-green-50"
   },
   {
     title: "Fresh Water",
-    image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
-  },
-  {
-    title: "Towel Rub-Down as needed",
-    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
-  },
-  {
-    title: "And Daily Reports",
     image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-green-50"
+  },
+  {
+    title: "Love & Attention",
+    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80",
+    bgColor: "bg-green-50"
   }
 ];
 
@@ -130,13 +125,13 @@ export default function DogWalkingPage() {
           
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
           </div>
@@ -175,26 +170,26 @@ export default function DogWalkingPage() {
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent h-16"></div>
                 </div>
                 
-                <CardHeader className="bg-blue-600 text-white text-center py-3">
+                <CardHeader className="bg-primary text-white text-center py-3">
                   <CardTitle className="text-lg font-bold mb-2">{option.title}</CardTitle>
                   <div className="flex justify-center gap-2">
-                    <span className="bg-blue-700 text-white px-3 py-1 rounded text-sm font-bold">
+                    <span className="bg-gold-600 text-white px-3 py-1 rounded text-sm font-bold">
                       {option.price}
                     </span>
-                    <span className="bg-blue-700 text-white px-3 py-1 rounded text-sm font-bold">
+                    <span className="bg-gold-600 text-white px-3 py-1 rounded text-sm font-bold">
                       {option.duration}
                     </span>
                   </div>
                 </CardHeader>
                 
-                <CardContent className="bg-blue-50 text-gray-800 text-sm py-4">
+                <CardContent className="bg-green-50 text-gray-800 text-sm py-4">
                   <ul className="space-y-1 mb-4">
                     {option.description.map((desc, i) => (
                       <li key={i} className="text-xs leading-relaxed">{desc}</li>
                     ))}
                   </ul>
                   <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded py-2"
+                    className="w-full bg-primary hover:bg-gold-600 text-white rounded py-2"
                     onClick={() => router.push('/service-inquiry')}
                   >
                     Book Now
@@ -208,7 +203,7 @@ export default function DogWalkingPage() {
 
       {/* Banner Section */}
       <div className="relative">
-        <div className="bg-blue-100 py-16 px-4">
+        <div className="bg-green-100 py-16 px-4">
           <div className="max-w-4xl mx-auto flex items-center gap-8">
             <div className="flex-1">
               <h3 className="text-3xl font-bold mb-4 text-gray-800">
@@ -253,7 +248,7 @@ export default function DogWalkingPage() {
                   alt={service.title}
                   className="w-32 h-24 object-cover mx-auto mb-4 rounded-lg"
                 />
-                <h3 className="font-bold text-blue-600 text-lg">{service.title}</h3>
+                <h3 className="font-bold text-primary text-lg">{service.title}</h3>
               </div>
             ))}
           </div>
@@ -273,7 +268,7 @@ export default function DogWalkingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   1
                 </div>
                 <div>
@@ -285,7 +280,7 @@ export default function DogWalkingPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   2
                 </div>
                 <div>
@@ -297,7 +292,7 @@ export default function DogWalkingPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   3
                 </div>
                 <div>
@@ -319,7 +314,7 @@ export default function DogWalkingPage() {
             
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   4
                 </div>
                 <div>
@@ -331,7 +326,7 @@ export default function DogWalkingPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   5
                 </div>
                 <div>

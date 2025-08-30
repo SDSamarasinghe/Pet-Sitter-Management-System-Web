@@ -67,11 +67,11 @@ export default function DogSittingPage() {
           <h2 className="text-3xl font-bold mb-8 text-gray-800">Dog Sitting Pricing</h2>
           
           <Card className="max-w-md mx-auto">
-            <CardHeader className="bg-blue-600 text-white">
+            <CardHeader className="bg-primary text-white">
               <CardTitle className="text-2xl">Full Day Dog Sitting</CardTitle>
             </CardHeader>
             <CardContent className="p-8">
-              <div className="text-4xl font-bold text-blue-600 mb-4">Starting at $80</div>
+              <div className="text-4xl font-bold text-primary mb-4">Starting at $80</div>
               <p className="text-gray-600 mb-6">Full day in-home care for your dog</p>
               <ul className="text-left text-sm text-gray-600 space-y-2 mb-6">
                 <li>✓ 8-10 hours of care</li>
@@ -82,7 +82,7 @@ export default function DogSittingPage() {
                 <li>✓ Daily photo updates</li>
               </ul>
               <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-primary hover:bg-gold-600"
                 onClick={() => router.push('/service-inquiry')}
               >
                 Book Dog Sitting Service
@@ -97,7 +97,7 @@ export default function DogSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Why Choose Flying Duchess for Your Dog?
+              Why Choose Whiskarz for Your Dog?
             </h2>
             <p className="text-gray-600">Professional care with the personal touch your dog deserves</p>
           </div>
@@ -105,21 +105,21 @@ export default function DogSittingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Experienced Dog Care</h4>
                   <p className="text-sm text-gray-600">Our sitters are experienced with dogs of all sizes, ages, and temperaments. We understand dog behavior and provide appropriate care.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Home Environment</h4>
                   <p className="text-sm text-gray-600">Your dog stays comfortable in their familiar environment, reducing stress and anxiety while you're away.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Fully Insured & Bonded</h4>
                   <p className="text-sm text-gray-600">Complete insurance coverage and bonded sitters for your peace of mind and protection.</p>

@@ -58,7 +58,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                     onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "basic"}))}
                     className={`py-2 px-4 border-b-2 font-medium text-sm ${
                       currentTab === "basic"
-                        ? "border-blue-500 text-blue-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -68,7 +68,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                     onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "care"}))}
                     className={`py-2 px-4 border-b-2 font-medium text-sm ${
                       currentTab === "care"
-                        ? "border-blue-500 text-blue-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -78,7 +78,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                     onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "medical"}))}
                     className={`py-2 px-4 border-b-2 font-medium text-sm ${
                       currentTab === "medical"
-                        ? "border-blue-500 text-blue-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -88,7 +88,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                     onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "insurance"}))}
                     className={`py-2 px-4 border-b-2 font-medium text-sm ${
                       currentTab === "insurance"
-                        ? "border-blue-500 text-blue-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -205,8 +205,8 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
               </div>
 
               {/* Home Care Information */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-blue-800">Home Care Information</h3>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-primary">Home Care Information</h3>
                 <p className="text-gray-900">{client.homeCareInfo || 'Not provided'}</p>
               </div>
 
@@ -307,7 +307,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = 
     !user.profilePicture.includes('sample');
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 ${className}`}>
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center flex-shrink-0 ${className}`}>
       {isValidProfilePicture ? (
         <img 
           src={user.profilePicture} 
@@ -478,7 +478,7 @@ export default function DashboardPage() {
       case 'confirmed':
         return <Badge variant="outline" className="bg-green-100 text-green-800">Confirmed</Badge>;
       case 'in-progress':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">In Progress</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-primary">In Progress</Badge>;
       case 'completed':
         return <Badge variant="outline" className="bg-gray-100 text-gray-800">Completed</Badge>;
       case 'cancelled':
@@ -1408,8 +1408,8 @@ export default function DashboardPage() {
                 onClick={() => setActiveTab("communication")}
                 className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === "communication"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-gray-600 hover:text-primary hover:bg-gold-50"
                 }`}
               >
                 Communication
@@ -1420,8 +1420,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("users")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Users ({adminUsers.length})</span>
@@ -1431,8 +1431,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("sitters")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "sitters"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
@@ -1442,8 +1442,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("bookings")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "bookings"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
@@ -1453,8 +1453,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("address-changes")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "address-changes"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
@@ -1464,8 +1464,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("pets")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     <span className="hidden sm:inline">Pets ({adminPets.length})</span>
@@ -1478,8 +1478,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("users")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     My Users
@@ -1488,8 +1488,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("scheduling")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "scheduling"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     Scheduling
@@ -1498,8 +1498,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("profile")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     My Profile
@@ -1508,8 +1508,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("dashboard")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "dashboard"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     Dashboard
@@ -1521,8 +1521,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("profile")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     My Profile
@@ -1531,8 +1531,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("pets")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     My Pets
@@ -1541,8 +1541,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("security")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "security"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     Key Security
@@ -1551,8 +1551,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("booking")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "booking"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     Book Now
@@ -1561,8 +1561,8 @@ export default function DashboardPage() {
                     onClick={() => setActiveTab("invoices")}
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "invoices"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
                     }`}
                   >
                     Invoices
@@ -1587,7 +1587,7 @@ export default function DashboardPage() {
                       <select
                         value={selectedClient}
                         onChange={(e) => setSelectedClient(e.target.value)}
-                        className="input-modern w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                        className="input-modern w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                       >
                         <option value="" className="text-gray-500">Select the person to add note</option>
                         {availableUsers.map((user) => (
@@ -1683,7 +1683,7 @@ export default function DashboardPage() {
                       <select
                         value={filterByUser}
                         onChange={(e) => setFilterByUser(e.target.value)}
-                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]"
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]"
                       >
                         <option value="" className="text-gray-500">All Users</option>
                         {availableUsers.map((user) => (
@@ -1719,7 +1719,7 @@ export default function DashboardPage() {
                                 {note.senderId?._id === user?._id || note.senderId?.id === user?.id ? 'You' : (note.senderId?.firstName ? `${note.senderId.firstName} ${note.senderId.lastName}${note.senderId.role === 'admin' ? ' (Admin)' : ''}` : note.author)}
                               </span>
                               <span className="text-sm text-gray-500">added a note for</span>
-                              <span className="font-medium text-blue-600">
+                              <span className="font-medium text-primary">
                                 {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}${note.recipientId.role === 'admin' ? ' (Admin)' : ''}` : note.clientName)}
                               </span>
                               <span className="text-sm text-gray-400">
@@ -2180,7 +2180,7 @@ export default function DashboardPage() {
                                     <div className="relative">
                                       <select 
                                         onChange={e => assignSitter(booking._id, e.target.value)} 
-                                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]" 
+                                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]" 
                                         defaultValue=""
                                       >
                                         <option value="" className="text-gray-500">Select Sitter</option>
@@ -2207,7 +2207,7 @@ export default function DashboardPage() {
                                     id={`booking-status-${booking._id}`} 
                                     value={booking.status} 
                                     onChange={e => updateBookingStatus(booking._id, e.target.value)} 
-                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
                                   >
                                     <option value="pending">Pending</option>
                                     <option value="confirmed">Confirmed</option>
@@ -2238,7 +2238,7 @@ export default function DashboardPage() {
                                         toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update payment status.' });
                                       }
                                     }} 
-                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
+                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 w-full"
                                   >
                                     <option value="pending">Pending</option>
                                     <option value="partial">Partial</option>
@@ -2500,13 +2500,13 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="card-modern p-8">
                 <div className="flex items-center space-x-6 mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-lg">
                     <span className="text-3xl font-bold text-white">{user?.firstName?.[0]}</span>
                   </div>
                   <div>
                     <h3 className="text-2xl font-semibold text-gray-900 mb-1">{user?.firstName} {user?.lastName}</h3>
                     <p className="text-gray-600 mb-2">{user?.email}</p>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 capitalize">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary capitalize">
                       {user?.role}
                     </span>
                   </div>
@@ -2535,7 +2535,7 @@ export default function DashboardPage() {
                             onClick={() => setPetTabs((prev) => ({ ...prev, [petKey]: "basic" }))}
                             className={`py-3 px-1 border-b-2 font-medium text-sm ${
                               tab === "basic"
-                                ? "border-blue-500 text-blue-600"
+                                ? "border-primary text-primary"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                             }`}
                           >
@@ -2545,7 +2545,7 @@ export default function DashboardPage() {
                             onClick={() => setPetTabs((prev) => ({ ...prev, [petKey]: "care" }))}
                             className={`py-3 px-1 border-b-2 font-medium text-sm ${
                               tab === "care"
-                                ? "border-blue-500 text-blue-600"
+                                ? "border-primary text-primary"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                             }`}
                           >
@@ -2555,7 +2555,7 @@ export default function DashboardPage() {
                             onClick={() => setPetTabs((prev) => ({ ...prev, [petKey]: "medical" }))}
                             className={`py-3 px-1 border-b-2 font-medium text-sm ${
                               tab === "medical"
-                                ? "border-blue-500 text-blue-600"
+                                ? "border-primary text-primary"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                             }`}
                           >
@@ -2650,7 +2650,7 @@ export default function DashboardPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => router.push('/pets')}
-                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -2706,7 +2706,7 @@ export default function DashboardPage() {
                               });
                             }
                           }}
-                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2746,7 +2746,7 @@ export default function DashboardPage() {
                               });
                             }
                           }}
-                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          className="px-4 py-2 text-sm font-medium border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2765,7 +2765,7 @@ export default function DashboardPage() {
           {activeTab === "security" && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Key Security
                 </h2>
                 <p className="text-gray-600 mt-2">
@@ -2777,7 +2777,7 @@ export default function DashboardPage() {
               <Card className="card-modern">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     Key Access
@@ -2934,7 +2934,7 @@ export default function DashboardPage() {
                             type="checkbox"
                             checked={accessPermissions[option.key as keyof typeof accessPermissions]}
                             onChange={(e) => handleAccessPermissionChange(option.key, e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                           />
                           <span className="text-sm text-gray-700">{option.label}</span>
                         </label>
@@ -2973,7 +2973,7 @@ export default function DashboardPage() {
           {activeTab === "booking" && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Book Now
                 </h2>
                 <p className="text-gray-600 mt-2">
@@ -3011,7 +3011,7 @@ export default function DashboardPage() {
               <Card className="card-modern">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 10V9m6 8V9m0 0a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9z" />
                     </svg>
                     Pet Care Services
@@ -3031,7 +3031,7 @@ export default function DashboardPage() {
                       <select 
                         value={bookingFormData.service}
                         onChange={(e) => setBookingFormData(prev => ({ ...prev, service: e.target.value }))}
-                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                        className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                       >
                         <option>Once A Day Pet Sitting 45min - C$40</option>
                         <option>Twice A Day Pet Sitting 30min each - C$55</option>
@@ -3199,7 +3199,7 @@ export default function DashboardPage() {
                               {sitter.phone || sitter.emergencyContact || 'N/A'}
                             </td>
                             <td className="py-3">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                 {sitter.activeBookingsCount || 0} booking(s)
                               </span>
                             </td>
@@ -3303,7 +3303,7 @@ export default function DashboardPage() {
                           <select
                             value={selectedAddonSitter}
                             onChange={(e) => setSelectedAddonSitter(e.target.value)}
-                            className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 w-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer hover:border-gray-300"
+                            className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                           >
                             <option value="">CarolC</option>
                             {assignedSitters.map((sitter) => (
@@ -3337,7 +3337,7 @@ export default function DashboardPage() {
                                   setSelectedAddons(selectedAddons.filter(addon => addon !== 'virtual-consultation'));
                                 }
                               }}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                             />
                             <span className="text-sm text-gray-700">Virtual Consultation - C$25</span>
                           </label>
@@ -3352,7 +3352,7 @@ export default function DashboardPage() {
                                   setSelectedAddons(selectedAddons.filter(addon => addon !== 'in-home-consultation'));
                                 }
                               }}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                             />
                             <span className="text-sm text-gray-700">In Home Consultation - C$30</span>
                           </label>
@@ -3366,11 +3366,11 @@ export default function DashboardPage() {
                             type="checkbox"
                             checked={agreedToTerms}
                             onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
+                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mt-0.5"
                           />
                           <span className="text-sm text-gray-700">
                             I have read and agree to the{' '}
-                            <a href="#" className="text-blue-600 underline">
+                            <a href="#" className="text-primary underline">
                               Flying Duchess Pet Sitters Policies, Terms and Conditions
                             </a>
                           </span>
@@ -3558,7 +3558,7 @@ export default function DashboardPage() {
                                         {result.availability.availableSlots.slice(0, 3).map((slot: any, slotIndex: number) => (
                                           <span 
                                             key={slotIndex}
-                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
                                           >
                                             {slot.startTime} - {slot.endTime}
                                           </span>
@@ -3632,7 +3632,7 @@ export default function DashboardPage() {
           {activeTab === "invoices" && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Invoices
                 </h2>
                 <p className="text-gray-600 mt-2">

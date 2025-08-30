@@ -134,7 +134,7 @@ export default function ServiceInquiryPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Pet Service Inquiry</h1>
             <p className="text-gray-600">
               After you fill out this service request, we will contact you to go over details and availability. 
-              Thank you for considering Flying Duchess for your pets!
+              Thank you for considering Whiskarz for your pets!
             </p>
           </div>
 
@@ -309,7 +309,7 @@ export default function ServiceInquiryPage() {
             <div className="flex gap-4 justify-center pt-6">
               <Button 
                 type="submit" 
-                className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full max-w-sm bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 disabled={isLoading}
               >
                 {isLoading ? (

@@ -215,7 +215,7 @@ export default function ServicesPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {features.map((feature, index) => (
-              <span key={index} className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+              <span key={index} className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
                 {feature}
               </span>
             ))}
@@ -245,8 +245,8 @@ export default function ServicesPage() {
                 }}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
                   activeCategory === categoryName
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-gold-50 hover:text-primary border border-gray-200'
                 }`}
               >
                 <span className="text-lg">{category.icon}</span>
@@ -298,7 +298,7 @@ export default function ServicesPage() {
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
                       Pet Sitting
                     </span>
                   </div>
@@ -310,7 +310,7 @@ export default function ServicesPage() {
                     <span className="font-semibold text-green-600">{service.price}</span>
                   </div>
                   <div className="text-center">
-                    <span className="text-blue-600 font-medium">Click to view details →</span>
+                    <span className="text-primary font-medium">Click to view details →</span>
                   </div>
                 </CardContent>
               </Card>
@@ -341,8 +341,8 @@ export default function ServicesPage() {
           <h2 className="text-3xl font-bold text-center mb-8">Why Choose Flying Duchess?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -371,7 +371,7 @@ export default function ServicesPage() {
         </section>
 
         {/* New Client Section */}
-        <section className="bg-blue-50 rounded-2xl p-8 text-center">
+        <section className="bg-green-50 rounded-2xl p-8 text-center">
           <h2 className="text-3xl font-bold mb-4">New Clients Welcome!</h2>
           <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
             Your service includes a complimentary comprehensive in-home consultation prior to starting service. 

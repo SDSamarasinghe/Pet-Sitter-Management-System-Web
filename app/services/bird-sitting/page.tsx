@@ -36,13 +36,13 @@ export default function BirdSittingPage() {
           </div>
           {/* Info Buttons */}
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-6 py-2 rounded font-bold">
               READ MORE ←
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-6 py-2 rounded font-bold">
               READ MORE +
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold">
+            <Button className="bg-primary hover:bg-primary text-white px-6 py-2 rounded font-bold">
               READ MORE +
             </Button>
           </div>
@@ -64,7 +64,7 @@ export default function BirdSittingPage() {
                 duration: "45min",
                 description: ["Daily 45 min - Bird Visits", "Up to 2 birds", "✗ Meds"],
                 image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
-                color: "bg-blue-600"
+                color: "bg-primary"
               },
               {
                 title: "Chirp!",
@@ -72,7 +72,7 @@ export default function BirdSittingPage() {
                 duration: "60min",
                 description: ["Daily 60 min - Bird Visits", "Up to 3 birds", "✔ Meds"],
                 image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
-                color: "bg-blue-700",
+                color: "bg-primary",
                 top: true
               },
               {
@@ -81,7 +81,7 @@ export default function BirdSittingPage() {
                 duration: "AM & PM",
                 description: ["AM & PM Twice a Day - Bird Visits", "Up to 2 birds", "✔ Meds"],
                 image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
-                color: "bg-blue-800"
+                color: "bg-primary"
               },
               {
                 title: "Storybird",
@@ -89,7 +89,7 @@ export default function BirdSittingPage() {
                 duration: "60min",
                 description: ["2hr Cage Free + Cage Cleaning - Bird Visit", "Up to 5 birds", "✔ Meds"],
                 image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
-                color: "bg-blue-900"
+                color: "bg-primary"
               }
             ].map((option, idx) => (
               <Card key={option.title} className={`relative overflow-hidden shadow-lg border-0 ${option.color} text-white`}>
@@ -134,11 +134,11 @@ export default function BirdSittingPage() {
       </div>
 
       {/* Banner Section */}
-      <div className="relative bg-blue-50 py-12">
+      <div className="relative bg-primary/10 py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-8">
             <div className="flex-1">
-              <h3 className="text-2xl md:text-3xl font-bold text-blue-800 leading-relaxed">
+              <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
                 Any Bird Lover knows that it is not the fine feathers that makes their bird so special. Birds are intelligent, talented, inquisitive, affectionate & playful.<br />
                 These feathered friends bring such joy to our lives that our sitters are always happy to have the chance to return the favour.
               </h3>
@@ -179,7 +179,7 @@ export default function BirdSittingPage() {
                     className="w-24 h-20 object-cover mx-auto rounded-lg"
                   />
                 </div>
-                <h3 className="font-bold text-blue-600 text-sm">{service.title}</h3>
+                <h3 className="font-bold text-primary text-sm">{service.title}</h3>
               </div>
             ))}
           </div>
@@ -193,7 +193,7 @@ export default function BirdSittingPage() {
                   className="w-24 h-20 object-cover mx-auto rounded-lg"
                 />
               </div>
-              <h3 className="font-bold text-blue-600 text-sm">And Daily Reports</h3>
+              <h3 className="font-bold text-primary text-sm">And Daily Reports</h3>
             </div>
           </div>
         </div>
@@ -211,21 +211,21 @@ export default function BirdSittingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Comprehensive Insurance Coverage</h4>
                   <p className="text-sm text-gray-600">Insurance and Liability coverage for your pets, home and property for the duration of our visits up to 21 million Canadian. We respect the trust our clients have placed in us to care for their most valuable possessions.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Professional Delivery</h4>
                   <p className="text-sm text-gray-600">We treat our clients, their pets, and home with a standard of professionalism and care that is unrivaled in our industry. Flying Duchess is continually working to set the bar high for pet sitting standards in our industry.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Certified/Certified</h4>
                   <p className="text-sm text-gray-600">Pet First Aid Certified Instructors. With emergency contingencies in place to handle any emergency situations that may arise our way.</p>
@@ -237,14 +237,14 @@ export default function BirdSittingPage() {
             </div>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">4</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">4</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Accredited</h4>
                   <p className="text-sm text-gray-600">Accredited by the governing bodies of the industry NAPPS – National Association of Professional Pet Sitters Member 2017-2019 NAPPS Membership Benefits Committee on the membership committee. PSI – Pet Sitters International Member.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">5</div>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">5</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Humility & Openness</h4>
                   <p className="text-sm text-gray-600">We conduct our service with honesty and truthfulness, providing our clients with honest feedback, and being open to honest feedback from our clients in return. We humbly recognize that we can always do better through mutual feedback and communication.</p>

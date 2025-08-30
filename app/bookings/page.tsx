@@ -276,7 +276,7 @@ export default function BookingsPage() {
                 {bookings.map((booking) => (
                   <Card 
                     key={booking._id} 
-                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-blue-500"
+                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-primary"
                     onClick={() => router.push(`/bookings/${booking._id}`)}
                   >
                     <CardHeader className="pb-3">
@@ -287,7 +287,7 @@ export default function BookingsPage() {
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                           booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                           booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          booking.status === 'completed' ? 'bg-green-100 text-green-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
                           {booking.status}
