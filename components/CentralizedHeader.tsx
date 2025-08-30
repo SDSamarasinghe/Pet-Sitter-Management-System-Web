@@ -118,7 +118,7 @@ const CentralizedHeader: React.FC = () => {
             onClick={() => handleNavigation("/")}
           >
             <img 
-              src="/whiskarz-logo.svg" 
+              src="/Petsitter-logo.svg" 
               alt="Whiskarz Logo" 
               className="h-10 lg:h-24 w-auto"
             />

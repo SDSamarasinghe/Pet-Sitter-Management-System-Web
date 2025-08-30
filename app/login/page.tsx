@@ -57,7 +57,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center -mb-1 animate-fadeIn">
           <img 
-              src="/whiskarz-logo.svg" 
+              src="/Petsitter-logo.svg" 
               alt="Whiskarz Logo" 
               className="h-16 lg:h-20 xl:h-96 w-auto mx-auto"
             />
