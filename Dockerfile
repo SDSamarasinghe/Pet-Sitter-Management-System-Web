@@ -1,34 +1,23 @@
-# Multi-stage build for Next.js Web App
-FROM node:22-alpine AS builder
-
+# Base image
+FROM node:22.0-alpine
+ 
+# Set the working directory inside the container
 WORKDIR /app
-
-# Copy package files
+ 
 COPY package*.json ./
-RUN npm ci
-
-# Copy source code
+COPY package-lock.json .
+ 
+# Install dependencies
+RUN npm install
+ 
+# Copy the entire project to the working directory
 COPY . .
-
-# Build Next.js application
+ 
+# Build the React app
 RUN npm run build
-
-# Production stage
-FROM node:22-alpine AS production
-
-WORKDIR /app
-
-# Copy package files first
-COPY --from=builder /app/package*.json ./
-
-# Install production dependencies
-RUN npm ci --only=production
-
-# Copy built application
-COPY --from=builder /app/.next ./.next
-
-# Expose port
+ 
+# Expose a port (if needed)
 EXPOSE 3000
-
-# Start the application
+ 
+# Command to start the application
 CMD ["npm", "start"]
