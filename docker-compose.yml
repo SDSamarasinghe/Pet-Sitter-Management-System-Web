@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=https://www.whiskarz.com/
-      - NODE_ENV=production
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: "https://www.whiskarz.com/"
     restart: always
