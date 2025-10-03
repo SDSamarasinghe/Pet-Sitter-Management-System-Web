@@ -32,24 +32,36 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     '/',
   ];
 
-  // Pages that should not show footer
-  const noFooterPages = [
+  // Pages that SHOULD show footer (whitelist approach)
+  const showFooterPages = [
+    '/',
     '/login',
-    '/signup',
-    '/forgot-password',
-    '/reset-password',
+    '/service-inquiry',
   ];
+  
+  // Check if current path should show footer
+  const shouldShowFooter = () => {
+    if (!pathname) return false;
+    
+    // Check exact matches
+    if (showFooterPages.includes(pathname)) return true;
+    
+    // Check if path starts with /services
+    if (pathname.startsWith('/services')) return true;
+    
+    return false;
+  };
 
   const showSidebar = pathname?.startsWith('/dashboard') && !noSidebarPages.some(page => pathname === page);
-  const showFooter = !noFooterPages.some(page => pathname === page);
+  const showFooter = shouldShowFooter();
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header - Always visible */}
       <CentralizedHeader />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 relative">
+      {/* Main Content Area with Footer */}
+      <div className="flex flex-1 pt-16 lg:pt-20">
         {/* Sidebar - Conditional */}
         {showSidebar && (
           <>
@@ -69,22 +81,27 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </>
         )}
 
-        {/* Main Content */}
-        <main 
+        {/* Scrollable Container for Main Content + Footer */}
+        <div 
           className={`
             flex-1 
             ${showSidebar ? (isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : ''}
             transition-all duration-300
+            overflow-y-auto
+            max-h-[calc(100vh-4rem)]
+            lg:max-h-[calc(100vh-5rem)]
+            flex flex-col
           `}
         >
-          <div className="min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5rem)]">
+          {/* Main Content */}
+          <main className="flex-1">
             {children}
-          </div>
-        </main>
-      </div>
+          </main>
 
-      {/* Footer - Conditional */}
-      {showFooter && <Footer />}
+          {/* Footer - Inside scrollable area */}
+          {showFooter && <Footer />}
+        </div>
+      </div>
     </div>
   );
 };
