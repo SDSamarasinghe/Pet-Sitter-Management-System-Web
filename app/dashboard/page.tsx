@@ -1399,8 +1399,8 @@ export default function DashboardPage() {
   const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <main className="container-modern section-padding">
+    <div className="bg-gradient-to-br from-gray-50 to-white">
+      <main className="container-modern section-padding pb-8">
         <div className="mb-8 animate-fadeIn">
           <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
             Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}
@@ -3578,37 +3578,6 @@ export default function DashboardPage() {
         </section>
 
         {/* Overview */}
-       
-
-        {/* Service Areas */}
-        <section className="mt-16 flex justify-center">
-          <div className="w-full max-w-4xl bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50 rounded-3xl shadow-xl px-6 py-12 flex flex-col items-center border border-blue-100">
-            <h2 className="text-4xl font-extrabold text-primary mb-10 tracking-tight drop-shadow-sm">Our Service Areas</h2>
-            <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
-              <div className="flex-1 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
-                <div className="flex items-center gap-2 mb-4">
-                 
-                  <h3 className="text-2xl font-bold text-gray-900">Primary Service Areas</h3>
-                </div>
-                <ul className="text-lg text-gray-700 space-y-2 font-medium text-center">
-                  <li className="py-1">Oshawa</li>
-                  <li className="py-1">Ajax</li>
-                  <li className="py-1">Bowmanville</li>
-                </ul>
-              </div>
-              <div className="flex-1 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
-                <div className="flex items-center gap-2 mb-4">
-                  
-                  <h3 className="text-2xl font-bold text-gray-900">Contact Information</h3>
-                </div>
-                <div className="text-lg text-gray-700 space-y-2 font-medium text-center">
-                  <p className="py-1"><span className="font-semibold text-primary">Phone:</span> +1 (647) 548-8025</p>
-                  <p className="py-1"><span className="font-semibold text-primary">Address:</span><br />2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
        
       </main>
     </div>
