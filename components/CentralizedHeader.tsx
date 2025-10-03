@@ -96,9 +96,9 @@ const CentralizedHeader: React.FC = () => {
 
   const getRoleBadge = (role: string) => {
     const roleColors = {
-      admin: 'bg-terracotta-100 text-terracotta-800',
-      sitter: 'bg-green-100 text-green-800', 
-      client: 'bg-gold-100 text-gold-800'
+      admin: 'bg-destructive/10 text-destructive',
+      sitter: 'bg-secondary/10 text-secondary', 
+      client: 'bg-primary/10 text-primary'
     };
     
     return (
@@ -118,7 +118,7 @@ const CentralizedHeader: React.FC = () => {
             onClick={() => handleNavigation("/")}
           >
             <img 
-              src="/Petsitter-logo.svg" 
+              src="/Petsitter-logo.png" 
               alt="Whiskarz Logo" 
               className="h-10 lg:h-24 w-auto"
             />
@@ -133,8 +133,8 @@ const CentralizedHeader: React.FC = () => {
                 onClick={() => handleNavigation(item.href)}
                 className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
                   isCurrentPath(item.href)
-                    ? 'bg-gold-50 text-primary shadow-sm'
-                    : 'text-gray-600 hover:text-primary hover:bg-gold-50/50'
+                    ? 'bg-primary/10 text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                 }`}
               >
                 {item.name}
@@ -151,7 +151,7 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-md">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
                     {user?.profilePicture ? (
                       <img 
                         src={user.profilePicture} 
@@ -245,7 +245,7 @@ const CentralizedHeader: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => handleNavigation("/login")}
-                  className="px-6 py-2 rounded-xl font-medium text-gray-600 hover:text-primary hover:bg-gold-50/50 transition-all duration-200"
+                  className="px-6 py-2 rounded-xl font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
                 >
                   Sign In
                 </Button>
@@ -286,8 +286,8 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => handleNavigation(item.href)}
                   className={`justify-start px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                     isCurrentPath(item.href)
-                      ? 'bg-gold-50 text-primary shadow-sm'
-                      : 'text-gray-600 hover:text-primary hover:bg-gold-50/50'
+                      ? 'bg-primary/10 text-primary shadow-sm'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                   }`}
                 >
                   {item.name}
@@ -300,7 +300,7 @@ const CentralizedHeader: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleNavigation("/login")}
-                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-gray-600 hover:text-primary hover:bg-gold-50/50 transition-all duration-200"
+                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
                     >
                       Sign In
                     </Button>

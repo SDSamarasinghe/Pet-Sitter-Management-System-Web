@@ -142,7 +142,7 @@ export default function RabbitSittingPage() {
                 Rabbits have a different set of requirements & needs than cat's or dogs.<br />
                 These beautiful and graceful animals are intelligent, social & playful & deserve the care & attention that we are happy to provide.
               </h3>
-              <div className="font-bold text-gray-800 mt-4 text-lg">FLYING DUCHESS ©</div>
+              <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
             </div>
             <div className="flex-1 text-center">
               <img 
@@ -221,7 +221,7 @@ export default function RabbitSittingPage() {
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Professional Delivery</h4>
-                  <p className="text-sm text-gray-600">We treat our clients, their pets, and home with a standard of professionalism and care that is unrivaled in our industry. Flying Duchess is continually working to set the bar high for pet sitting standards in our industry.</p>
+                  <p className="text-sm text-gray-600">We treat our clients, their pets, and home with a standard of professionalism and care that is unrivaled in our industry. Whiskarz is continually working to set the bar high for pet sitting standards in our industry.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

@@ -38,7 +38,7 @@ export default function MultiplePetTypesPage() {
                 Click Here to Request a Quote
               </Button>
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 px-6 py-3 rounded-full font-semibold">
-                The Flying Duchess Difference
+                The Whiskarz Difference
               </Button>
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 px-6 py-3 rounded-full font-semibold">
                 Listen to a Sample of our Daily Reports
@@ -58,7 +58,7 @@ export default function MultiplePetTypesPage() {
           
           <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
             <p className="text-sm text-gray-700 text-center leading-relaxed">
-              Flying Duchess is committed to respecting the privacy of individuals and recognizes a need for the appropriate management and protection of any personal information that you agree to provide to us. We will not share 
+              Whiskarz is committed to respecting the privacy of individuals and recognizes a need for the appropriate management and protection of any personal information that you agree to provide to us. We will not share 
               your information with any third party outside of our organization, nor will we cross-reference, sell, or otherwise use your information for other purposes.
             </p>
           </div>

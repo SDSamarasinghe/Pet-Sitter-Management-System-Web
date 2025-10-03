@@ -132,7 +132,7 @@ function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10 flex items-center justify-center section-padding">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8 animate-fadeIn">
@@ -179,7 +179,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10 flex items-center justify-center section-padding">
         <div className="w-full max-w-md">
           <div className="text-center">
             <Spinner size="lg" />
@@ -191,11 +191,11 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10 flex items-center justify-center section-padding">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-gold-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -344,7 +344,7 @@ function ResetPasswordForm() {
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
           Need help?{' '}
-          <a href="/contact" className="text-primary hover:text-gold-600 transition-colors duration-200">
+          <a href="/contact" className="text-primary hover:text-accent transition-colors duration-200">
             Contact Support
           </a>
         </div>
@@ -356,7 +356,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10 flex items-center justify-center section-padding">
         <div className="w-full max-w-md">
           <div className="text-center">
             <Spinner size="lg" />

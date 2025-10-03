@@ -40,7 +40,7 @@ const serviceCategories: ServiceCategories = {
         description: "Daily visits for your feline friends. 30, 45, or 60-minute visits available.",
         image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80",
         duration: "30-60 min",
-        price: "Starting at $35"
+        price: "Starting at $28"
       },
       {
         id: 2,
@@ -48,7 +48,7 @@ const serviceCategories: ServiceCategories = {
         description: "Premium in-home dog sitting service offering comfort and care in familiar surroundings.",
         image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
         duration: "Full day",
-        price: "Starting at $80"
+        price: "Starting at $28"
       },
       {
         id: 3,
@@ -56,7 +56,7 @@ const serviceCategories: ServiceCategories = {
         description: "Specialized care for bunnies of all breeds, from Holland Lops to English Spots.",
         image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
         duration: "30-45 min",
-        price: "Starting at $30"
+        price: "Starting at $28"
       },
       {
         id: 4,
@@ -64,7 +64,7 @@ const serviceCategories: ServiceCategories = {
         description: "Professional care for your feathered companions with specialized knowledge.",
         image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
         duration: "30-45 min",
-        price: "Starting at $30"
+        price: "Starting at $28"
       },
       {
         id: 5,
@@ -72,7 +72,7 @@ const serviceCategories: ServiceCategories = {
         description: "Expert care for small pets including hamsters, guinea pigs, chinchillas, and sugar gliders.",
         image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&q=80",
         duration: "30 min",
-        price: "Starting at $25"
+        price: "Starting at $28"
       },
       {
         id: 6,
@@ -200,7 +200,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10">
       {/* Header/Nav */}
   
 
@@ -246,7 +246,7 @@ export default function ServicesPage() {
                 className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
                   activeCategory === categoryName
                     ? 'bg-primary text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gold-50 hover:text-primary border border-gray-200'
+                    : 'bg-white text-muted-foreground hover:bg-primary/5 hover:text-primary border border-border'
                 }`}
               >
                 <span className="text-lg">{category.icon}</span>
@@ -337,8 +337,8 @@ export default function ServicesPage() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className="mb-16 bg-white rounded-2xl p-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Why Choose Flying Duchess?</h2>
+        <section className="mb-16 bg-card/50 rounded-2xl p-8 shadow-sm">
+          <h2 className="text-3xl font-bold text-center mb-8">Why Choose Whiskarz?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -388,17 +388,24 @@ export default function ServicesPage() {
         </section>
 
         {/* Contact Section */}
-        <section className="mt-16 text-center">
-          <h2 className="text-3xl font-bold mb-6">Contact Us</h2>
-          <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-lg">
-            <div>
-              <strong>Phone:</strong> (647) 238-2697
-            </div>
-            <div>
-              <strong>Toll Free:</strong> (855) FLY-DUCH
-            </div>
-            <div>
-              <strong>Location:</strong> Toronto, ONT M6J 1C4
+        <section className="mt-16">
+          <div className="bg-gradient-to-r from-primary/5 to-secondary/10 rounded-xl p-8">
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl font-bold text-primary">Contact Whiskarz Pet Sitters</h2>
+              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-800 mb-2">Phone</h4>
+                  <p className="text-primary font-medium">+1 (647) 548-8025</p>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-800 mb-2">Address</h4>
+                  <p className="text-gray-700">2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-800 mb-2">Service Areas</h4>
+                  <p className="text-gray-700">Whiskarz, Oshawa, Ajax, Bowmanville & surrounding areas</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

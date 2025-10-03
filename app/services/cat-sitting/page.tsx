@@ -82,9 +82,9 @@ const catVisitServices = [
 export default function CatSittingPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10">
       {/* Hero Section */}
-      <div className="relative bg-white">
+      <div className="relative bg-gradient-to-r from-primary/5 to-secondary/10">
         {/* Navigation breadcrumb style header */}
        
         
@@ -117,14 +117,14 @@ export default function CatSittingPage() {
               WHAT IS INCLUDED IN EVERY VISIT →
             </Button>
             <Button className="bg-primary hover:bg-primary text-white px-8 py-3 text-sm font-bold">
-              THE FLYING DUCHESS DIFFERENCE →
+              THE Whiskarz DIFFERENCE →
             </Button>
           </div>
         </div>
       </div>
 
       {/* Service Options */}
-      <div className="bg-white py-16">
+      <div className="bg-gradient-to-b from-secondary/5 to-background py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
@@ -192,7 +192,7 @@ export default function CatSittingPage() {
               <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
                 We provide that much needed bright spot in your pet's day, while you are away ~ And being able to do that makes our day!
               </h3>
-              <div className="font-bold text-gray-800 mt-4 text-lg">FLYING DUCHESS ©</div>
+              <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
             </div>
             <div className="flex-1 text-center">
               <img 
@@ -206,7 +206,7 @@ export default function CatSittingPage() {
       </div>
 
       {/* Every Cat Visit Section */}
-      <div className="bg-white py-16">
+      <div className="bg-gradient-to-r from-primary/5 to-accent/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4 text-gray-800">
             Every Cat Visit
@@ -245,7 +245,7 @@ export default function CatSittingPage() {
       </div>
 
       {/* Trust Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gradient-to-t from-primary/5 to-secondary/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -294,6 +294,27 @@ export default function CatSittingPage() {
                   <h4 className="font-bold text-gray-800 mb-2">Honesty & Openness</h4>
                   <p className="text-sm text-gray-600">We conduct our service with honesty and truthfulness, professional integrity, which builds trust between clients and being open to honest feedback from our clients in return. We honestly recognize that we can always do feel through mutual feedback and communication.</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="bg-gradient-to-r from-primary/5 to-secondary/10 rounded-xl p-8 mt-12">
+          <div className="text-center space-y-6">
+            <h3 className="text-2xl font-bold text-primary">Contact Whiskarz Pet Sitters</h3>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Phone</h4>
+                <p className="text-primary font-medium">+1 (647) 548-8025</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Address</h4>
+                <p className="text-gray-700">2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Service Areas</h4>
+                <p className="text-gray-700">Whiskarz, Oshawa, Ajax, Bowmanville & surrounding areas</p>
               </div>
             </div>
           </div>

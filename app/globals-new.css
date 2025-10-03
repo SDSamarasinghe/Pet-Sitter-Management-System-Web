@@ -5,94 +5,94 @@
 @layer base {
   :root {
     /* Main backgrounds */
-    --background: 0 0% 100%;
-    --card: 40 33% 92%;
-    --popover: 0 0% 100%;
+    --background: 214 27% 98%; /* Very light blue-tinted background */
+    --card: 214 27% 96%;
+    --popover: 214 27% 98%;
     
     /* Text colors */
-    --foreground: 0 0% 20%;
-    --card-foreground: 0 0% 20%;
-    --popover-foreground: 0 0% 20%;
+    --foreground: 210 29% 24%; /* #2C3E50 - Primary text */
+    --card-foreground: 210 29% 24%;
+    --popover-foreground: 210 29% 24%;
     
-    /* Primary theme - Gold */
-    --primary: 45 69% 53%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary theme - Deep Navy Blue */
+    --primary: 223 74% 26%; /* #1A2A6C - Deep navy blue */
+    --primary-foreground: 214 27% 98%;
     
-    /* Secondary theme - Soft Green */
-    --secondary: 125 26% 59%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary theme - Medium Navy Blue */
+    --secondary: 213 85% 22%; /* #0F3460 - Medium navy blue */
+    --secondary-foreground: 214 27% 98%;
     
     /* Muted elements */
-    --muted: 40 33% 92%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 214 27% 95%;
+    --muted-foreground: 202 12% 55%; /* #7F8C8D - Secondary text */
     
-    /* Accent - Terracotta */
-    --accent: 23 65% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Bright Sky Blue */
+    --accent: 193 100% 47%; /* #00AEEF - Bright sky blue */
+    --accent-foreground: 214 27% 98%;
     
     /* Destructive states */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders and inputs */
-    --border: 40 20% 85%;
-    --input: 40 20% 85%;
-    --ring: 45 69% 53%;
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 223 74% 26%; /* Primary color for focus rings */
     --radius: 0.75rem;
     
     /* Enhanced design system variables */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-sm: 0 1px 2px 0 rgb(26 42 108 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(26 42 108 / 0.1), 0 1px 2px -1px rgb(26 42 108 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(26 42 108 / 0.1), 0 2px 4px -2px rgb(26 42 108 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(26 42 108 / 0.1), 0 4px 6px -4px rgb(26 42 108 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(26 42 108 / 0.1), 0 8px 10px -6px rgb(26 42 108 / 0.1);
     
-    /* Updated gradients with new color scheme */
-    --gradient-primary: linear-gradient(135deg, hsl(45 69% 53%) 0%, hsl(45 69% 48%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(125 26% 59%) 0%, hsl(125 26% 54%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(23 65% 55%) 0%, hsl(23 65% 50%) 100%);
+    /* Updated gradients with new blue color scheme */
+    --gradient-primary: linear-gradient(135deg, hsl(223 74% 26%) 0%, hsl(213 85% 22%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(213 85% 22%) 0%, hsl(193 100% 47%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(193 100% 47%) 0%, hsl(193 100% 52%) 100%);
   }
 
   .dark {
     /* Dark mode backgrounds */
-    --background: 0 0% 8%;
-    --card: 0 0% 12%;
-    --popover: 0 0% 8%;
+    --background: 223 84% 5%;
+    --card: 223 84% 8%;
+    --popover: 223 84% 5%;
     
     /* Dark mode text colors */
-    --foreground: 0 0% 95%;
-    --card-foreground: 0 0% 95%;
-    --popover-foreground: 0 0% 95%;
+    --foreground: 214 27% 95%;
+    --card-foreground: 214 27% 95%;
+    --popover-foreground: 214 27% 95%;
     
-    /* Primary theme - Brighter Gold for dark mode */
-    --primary: 45 80% 60%;
-    --primary-foreground: 0 0% 8%;
+    /* Primary theme - Brighter navy for dark mode */
+    --primary: 223 74% 35%;
+    --primary-foreground: 223 84% 5%;
     
-    /* Secondary theme - Brighter Green for dark mode */
-    --secondary: 125 35% 65%;
-    --secondary-foreground: 0 0% 8%;
+    /* Secondary theme - Brighter medium navy for dark mode */
+    --secondary: 213 85% 30%;
+    --secondary-foreground: 223 84% 5%;
     
     /* Muted elements for dark mode */
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 223 84% 12%;
+    --muted-foreground: 202 12% 65%;
     
-    /* Accent - Brighter Terracotta for dark mode */
-    --accent: 23 70% 60%;
-    --accent-foreground: 0 0% 8%;
+    /* Accent - Brighter sky blue for dark mode */
+    --accent: 193 100% 55%;
+    --accent-foreground: 223 84% 5%;
     
     /* Destructive states */
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 95%;
+    --destructive-foreground: 214 27% 95%;
     
     /* Dark mode borders and inputs */
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 45 80% 60%;
+    --border: 223 84% 18%;
+    --input: 223 84% 18%;
+    --ring: 223 74% 35%;
     
     /* Updated gradients for dark mode */
-    --gradient-primary: linear-gradient(135deg, hsl(45 80% 60%) 0%, hsl(45 80% 55%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(125 35% 65%) 0%, hsl(125 35% 60%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(23 70% 60%) 0%, hsl(23 70% 55%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(223 74% 35%) 0%, hsl(213 85% 30%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(213 85% 30%) 0%, hsl(193 100% 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(193 100% 55%) 0%, hsl(193 100% 60%) 100%);
   }
 }
 

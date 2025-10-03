@@ -1,4 +1,4 @@
-# Flying Duchess Pet-Sitting System - Frontend
+# Whiskarz Pet-Sitting System - Frontend
 
 A comprehensive Next.js frontend application for managing in-home pet care services in Toronto. Built with Next.js 14, TypeScript, Tailwind CSS, and Shadcn/ui components.
 
@@ -294,4 +294,4 @@ Run the development server and test the following flows:
 
 ## License
 
-This project is part of the Flying Duchess Pet-Sitting System and is proprietary software.
+This project is part of the Whiskarz Pet-Sitting System and is proprietary software.

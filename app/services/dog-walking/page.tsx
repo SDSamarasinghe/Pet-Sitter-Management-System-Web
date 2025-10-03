@@ -7,43 +7,45 @@ import { useRouter } from "next/navigation";
 const dogWalkOptions = [
   {
     title: "Quick Stride",
-    price: "$25",
+    price: "$28",
     duration: "30min",
     description: [
       "Mid Day Weekly Ongoing",
       "A brief private walk.",
       "Potty Break",
       "Ideal for smaller or older dogs, or those less social.",
-      "Additional Dog $5"
+      "Additional Dog $5",
+      "Holiday Rate: $35"
     ],
     image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80"
   },
   {
     title: "Easy Jaunt",
-    price: "$29",
+    price: "$32",
     duration: "45min",
     description: [
-      "Mid Day Weekly Ongoing",
-      "A longer, more exercise-oriented private walk.",
-      "Potty Break",
-      "Best for normal adult dogs.",
-      "Additional Dog $5"
+      "A moderate walk with some play time.",
+      "Ideal for medium energy dogs.",
+      "Includes basic training reinforcement.",
+      "Water provided during walk.",
+      "Additional Dog $5",
+      "Holiday Rate: $40"
     ],
     image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=400&q=80"
   },
   {
-    title: "Leisure Stroll",
-    price: "$33",
-    duration: "60min",
+    title: "Long Adventure",
+    price: "$35",
+    duration: "1hr",
     description: [
-      "Mid Day Weekly Ongoing",
-      "Long Private Walk with a visit to the park.",
-      "Potty Break",
-      "Ideal for dogs looking for a healthy dose of exercise, socialization, reinforcement, feeding and playtime.",
-      "Additional Dog $5"
+      "Extended walk with exercise and play.",
+      "Perfect for high-energy dogs.",
+      "Includes socialization opportunities.",
+      "GPS tracking provided to owners.",
+      "Additional Dog $8",
+      "Holiday Rate: $46"
     ],
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=400&q=80",
-    top: true
+    image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?auto=format&fit=crop&w=400&q=80"
   },
   {
     title: "Random Rollick",
@@ -97,10 +99,10 @@ export default function DogWalkingPage() {
   const router = useRouter();
   
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10">
       {/* Hero Section */}
-      <div className="relative bg-gray-50">
-        {/* Flying Duchess Logo */}
+      <div className="relative bg-gradient-to-r from-primary/5 to-secondary/10">
+        {/* Whiskarz Logo */}
        
         
         <div className="text-center py-12 px-4">
@@ -125,13 +127,13 @@ export default function DogWalkingPage() {
           
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
-            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
-            <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded">
+            <Button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded">
               READ MORE →
             </Button>
           </div>
@@ -145,7 +147,7 @@ export default function DogWalkingPage() {
       </div>
 
       {/* Service Options */}
-      <div className="bg-white py-12">
+      <div className="bg-gradient-to-b from-secondary/5 to-background py-12">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
@@ -155,12 +157,7 @@ export default function DogWalkingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {dogWalkOptions.map((option, idx) => (
               <Card key={option.title} className="relative overflow-hidden shadow-lg border-0">
-                {option.top && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10 font-bold">
-                    Top
-                  </div>
-                )}
-                
+                {/* Removed 'option.top' badge since 'top' property does not exist */}
                 <div className="relative">
                   <img 
                     src={option.image} 
@@ -173,10 +170,10 @@ export default function DogWalkingPage() {
                 <CardHeader className="bg-primary text-white text-center py-3">
                   <CardTitle className="text-lg font-bold mb-2">{option.title}</CardTitle>
                   <div className="flex justify-center gap-2">
-                    <span className="bg-gold-600 text-white px-3 py-1 rounded text-sm font-bold">
+                    <span className="bg-accent text-white px-3 py-1 rounded text-sm font-bold">
                       {option.price}
                     </span>
-                    <span className="bg-gold-600 text-white px-3 py-1 rounded text-sm font-bold">
+                    <span className="bg-accent text-white px-3 py-1 rounded text-sm font-bold">
                       {option.duration}
                     </span>
                   </div>
@@ -189,7 +186,7 @@ export default function DogWalkingPage() {
                     ))}
                   </ul>
                   <Button 
-                    className="w-full bg-primary hover:bg-gold-600 text-white rounded py-2"
+                    className="w-full bg-primary hover:bg-primary/90 text-white rounded py-2"
                     onClick={() => router.push('/service-inquiry')}
                   >
                     Book Now
@@ -225,7 +222,7 @@ export default function DogWalkingPage() {
                 className="w-full max-w-sm mx-auto rounded-lg"
               />
               <div className="text-center mt-4 font-bold text-gray-800 tracking-wide">
-                FLYING DUCHESS ©
+                Whiskarz ©
               </div>
             </div>
           </div>
@@ -233,7 +230,7 @@ export default function DogWalkingPage() {
       </div>
 
       {/* Every Private Dog Walk Section */}
-      <div className="bg-white py-16">
+      <div className="bg-gradient-to-r from-primary/5 to-accent/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4 text-gray-800">
             Every Private Dog Walk
@@ -256,7 +253,7 @@ export default function DogWalkingPage() {
       </div>
 
       {/* Trust Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gradient-to-t from-primary/5 to-secondary/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -335,6 +332,27 @@ export default function DogWalkingPage() {
                     We conduct our service with honesty and truthfulness, professional integrity, which builds trust between clients and being open to honest feedback from our clients in return. We honestly recognize that we can always do feel through mutual feedback and communication.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="bg-gradient-to-r from-primary/5 to-secondary/10 rounded-xl p-8 mt-12">
+          <div className="text-center space-y-6">
+            <h3 className="text-2xl font-bold text-primary">Contact Whiskarz Pet Sitters</h3>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Phone</h4>
+                <p className="text-primary font-medium">+1 (647) 548-8025</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Address</h4>
+                <p className="text-gray-700">2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Service Areas</h4>
+                <p className="text-gray-700">Whiskarz, Oshawa, Ajax, Bowmanville & surrounding areas</p>
               </div>
             </div>
           </div>

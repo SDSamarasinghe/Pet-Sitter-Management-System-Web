@@ -180,38 +180,38 @@ export default function SchedulingPage() {
         weeklySchedule: {
           Monday: {
             isAvailable: apiData.weeklySchedule?.monday?.isAvailable ?? true,
-            startTime: apiData.weeklySchedule?.monday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.monday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.monday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.monday?.endTime || '23:00'
           },
           Tuesday: {
             isAvailable: apiData.weeklySchedule?.tuesday?.isAvailable ?? true,
-            startTime: apiData.weeklySchedule?.tuesday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.tuesday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.tuesday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.tuesday?.endTime || '23:00'
           },
           Wednesday: {
             isAvailable: apiData.weeklySchedule?.wednesday?.isAvailable ?? true,
-            startTime: apiData.weeklySchedule?.wednesday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.wednesday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.wednesday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.wednesday?.endTime || '23:00'
           },
           Thursday: {
             isAvailable: apiData.weeklySchedule?.thursday?.isAvailable ?? true,
-            startTime: apiData.weeklySchedule?.thursday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.thursday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.thursday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.thursday?.endTime || '23:00'
           },
           Friday: {
             isAvailable: apiData.weeklySchedule?.friday?.isAvailable ?? true,
-            startTime: apiData.weeklySchedule?.friday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.friday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.friday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.friday?.endTime || '23:00'
           },
           Saturday: {
             isAvailable: apiData.weeklySchedule?.saturday?.isAvailable ?? false,
-            startTime: apiData.weeklySchedule?.saturday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.saturday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.saturday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.saturday?.endTime || '23:00'
           },
           Sunday: {
             isAvailable: apiData.weeklySchedule?.sunday?.isAvailable ?? false,
-            startTime: apiData.weeklySchedule?.sunday?.startTime || '09:00',
-            endTime: apiData.weeklySchedule?.sunday?.endTime || '17:00'
+            startTime: apiData.weeklySchedule?.sunday?.startTime || '00:00',
+            endTime: apiData.weeklySchedule?.sunday?.endTime || '23:00'
           }
         },
         maxDailyBookings: apiData.maxDailyBookings || 3,
@@ -567,7 +567,7 @@ export default function SchedulingPage() {
                             />
                             <select 
                               className="text-xs border rounded px-2 py-1"
-                              value={availabilitySettings.weeklySchedule?.[day]?.startTime || '09:00'}
+                              value={availabilitySettings.weeklySchedule?.[day]?.startTime || '00:00'}
                               onChange={(e) => {
                                 const newSettings = {
                                   ...availabilitySettings,
@@ -582,11 +582,13 @@ export default function SchedulingPage() {
                                 setAvailabilitySettings(newSettings);
                               }}
                             >
-                              {Array.from({ length: 24 }, (_, i) => {
-                                const hour = i.toString().padStart(2, '0');
+                              {Array.from({ length: 48 }, (_, i) => {
+                                const hour = Math.floor(i / 2).toString().padStart(2, '0');
+                                const minute = i % 2 === 0 ? '00' : '30';
+                                const time = `${hour}:${minute}`;
                                 return (
-                                  <option key={hour} value={`${hour}:00`}>
-                                    {hour}:00
+                                  <option key={time} value={time}>
+                                    {time}
                                   </option>
                                 );
                               })}
@@ -594,7 +596,7 @@ export default function SchedulingPage() {
                             <span className="text-xs">to</span>
                             <select 
                               className="text-xs border rounded px-2 py-1"
-                              value={availabilitySettings.weeklySchedule?.[day]?.endTime || '17:00'}
+                              value={availabilitySettings.weeklySchedule?.[day]?.endTime || '00:00'}
                               onChange={(e) => {
                                 const newSettings = {
                                   ...availabilitySettings,
@@ -609,11 +611,13 @@ export default function SchedulingPage() {
                                 setAvailabilitySettings(newSettings);
                               }}
                             >
-                              {Array.from({ length: 24 }, (_, i) => {
-                                const hour = i.toString().padStart(2, '0');
+                              {Array.from({ length: 48 }, (_, i) => {
+                                const hour = Math.floor(i / 2).toString().padStart(2, '0');
+                                const minute = i % 2 === 0 ? '00' : '30';
+                                const time = `${hour}:${minute}`;
                                 return (
-                                  <option key={hour} value={`${hour}:00`}>
-                                    {hour}:00
+                                  <option key={time} value={time}>
+                                    {time}
                                   </option>
                                 );
                               })}

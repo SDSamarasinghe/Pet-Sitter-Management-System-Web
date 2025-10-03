@@ -8,9 +8,9 @@ export default function DogSittingPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10">
       {/* Header Section */}
-      <div className="bg-gray-50">
+      <div className="bg-gradient-to-r from-primary/5 to-secondary/10">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -36,7 +36,7 @@ export default function DogSittingPage() {
       </div>
 
       {/* Service Features */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gradient-to-b from-secondary/5 to-background py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             What's Included in Our Dog Sitting Service
@@ -82,7 +82,7 @@ export default function DogSittingPage() {
                 <li>✓ Daily photo updates</li>
               </ul>
               <Button 
-                className="w-full bg-primary hover:bg-gold-600"
+                className="w-full bg-primary hover:bg-primary/90"
                 onClick={() => router.push('/service-inquiry')}
               >
                 Book Dog Sitting Service
@@ -93,7 +93,7 @@ export default function DogSittingPage() {
       </div>
 
       {/* Trust Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gradient-to-t from-primary/5 to-secondary/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">

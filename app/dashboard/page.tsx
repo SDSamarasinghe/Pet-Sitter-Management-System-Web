@@ -307,7 +307,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = 
     !user.profilePicture.includes('sample');
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center flex-shrink-0 ${className}`}>
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 ${className}`}>
       {isValidProfilePicture ? (
         <img 
           src={user.profilePicture} 
@@ -470,7 +470,7 @@ export default function DashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge variant="outline" className="bg-accent/10 text-accent">Pending</Badge>;
       case 'approved':
         return <Badge variant="outline" className="bg-green-100 text-green-800">Approved</Badge>;
       case 'rejected':
@@ -577,11 +577,11 @@ export default function DashboardPage() {
   const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [bookingFormData, setBookingFormData] = useState({
-    service: 'Once A Day Pet Sitting 45min - C$40',
+    service: 'Once A Day Pet Sitting 30min - C$28',
     startDate: '',
     endDate: '',
     startTime: '09:00',
-    endTime: '09:45'
+    endTime: '09:30'
   });
   
   // Add-on booking modal state
@@ -1108,15 +1108,23 @@ export default function DashboardPage() {
       
       // Get service type mapping
       const serviceTypeMap: { [key: string]: string } = {
-        'Once A Day Pet Sitting 45min - C$40': 'pet-sitting',
-        'Twice A Day Pet Sitting 30min each - C$55': 'pet-sitting',
-        'Dog Walking 30min - C$25': 'dog-walking',
-        'Extended Pet Sitting 60min - C$50': 'pet-sitting'
+          'Pet Sitting 30min - CAD 28': 'pet-sitting',
+          'Pet Sitting 30min Holiday - CAD 35': 'pet-sitting',
+          'Pet Sitting 45min - CAD 32': 'pet-sitting',
+          'Pet Sitting 45min Holiday - CAD 40': 'pet-sitting',
+          'Pet Sitting 1hr - CAD 35': 'pet-sitting',
+          'Pet Sitting 1hr Holiday - CAD 46': 'pet-sitting',
+          'Dog Walking 30min - CAD 28': 'dog-walking',
+          'Dog Walking 30min Holiday - CAD 35': 'dog-walking',
+          'Dog Walking 45min - CAD 32': 'dog-walking',
+          'Dog Walking 45min Holiday - CAD 40': 'dog-walking',
+          'Dog Walking 1hr - CAD 35': 'dog-walking',
+          'Dog Walking 1hr Holiday - CAD 46': 'dog-walking'
       };
       
       // Extract price from service string
       const priceMatch = bookingFormData.service.match(/C\$(\d+)/);
-      const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 40;
+      const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 28;
       
       // Map pet species to the enum values expected by the backend
       const mapPetTypeToEnum = (species: string): string => {
@@ -1167,7 +1175,7 @@ export default function DashboardPage() {
       
       // Reset form
       setBookingFormData({
-        service: 'Once A Day Pet Sitting 45min - C$40',
+        service: 'Once A Day Pet Sitting 30min - C$28',
         startDate: '',
         endDate: '',
         startTime: '09:00',
@@ -1409,7 +1417,7 @@ export default function DashboardPage() {
                 className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === "communication"
                     ? "bg-primary text-white shadow-sm"
-                    : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                 }`}
               >
                 Communication
@@ -1421,7 +1429,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     <span className="hidden sm:inline">Users ({adminUsers.length})</span>
@@ -1432,7 +1440,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "sitters"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
@@ -1443,7 +1451,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "bookings"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
@@ -1454,7 +1462,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "address-changes"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
@@ -1465,7 +1473,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     <span className="hidden sm:inline">Pets ({adminPets.length})</span>
@@ -1479,7 +1487,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "users"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     My Users
@@ -1489,7 +1497,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "scheduling"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     Scheduling
@@ -1499,7 +1507,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     My Profile
@@ -1509,7 +1517,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "dashboard"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     Dashboard
@@ -1522,7 +1530,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "profile"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     My Profile
@@ -1532,7 +1540,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "pets"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     My Pets
@@ -1542,7 +1550,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "security"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     Key Security
@@ -1552,7 +1560,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "booking"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     Book Now
@@ -1562,7 +1570,7 @@ export default function DashboardPage() {
                     className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
                       activeTab === "invoices"
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                     }`}
                   >
                     Invoices
@@ -2500,7 +2508,7 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="card-modern p-8">
                 <div className="flex items-center space-x-6 mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-lg">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
                     <span className="text-3xl font-bold text-white">{user?.firstName?.[0]}</span>
                   </div>
                   <div>
@@ -3033,10 +3041,18 @@ export default function DashboardPage() {
                         onChange={(e) => setBookingFormData(prev => ({ ...prev, service: e.target.value }))}
                         className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                       >
-                        <option>Once A Day Pet Sitting 45min - C$40</option>
-                        <option>Twice A Day Pet Sitting 30min each - C$55</option>
-                        <option>Dog Walking 30min - C$25</option>
-                        <option>Extended Pet Sitting 60min - C$50</option>
+                        <option>Pet Sitting 30min - CAD 28</option>
+                        <option>Pet Sitting 30min Holiday - CAD 35</option>
+                        <option>Pet Sitting 45min - CAD 32</option>
+                        <option>Pet Sitting 45min Holiday - CAD 40</option>
+                        <option>Pet Sitting 1hr - CAD 35</option>
+                        <option>Pet Sitting 1hr Holiday - CAD 46</option>
+                        <option>Dog Walking 30min - CAD 28</option>
+                        <option>Dog Walking 30min Holiday - CAD 35</option>
+                        <option>Dog Walking 45min - CAD 32</option>
+                        <option>Dog Walking 45min Holiday - CAD 40</option>
+                        <option>Dog Walking 1hr - CAD 35</option>
+                        <option>Dog Walking 1hr Holiday - CAD 46</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3119,7 +3135,7 @@ export default function DashboardPage() {
               <Card className="card-modern">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Other Payments
@@ -3371,7 +3387,7 @@ export default function DashboardPage() {
                           <span className="text-sm text-gray-700">
                             I have read and agree to the{' '}
                             <a href="#" className="text-primary underline">
-                              Flying Duchess Pet Sitters Policies, Terms and Conditions
+                              Whiskarz Pet Sitters Policies, Terms and Conditions
                             </a>
                           </span>
                         </label>
@@ -3734,6 +3750,34 @@ export default function DashboardPage() {
        
 
         {/* Service Areas */}
+        <section className="mt-16 flex justify-center">
+          <div className="w-full max-w-4xl bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50 rounded-3xl shadow-xl px-6 py-12 flex flex-col items-center border border-blue-100">
+            <h2 className="text-4xl font-extrabold text-primary mb-10 tracking-tight drop-shadow-sm">Our Service Areas</h2>
+            <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
+              <div className="flex-1 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                 
+                  <h3 className="text-2xl font-bold text-gray-900">Primary Service Areas</h3>
+                </div>
+                <ul className="text-lg text-gray-700 space-y-2 font-medium text-center">
+                  <li className="py-1">Oshawa</li>
+                  <li className="py-1">Ajax</li>
+                  <li className="py-1">Bowmanville</li>
+                </ul>
+              </div>
+              <div className="flex-1 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  
+                  <h3 className="text-2xl font-bold text-gray-900">Contact Information</h3>
+                </div>
+                <div className="text-lg text-gray-700 space-y-2 font-medium text-center">
+                  <p className="py-1"><span className="font-semibold text-primary">Phone:</span> +1 (647) 548-8025</p>
+                  <p className="py-1"><span className="font-semibold text-primary">Address:</span><br />2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
        
       </main>
     </div>

@@ -99,8 +99,8 @@ export default function PocketPetSittingPage() {
               <img src="/test-avatar.jpg" alt="Poetic Pocket Pet" className="w-32 h-32 object-cover rounded-full mx-auto mb-4" />
             </div>
             <p className="text-gray-700 text-lg leading-relaxed mb-4 italic">"Those of us who have fallen under their spell of a pocket pet, can wax poetic for hours about the joy these little furry friends bring to our lives."</p>
-            <p className="text-gray-600 mb-6">With Flying Duchess aside from the basic needs, the daily visits, interaction, affection will make your time away as stress free as possible for your little pals.</p>
-            <div className="font-bold text-primary text-lg">FLYING DUCHESS ©</div>
+            <p className="text-gray-600 mb-6">With Whiskarz aside from the basic needs, the daily visits, interaction, affection will make your time away as stress free as possible for your little pals.</p>
+            <div className="font-bold text-primary text-lg">Whiskarz ©</div>
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function PocketPetSittingPage() {
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">2</div>
                   <div>
                     <h4 className="font-bold text-gray-900 mb-2">Professional Delivery</h4>
-                    <p className="text-sm text-gray-600">We treat our clients and their pets with a standard of professionalism and care that is unparalleled in our industry. Flying Duchess is continually working to set the bar high for pet sitting standards in our industry.</p>
+                    <p className="text-sm text-gray-600">We treat our clients and their pets with a standard of professionalism and care that is unparalleled in our industry. Whiskarz is continually working to set the bar high for pet sitting standards in our industry.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -211,6 +211,27 @@ export default function PocketPetSittingPage() {
                     <p className="text-sm text-gray-600">We conduct our service with honesty and truthfulness, providing our clients with honest feedback, and being open to honest feedback from our clients in return. We humbly accept that we can always do better through mutual feedback and communication.</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="bg-gradient-to-r from-primary/5 to-secondary/10 rounded-xl p-8 mt-12">
+          <div className="text-center space-y-6">
+            <h3 className="text-2xl font-bold text-primary">Contact Whiskarz Pet Sitters</h3>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Phone</h4>
+                <p className="text-primary font-medium">+1 (647) 548-8025</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Address</h4>
+                <p className="text-gray-700">2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
+              </div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-2">Service Areas</h4>
+                <p className="text-gray-700">Whiskarz, Oshawa, Ajax, Bowmanville & surrounding areas</p>
               </div>
             </div>
           </div>
