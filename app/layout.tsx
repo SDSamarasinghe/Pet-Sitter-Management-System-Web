@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { NavigationProvider } from "@/components/providers/NavigationProvider";
-import CentralizedHeader from "@/components/CentralizedHeader";
+import { MainLayout } from "@/components/layout/MainLayout";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,16 +29,11 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         </head>
-        <body className="h-screen bg-background text-foreground antialiased overflow-hidden">
+        <body className="min-h-screen bg-background text-foreground antialiased">
           <NavigationProvider>
-            <div className="h-screen flex flex-col">
-              <CentralizedHeader />
-              <main className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-white scrollbar-modern">
-                <div className="min-h-full w-full">
-                  {children}
-                </div>
-              </main>
-            </div>
+            <MainLayout>
+              {children}
+            </MainLayout>
             <Toaster />
           </NavigationProvider>
         </body>

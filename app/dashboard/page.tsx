@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -536,7 +536,11 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clients, setClients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("communication");
+  
+  // Get active tab from URL search params instead of local state
+  const searchParams = useSearchParams();
+  const activeTab = searchParams?.get('tab') || 'communication';
+  
   const [clientSearch, setClientSearch] = useState("");
   // Per-pet tab state for My Pets tab
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
@@ -1408,180 +1412,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Modern Tab Navigation */}
-        <section className="mb-8">
-          <div className="card-modern p-2 inline-flex animate-slideUp">
-            <nav className="flex space-x-1 overflow-x-auto scrollbar-hide">
-              <button
-                onClick={() => setActiveTab("communication")}
-                className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                  activeTab === "communication"
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                }`}
-              >
-                Communication
-              </button>
-              {user?.role === "admin" ? (
-                <>
-                  <button
-                    onClick={() => setActiveTab("users")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "users"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Users ({adminUsers.length})</span>
-                    <span className="sm:hidden">Users</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("sitters")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "sitters"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
-                    <span className="sm:hidden">Sitters</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("bookings")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "bookings"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
-                    <span className="sm:hidden">Bookings</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("address-changes")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "address-changes"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
-                    <span className="md:hidden">Address</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("pets")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "pets"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Pets ({adminPets.length})</span>
-                    <span className="sm:hidden">Pets</span>
-                  </button>
-                </>
-              ) : user?.role === "sitter" ? (
-                <>
-                  <button
-                    onClick={() => setActiveTab("users")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "users"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    My Users
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("scheduling")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "scheduling"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    Scheduling
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("profile")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "profile"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    My Profile
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "dashboard"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    Dashboard
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setActiveTab("profile")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "profile"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    My Profile
-                  </button>
-                  {/* <button
-                    onClick={() => setActiveTab("pets")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "pets"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    My Pets
-                  </button> */}
-                  <button
-                    onClick={() => setActiveTab("security")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "security"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    Key Security
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("booking")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "booking"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    Book Now
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("invoices")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "invoices"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                    }`}
-                  >
-                    Invoices
-                  </button>
-                </>
-              )}
-            </nav>
-          </div>
-        </section>
-
-        {/* Modern Tab Content */}
+        {/* Tab Content - Navigation now handled by sidebar */}
         <section className="animate-fadeIn">
           {activeTab === "communication" && (
             <div className="space-y-6">
