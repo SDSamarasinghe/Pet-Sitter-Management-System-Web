@@ -141,6 +141,24 @@
     overflow-x: hidden;
   }
   
+  /* Dashboard scroll fixes */
+  .dashboard-container {
+    height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  
+  @media (min-width: 1024px) {
+    .dashboard-container {
+      height: calc(100vh - 5rem);
+    }
+  }
+  
+  /* Sidebar scroll fixes */
+  .sidebar-nav {
+    height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
   }
@@ -350,6 +368,25 @@
   
   .scrollbar-modern::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.8);
+  }
+  
+  /* Tailwind scrollbar utilities */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209 213 219) transparent;
+  }
+  
+  .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219);
+  }
+  
+  .scrollbar-track-gray-100::-webkit-scrollbar-track {
+    background-color: rgb(243 244 246);
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
 
   /* Enhanced responsive text utilities */
