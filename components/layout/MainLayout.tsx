@@ -88,13 +88,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             ${showSidebar ? (isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : ''}
             transition-all duration-300
             overflow-y-auto
-            max-h-[calc(100vh-4rem)]
-            lg:max-h-[calc(100vh-5rem)]
+            h-[calc(100vh-4rem)]
+            lg:h-[calc(100vh-5rem)]
             flex flex-col
           `}
         >
           {/* Main Content */}
-          <main className="flex-1">
+          <main className="flex-1 min-h-0">
             {children}
           </main>
 
