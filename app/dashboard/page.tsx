@@ -1399,8 +1399,8 @@ export default function DashboardPage() {
   const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white">
-      <main className="container-modern section-padding pb-8">
+    <div className="bg-gradient-to-br from-gray-50 to-white h-full overflow-y-auto">
+      <main className="container-modern section-padding pb-8 min-h-full">
         <div className="mb-8 animate-fadeIn">
           <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
             Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}
@@ -1540,7 +1540,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 {/* Notes List */}
-                <div className="space-y-4 h-[40rem] overflow-y-auto scrollbar-modern pr-2">
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pr-2">
                   {notes.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
                       No notes yet. Add your first note above!
