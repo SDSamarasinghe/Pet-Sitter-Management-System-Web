@@ -25,7 +25,7 @@ export default function RabbitSittingPage() {
           <div className="max-w-4xl mx-auto mb-8">
             <div className="bg-gray-100 rounded-lg overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80" 
+                src="https://images.unsplash.com/photo-1535241749838-299277b6305f?w=800&q=80" 
                 alt="Rabbit lying down" 
                 className="w-full h-80 object-cover"
               />
@@ -63,7 +63,7 @@ export default function RabbitSittingPage() {
                 price: "$32.3",
                 duration: "30min",
                 description: ["Daily 30min - Rabbit Visits", "Up to 2 Rabbits", "✗ Meds"],
-                image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
+                image: "https://images.unsplash.com/photo-1535241749838-299277b6305f?w=400&q=80",
                 color: "bg-primary"
               },
               {
@@ -71,7 +71,7 @@ export default function RabbitSittingPage() {
                 price: "$34",
                 duration: "45min",
                 description: ["Daily 45min - Rabbit Visits", "Up to 3 Rabbits", "✔ Meds"],
-                image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
+                image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400&q=80",
                 color: "bg-gold-600",
                 top: true
               },
@@ -80,7 +80,7 @@ export default function RabbitSittingPage() {
                 price: "$38",
                 duration: "60min",
                 description: ["Daily 60min - Rabbit Visits Free Roam + Cage Cleaning + Rabbit Visit", "Up to 2 Rabbits", "✔ Meds"],
-                image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
+                image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400&q=80",
                 color: "bg-gold-700"
               },
               {
@@ -88,7 +88,7 @@ export default function RabbitSittingPage() {
                 price: "$70",
                 duration: "AM & PM",
                 description: ["AM & PM 45min Twice a Day + Meds, timed supplements.", "Up to 5 Rabbits", "✔ Meds"],
-                image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
+                image: "https://images.unsplash.com/photo-1535241749838-299277b6305f?w=400&q=80",
                 color: "bg-gold-800"
               }
             ].map((option, idx) => (
