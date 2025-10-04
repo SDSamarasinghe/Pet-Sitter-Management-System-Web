@@ -20,7 +20,7 @@ export default function MultiplePetTypesPage() {
             {/* Hero Image */}
             <div className="mb-8">
               <img 
-                src="/test-avatar.jpg" 
+                src="https://images.unsplash.com/photo-1518715308788-300e1e1e2d4c?w=800&q=80" 
                 alt="Multiple pets together" 
                 className="w-full max-w-2xl mx-auto h-64 object-cover rounded-lg shadow-lg"
               />
