@@ -46,7 +46,7 @@ const serviceCategories: ServiceCategories = {
         id: 2,
         title: "Dog Sitting",
         description: "Premium in-home dog sitting service offering comfort and care in familiar surroundings.",
-        image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80",
         duration: "Full day",
         price: "Starting at $28"
       },
@@ -54,7 +54,7 @@ const serviceCategories: ServiceCategories = {
         id: 3,
         title: "Rabbit Sitting",
         description: "Specialized care for bunnies of all breeds, from Holland Lops to English Spots.",
-        image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1535241749838-299277b6305f?w=400&q=80",
         duration: "30-45 min",
         price: "Starting at $28"
       },
@@ -62,7 +62,7 @@ const serviceCategories: ServiceCategories = {
         id: 4,
         title: "Bird Sitting",
         description: "Professional care for your feathered companions with specialized knowledge.",
-        image: "https://images.unsplash.com/photo-1544640101-69405652b5dc?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400&q=80",
         duration: "30-45 min",
         price: "Starting at $28"
       },
@@ -70,7 +70,7 @@ const serviceCategories: ServiceCategories = {
         id: 5,
         title: "Pocket Pet Sitting",
         description: "Expert care for small pets including hamsters, guinea pigs, chinchillas, and sugar gliders.",
-        image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80",
         duration: "30 min",
         price: "Starting at $28"
       },
@@ -78,7 +78,7 @@ const serviceCategories: ServiceCategories = {
         id: 6,
         title: "Multiple Pet Types",
         description: "Comprehensive care for households with various pet types and species.",
-        image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&q=80",
         duration: "Variable",
         price: "Custom pricing"
       }
@@ -92,7 +92,7 @@ const serviceCategories: ServiceCategories = {
         id: 7,
         title: "Private Dog Walks",
         description: "One-on-one walks tailored to your dog's pace and preferences.",
-        image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=400&q=80",
         duration: "30-60 min",
         price: "Starting at $40"
       },
@@ -100,7 +100,7 @@ const serviceCategories: ServiceCategories = {
         id: 8,
         title: "Group Dog Walks",
         description: "Socialized walks with other friendly dogs for exercise and companionship.",
-        image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80",
         duration: "45-60 min",
         price: "Starting at $30"
       },
@@ -108,7 +108,7 @@ const serviceCategories: ServiceCategories = {
         id: 9,
         title: "Puppy Walks",
         description: "Gentle, short walks perfect for puppies and senior dogs with special needs.",
-        image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?w=400&q=80",
         duration: "15-30 min",
         price: "Starting at $25"
       }
@@ -122,7 +122,7 @@ const serviceCategories: ServiceCategories = {
         id: 10,
         title: "Overnight Pet Sitting",
         description: "Overnight care in your pet's familiar environment while you're away.",
-        image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=80",
         duration: "Overnight",
         price: "Starting at $120"
       },
@@ -130,7 +130,7 @@ const serviceCategories: ServiceCategories = {
         id: 11,
         title: "Live-in Pet Care",
         description: "Full-time live-in care for extended periods, ensuring constant companionship.",
-        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&q=80",
         duration: "24/7 care",
         price: "Starting at $200/day"
       },
@@ -138,7 +138,7 @@ const serviceCategories: ServiceCategories = {
         id: 12,
         title: "AM & PM Visits",
         description: "Morning and evening visits to maintain your pet's daily routine.",
-        image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=400&q=80",
         duration: "2 visits/day",
         price: "Starting at $65"
       },
@@ -146,7 +146,7 @@ const serviceCategories: ServiceCategories = {
         id: 13,
         title: "Holiday Pet Care",
         description: "Special holiday packages ensuring your pets are well-cared for during festive seasons.",
-        image: "https://images.unsplash.com/photo-1512236393941-ef5c2b150d7b?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&q=80",
         duration: "Custom schedule",
         price: "Holiday rates apply"
       }
