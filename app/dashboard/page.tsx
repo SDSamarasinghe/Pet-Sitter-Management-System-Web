@@ -2246,6 +2246,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input for Admin Pets Table */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search pets by name, type, breed, age, or owner..."
+                    value={petSearch}
+                    onChange={e => setPetSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -2261,21 +2271,35 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminPets.length > 0 ? (
-                        adminPets.map((pet, index) => (
-                          <TableRow key={pet._id || pet.id || `pet-${index}`}>
-                            <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
-                            <TableCell>{pet.type || pet.species || 'N/A'}</TableCell>
-                            <TableCell>{pet.breed || 'N/A'}</TableCell>
-                            <TableCell>{pet.age || 'N/A'}</TableCell>
-                            <TableCell>
-                              {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
-                            </TableCell>
-                            <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
-                            <TableCell>
-                              {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        adminPets
+                          .filter(pet => {
+                            const searchTerm = (petSearch || "").toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              (pet.name || "").toLowerCase().includes(searchTerm) ||
+                              (pet.type || pet.species || "").toLowerCase().includes(searchTerm) ||
+                              (pet.breed || "").toLowerCase().includes(searchTerm) ||
+                              (pet.age !== undefined && String(pet.age).toLowerCase().includes(searchTerm)) ||
+                              (pet.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
+                              (pet.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
+                              (pet.userId?.email || "").toLowerCase().includes(searchTerm)
+                            );
+                          })
+                          .map((pet, index) => (
+                            <TableRow key={pet._id || pet.id || `pet-${index}`}> 
+                              <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
+                              <TableCell>{pet.type || pet.species || 'N/A'}</TableCell>
+                              <TableCell>{pet.breed || 'N/A'}</TableCell>
+                              <TableCell>{pet.age || 'N/A'}</TableCell>
+                              <TableCell>
+                                {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
+                              </TableCell>
+                              <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
+                              <TableCell>
+                                {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
+                              </TableCell>
+                            </TableRow>
+                          ))
                       ) : (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8">
