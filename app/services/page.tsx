@@ -206,31 +206,34 @@ export default function ServicesPage() {
 
       <main className="max-w-7xl mx-auto py-10 px-4">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
            Pet Services
           </h1>
-          <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Toronto's most trusted in-home pet care service. Professional, insured, and experienced pet sitters who will love your pets like their own.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
             {features.map((feature, index) => (
-              <span key={index} className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+              <span key={index} className="bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200 shadow-sm">
                 {feature}
               </span>
             ))}
           </div>
-          <Button size="lg" onClick={() => router.push('/service-inquiry')} className="rounded-full px-8 py-3">
+          <Button size="lg" onClick={() => router.push('/service-inquiry')} className="rounded-full px-10 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
             Book Your Pet Visits Today
           </Button>
         </div>
 
         {/* Services Categories and Grid */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Our Services</h2>
+        <section className="mb-20">
+          <h2 className="text-4xl font-bold text-center mb-4">Our Services</h2>
+          <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Comprehensive pet care solutions tailored to your furry, feathered, or scaled companions
+          </p>
           
           {/* Category Navigation */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <div className="flex flex-wrap justify-center gap-4 mb-10">
             {Object.entries(serviceCategories).map(([categoryName, category]) => (
               <button
                 key={categoryName}
@@ -243,21 +246,21 @@ export default function ServicesPage() {
                     setActiveCategory(categoryName as keyof ServiceCategories);
                   }
                 }}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
+                className={`flex items-center gap-2 px-8 py-4 rounded-full font-semibold transition-all duration-300 ${
                   activeCategory === categoryName
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'bg-white text-muted-foreground hover:bg-primary/5 hover:text-primary border border-border'
+                    ? 'bg-primary text-white shadow-xl scale-105'
+                    : 'bg-card text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-border hover:border-primary/30 shadow-md'
                 }`}
               >
-                <span className="text-lg">{category.icon}</span>
+                <span className="text-xl">{category.icon}</span>
                 <span>{categoryName}</span>
               </button>
             ))}
           </div>
 
           {/* Active Category Description */}
-          <div className="text-center mb-8">
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <div className="text-center mb-10 bg-card/50 rounded-2xl p-6 max-w-3xl mx-auto shadow-sm border border-border">
+            <p className="text-lg text-foreground font-medium">
               {serviceCategories[activeCategory].description}
             </p>
           </div>
@@ -267,7 +270,7 @@ export default function ServicesPage() {
             {serviceCategories[activeCategory].services.map((service: Service) => (
               <Card 
                 key={service.id} 
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/20 bg-card"
                 onClick={() => {
                   // Navigate to specific service pages
                   if (service.title === "Cat Sitting") {
@@ -288,29 +291,39 @@ export default function ServicesPage() {
                   }
                 }}
               >
-                <div className="aspect-video overflow-hidden">
+                <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/5 to-secondary/10">
                   <img 
                     src={service.image} 
                     alt={service.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex justify-between items-start mb-2">
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
-                      Pet Sitting
+                    <CardTitle className="text-xl font-bold text-foreground">{service.title}</CardTitle>
+                    <span className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full font-semibold border border-green-200">
+                      {activeCategory}
                     </span>
                   </div>
-                  <CardDescription>{service.description}</CardDescription>
+                  <CardDescription className="text-muted-foreground leading-relaxed">{service.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm text-gray-600">Duration: {service.duration}</span>
-                    <span className="font-semibold text-green-600">{service.price}</span>
+                <CardContent className="pt-0">
+                  <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {service.duration}
+                    </span>
+                    <span className="font-bold text-primary text-lg">{service.price}</span>
                   </div>
                   <div className="text-center">
-                    <span className="text-primary font-medium">Click to view details →</span>
+                    <span className="text-primary font-semibold text-sm hover:underline flex items-center justify-center gap-1">
+                      View Details
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -318,7 +331,7 @@ export default function ServicesPage() {
           </div>
 
           {/* View All Services Button */}
-          <div className="text-center mt-8">
+          <div className="text-center mt-12">
             <Button
               variant="outline"
               size="lg"
@@ -329,7 +342,7 @@ export default function ServicesPage() {
                 const nextIndex = (currentIndex + 1) % categories.length;
                 setActiveCategory(categories[nextIndex]);
               }}
-              className="rounded-full px-8"
+              className="rounded-full px-10 py-6 text-lg border-2 hover:bg-primary hover:text-white transition-all"
             >
               Browse More Services
             </Button>
@@ -337,51 +350,54 @@ export default function ServicesPage() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className="mb-16 bg-card/50 rounded-2xl p-8 shadow-sm">
-          <h2 className="text-3xl font-bold text-center mb-8">Why Choose Whiskarz?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <section className="mb-20 bg-gradient-to-br from-card via-card/80 to-primary/5 rounded-3xl p-12 shadow-lg border border-border">
+          <h2 className="text-4xl font-bold text-center mb-4">Why Choose Whiskarz?</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Trusted by thousands of pet parents across Toronto for exceptional care and peace of mind
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-green-200 group-hover:scale-110 transition-transform shadow-md">
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Trusted & Insured</h3>
-              <p className="text-gray-600">All our sitters are fully insured, bonded, and background checked for your peace of mind.</p>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Trusted & Insured</h3>
+              <p className="text-muted-foreground leading-relaxed">All our sitters are fully insured, bonded, and background checked for your peace of mind.</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-green-200 group-hover:scale-110 transition-transform shadow-md">
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Experienced Care</h3>
-              <p className="text-gray-600">Our experienced sitters will play, pet, and chat with your companions, providing love and attention.</p>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Experienced Care</h3>
+              <p className="text-muted-foreground leading-relaxed">Our experienced sitters will play, pet, and chat with your companions, providing love and attention.</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-purple-200 group-hover:scale-110 transition-transform shadow-md">
+                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">24/7 Support</h3>
-              <p className="text-gray-600">We're always available for questions, updates, and emergency support when you need us.</p>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">24/7 Support</h3>
+              <p className="text-muted-foreground leading-relaxed">We're always available for questions, updates, and emergency support when you need us.</p>
             </div>
           </div>
         </section>
 
         {/* New Client Section */}
-        <section className="bg-green-50 rounded-2xl p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">New Clients Welcome!</h2>
-          <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
+        <section className="bg-gradient-to-br from-green-50 via-green-50 to-green-100 rounded-3xl p-12 text-center shadow-lg border-2 border-green-200">
+          <h2 className="text-4xl font-bold mb-4 text-foreground">New Clients Welcome!</h2>
+          <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto leading-relaxed">
             Your service includes a complimentary comprehensive in-home consultation prior to starting service. 
             The next time you need to book, the process is painless and easy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => router.push('/service-inquiry')} className="rounded-full px-8">
+            <Button size="lg" onClick={() => router.push('/service-inquiry')} className="rounded-full px-10 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
               Schedule Free Consultation
             </Button>
-            <Button size="lg" variant="outline" onClick={() => router.push('/feedback')} className="rounded-full px-8">
+            <Button size="lg" variant="outline" onClick={() => router.push('/feedback')} className="rounded-full px-10 py-6 text-lg border-2 hover:bg-white transition-all">
               Read Client Reviews
             </Button>
           </div>

@@ -55,16 +55,23 @@ export default function LoginPage() {
         <div className="min-h-screen bg-gradient-to-br from-neutral-bg-50 via-white to-navy-blue-50 flex items-center justify-center section-padding">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8 animate-fade-in-up">
+        {/* <div className="text-center animate-fade-in-up">
+            <img 
+                src="/Petsitter-logo.png" 
+                alt="Whiskarz Logo" 
+                className="h-48 lg:h-56 xl:h-64 w-auto mx-auto"
+              />
+        </div> */}
+
+        {/* Login Form */}
+        <div className="card-modern spacing-lg animate-scale-in">
+           <div className="text-center -mt-20 -mb-10 animate-fade-in-up">
             <img 
                 src="/Petsitter-logo.png" 
                 alt="Whiskarz Logo" 
                 className="h-48 lg:h-56 xl:h-64 w-auto mx-auto"
               />
         </div>
-
-        {/* Login Form */}
-        <div className="card-modern spacing-lg animate-scale-in">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
@@ -154,7 +161,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
@@ -174,7 +181,7 @@ export default function LoginPage() {
                 Create Account
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}

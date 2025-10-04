@@ -61,7 +61,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <CentralizedHeader />
 
       {/* Main Content Area with Footer */}
-      <div className="flex flex-1 pt-16 lg:pt-20">
+      <div className="flex flex-1">
         {/* Sidebar - Conditional */}
         {showSidebar && (
           <>

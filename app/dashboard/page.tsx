@@ -542,6 +542,12 @@ export default function DashboardPage() {
   const activeTab = searchParams?.get('tab') || (user?.role === 'sitter' ? 'dashboard' : user?.role === 'client' ? 'profile' : 'communication');
   
   const [clientSearch, setClientSearch] = useState("");
+    // Pets tab search state
+    const [petSearch, setPetSearch] = useState("");
+  // Admin search states
+  const [usersSearch, setUsersSearch] = useState("");
+  const [sittersSearch, setSittersSearch] = useState("");
+  const [bookingsSearch, setBookingsSearch] = useState("");
   // Per-pet tab state for My Pets tab
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
   const [selectedClient, setSelectedClient] = useState("");
@@ -1775,6 +1781,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search users by name, email, phone, or address..."
+                    value={usersSearch}
+                    onChange={(e) => setUsersSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -1792,7 +1808,18 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminUsers.length > 0 ? (
-                        adminUsers.map((user, index) => (
+                        adminUsers
+                          .filter(user => {
+                            const searchTerm = usersSearch.toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              (user.email || '').toLowerCase().includes(searchTerm) ||
+                              (user.phone || '').toLowerCase().includes(searchTerm) ||
+                              (user.address || '').toLowerCase().includes(searchTerm)
+                            );
+                          })
+                          .map((user, index) => (
                           <TableRow key={user._id || user.id || `user-${index}`}>
                             <TableCell className="font-medium">
                               {user.firstName} {user.lastName}
@@ -1844,6 +1871,16 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Search Input */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search sitters by name, email, phone, or status..."
+                      value={sittersSearch}
+                      onChange={(e) => setSittersSearch(e.target.value)}
+                      className="input-modern w-full"
+                    />
+                  </div>
                   <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -1858,7 +1895,18 @@ export default function DashboardPage() {
                       </TableHeader>
                       <TableBody>
                         {adminSitters.length > 0 ? (
-                          adminSitters.map((sitter, index) => (
+                          adminSitters
+                            .filter(sitter => {
+                              const searchTerm = sittersSearch.toLowerCase();
+                              if (!searchTerm) return true;
+                              return (
+                                `${sitter.firstName || ''} ${sitter.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                                (sitter.email || '').toLowerCase().includes(searchTerm) ||
+                                (sitter.phone || '').toLowerCase().includes(searchTerm) ||
+                                (sitter.status || '').toLowerCase().includes(searchTerm)
+                              );
+                            })
+                            .map((sitter, index) => (
                             <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
                               <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
                               <TableCell>{sitter.email}</TableCell>
@@ -1997,6 +2045,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search bookings by client name, service type, status, or sitter..."
+                    value={bookingsSearch}
+                    onChange={(e) => setBookingsSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -2014,7 +2072,19 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminBookings.length > 0 ? (
-                        adminBookings.map((booking, index) => (
+                        adminBookings
+                          .filter(booking => {
+                            const searchTerm = bookingsSearch.toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              `${booking.userId?.firstName || ''} ${booking.userId?.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              `${booking.sitterId?.firstName || ''} ${booking.sitterId?.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              (booking.serviceType || '').toLowerCase().includes(searchTerm) ||
+                              (booking.status || '').toLowerCase().includes(searchTerm) ||
+                              (booking.pets && booking.pets.some((pet: any) => pet.name?.toLowerCase().includes(searchTerm)))
+                            );
+                          })
+                          .map((booking, index) => (
                           <TableRow key={booking._id || booking.id || `booking-${index}`}>
                             <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
                             <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
@@ -2372,14 +2442,35 @@ export default function DashboardPage() {
 
           {activeTab === "pets" && (
             <div className="space-y-8">
-              {pets.length === 0 ? (
-                <div className="text-gray-500">No pets found. <Button onClick={() => router.push('/pets/add')} className="font-semibold">Add Pet</Button></div>
-              ) : (
-                pets.map((pet, petIndex) => {
-                  const petKey = pet.id || (pet as any)?._id || `pet-${petIndex}`;
-                  const tab = petTabs[petKey] || "basic";
-                  return (
-                    <div key={petKey} className="mb-12">
+                {/* Search Input for Pets */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search pets by name, species, breed, or age..."
+                    value={petSearch}
+                    onChange={e => setPetSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
+                {pets.length === 0 ? (
+                  <div className="text-gray-500">No pets found. <Button onClick={() => router.push('/pets/add')} className="font-semibold">Add Pet</Button></div>
+                ) : (
+                  pets
+                    .filter(pet => {
+                      const searchTerm = (petSearch || "").toLowerCase();
+                      if (!searchTerm) return true;
+                      return (
+                        (pet.name || "").toLowerCase().includes(searchTerm) ||
+                        (pet.species || "").toLowerCase().includes(searchTerm) ||
+                        (pet.breed || "").toLowerCase().includes(searchTerm) ||
+                        (pet.age !== undefined && String(pet.age).toLowerCase().includes(searchTerm))
+                      );
+                    })
+                    .map((pet, petIndex) => {
+                      const petKey = pet.id || (pet as any)?._id || `pet-${petIndex}`;
+                      const tab = petTabs[petKey] || "basic";
+                      return (
+                        <div key={petKey} className="mb-12">
                       <h2 className="text-5xl font-light mb-8 mt-2">{pet.name}</h2>
                       <div className="border-b border-gray-200 mb-6">
                         <nav className="flex space-x-8">
