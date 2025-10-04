@@ -2469,9 +2469,8 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="card-modern p-8">
                 <div className="flex items-center space-x-6 mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                    <span className="text-3xl font-bold text-white">{user?.firstName?.[0]}</span>
-                  </div>
+                  {/* Use UserAvatar for profile picture */}
+                  <UserAvatar user={user} size="lg" className="w-20 h-20 rounded-2xl shadow-lg" />
                   <div>
                     <h3 className="text-2xl font-semibold text-gray-900 mb-1">{user?.firstName} {user?.lastName}</h3>
                     <p className="text-gray-600 mb-2">{user?.email}</p>
