@@ -15,7 +15,7 @@ export default function PocketPetSittingPage() {
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Daily Pocket Pet Sitting</h1>
             <p className="text-lg text-gray-600 mb-4">We provide daily Chinchilla & Ferret and other small pet visits to clients throughout Toronto.</p>
-            <img src="/test-avatar.jpg" alt="Pocket Pet" className="mx-auto rounded-lg w-full max-w-md h-64 object-cover mb-4 shadow-lg" />
+            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=800&q=80" alt="Pocket Pet" className="mx-auto rounded-lg w-full max-w-md h-64 object-cover mb-4 shadow-lg" />
             <p className="text-gray-600 italic mb-8 max-w-2xl mx-auto">~From sugar gliders to hamsters, guinea pigs to chinchillas our experienced sitters will make a big impression on your pocket sized pets.~</p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <Button className="bg-primary hover:bg-gold-600 text-white px-6 py-3 rounded-full font-semibold">
@@ -44,14 +44,14 @@ export default function PocketPetSittingPage() {
                 price: "$32.3",
                 duration: "30min",
                 description: ["Daily 30min Pocket Pet Visits", "Up to 3 pocket pets", "✗ Meds"],
-                image: "/test-avatar.jpg"
+                image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&q=80"
               },
               {
                 title: "Muffintop",
                 price: "$33.3",
                 duration: "45min",
                 description: ["Daily 45min Pocket Pet Visits", "Up to 4 pocket pets", "✔ Meds"],
-                image: "/test-avatar.jpg",
+                image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?w=400&q=80",
                 top: true
               },
               {
@@ -59,14 +59,14 @@ export default function PocketPetSittingPage() {
                 price: "$38.3",
                 duration: "60min",
                 description: ["Daily 60min Pocket Pet Visits", "Up to 5 pocket pets", "✔ Meds"],
-                image: "/test-avatar.jpg"
+                image: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&q=80"
               },
               {
                 title: "Prof.Pipsqueak",
                 price: "$67.5",
                 duration: "AM/PM",
                 description: ["AM/PM - Pocket Pet Visit", "Up to 6 pocket pets", "✔ Meds"],
-                image: "/test-avatar.jpg"
+                image: "https://images.unsplash.com/photo-1518715308788-300e1e1e2d4c?w=400&q=80"
               }
             ].map((option, idx) => (
               <Card key={option.title} className="relative overflow-hidden shadow-lg border-0 bg-white hover:shadow-xl transition-shadow">
