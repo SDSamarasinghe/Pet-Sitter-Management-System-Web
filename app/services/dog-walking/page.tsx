@@ -17,7 +17,7 @@ const dogWalkOptions = [
       "Additional Dog $5",
       "Holiday Rate: $35"
     ],
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80"
+    image: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=400&q=80"
   },
   {
     title: "Easy Jaunt",
@@ -31,7 +31,7 @@ const dogWalkOptions = [
       "Additional Dog $5",
       "Holiday Rate: $40"
     ],
-    image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=400&q=80"
+    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80"
   },
   {
     title: "Long Adventure",
@@ -45,7 +45,7 @@ const dogWalkOptions = [
       "Additional Dog $8",
       "Holiday Rate: $46"
     ],
-    image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?auto=format&fit=crop&w=400&q=80"
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80"
   },
   {
     title: "Random Rollick",
@@ -58,39 +58,39 @@ const dogWalkOptions = [
       "Includes walk, exercise, potty break and playtime.",
       "Additional Dog $5"
     ],
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80"
+    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=80"
   }
 ];
 
   const walkServices = [
   {
     title: "Meet & Greet",
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=300&q=80",
     bgColor: "bg-green-50"
   },
   {
     title: "Leash & Outfitting as Needed",
-    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&q=80",
     bgColor: "bg-green-50"
   },
   {
     title: "Walk/Exercise/Play",
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80",
     bgColor: "bg-green-50"
   },
   {
     title: "Potty Break & Clean Up",
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&q=80",
     bgColor: "bg-green-50"
   },
   {
     title: "Fresh Water",
-    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1589883661923-6476cb0ae9f2?w=300&q=80",
     bgColor: "bg-green-50"
   },
   {
     title: "Love & Attention",
-    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=300&q=80",
     bgColor: "bg-green-50"
   }
 ];
@@ -113,7 +113,7 @@ export default function DogWalkingPage() {
           <div className="mb-6 max-w-4xl mx-auto">
             <div className="bg-gray-100 rounded-lg overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80" 
+                src="https://images.unsplash.com/photo-1568572933382-74d440642117?w=800&q=80" 
                 alt="Dog Walking" 
                 className="w-full h-80 object-cover"
               />
@@ -197,7 +197,7 @@ export default function DogWalkingPage() {
             </div>
             <div className="flex-1 text-center">
               <img 
-                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80" 
+                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80" 
                 alt="Dog Portrait" 
                 className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
               />
