@@ -14,7 +14,7 @@ const catVisitOptions = [
       "Up to 2 Cats",
       "★ Kids"
     ],
-    image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -26,7 +26,7 @@ const catVisitOptions = [
       "Up to 3 Cats",
       "★★ Kids & Older Cats"
     ],
-    image: "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1529257414772-1960b7bea4eb?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -38,7 +38,7 @@ const catVisitOptions = [
       "Up to 3 Cats",
       "★ Meds mixed in with food only"
     ],
-    image: "https://images.unsplash.com/photo-1487300023790-ffbb8016a78b?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1491485880348-85d48a9e5312?w=300&q=80",
     color: "bg-primary",
     special: "top"
   },
@@ -52,7 +52,7 @@ const catVisitOptions = [
       "Once-a-day (AM/PM visit)",
       "★ Needles (Insulin BDP Suit-Q)"
     ],
-    image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -64,19 +64,19 @@ const catVisitOptions = [
       "Elderly Cats & Special Needs",
       "★★★ Medical Care"
     ],
-    image: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=300&q=80",
     color: "bg-primary"
   }
 ];
 
 const catVisitServices = [
-  { title: "Fresh Food", image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=300&q=80" },
-  { title: "Fresh Water", image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80" },
-  { title: "Some Playtime", image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=300&q=80" },
-  { title: "Scoop Litter", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=300&q=80" },
-  { title: "Bring in Mail", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=300&q=80" },
-  { title: "Some Loving", image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=300&q=80" },
-  { title: "And Daily Reports", image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80" }
+  { title: "Fresh Food", image: "https://images.unsplash.com/photo-1589883661923-6476cb0ae9f2?w=300&q=80" },
+  { title: "Fresh Water", image: "https://images.unsplash.com/photo-1601758260722-8ec4d8cbf5ec?w=300&q=80" },
+  { title: "Some Playtime", image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&q=80" },
+  { title: "Scoop Litter", image: "https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=300&q=80" },
+  { title: "Bring in Mail", image: "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=300&q=80" },
+  { title: "Some Loving", image: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300&q=80" },
+  { title: "And Daily Reports", image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&q=80" }
 ];
 
 export default function CatSittingPage() {
@@ -98,7 +98,7 @@ export default function CatSittingPage() {
           {/* Main cat image */}
           <div className="mb-6 bg-gray-100 rounded-lg max-w-4xl mx-auto">
             <img 
-              src="https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80" 
+              src="https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=800&q=80" 
               alt="Tabby cat lying down" 
               className="w-full h-80 object-cover rounded-lg"
             />
@@ -196,7 +196,7 @@ export default function CatSittingPage() {
             </div>
             <div className="flex-1 text-center">
               <img 
-                src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80" 
+                src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&q=80" 
                 alt="Black cat with green eyes" 
                 className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
               />
@@ -278,7 +278,7 @@ export default function CatSittingPage() {
               </div>
             </div>
             <div className="text-center">
-              <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80" alt="Pet Care" className="w-full max-w-md mx-auto rounded-lg shadow-lg" />
+              <img src="https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=400&q=80" alt="Pet Care" className="w-full max-w-md mx-auto rounded-lg shadow-lg" />
             </div>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
