@@ -2386,6 +2386,16 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-semibold">My Bookings</h3>
                 <Button variant="outline" size="sm" onClick={() => router.push('/bookings')}>View All Bookings</Button>
               </div>
+              {/* Search Input for Sitter Bookings Table */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search bookings by client, location, service, or status..."
+                  value={bookingsSearch}
+                  onChange={e => setBookingsSearch(e.target.value)}
+                  className="input-modern w-full"
+                />
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full border text-sm">
                   <thead className="bg-gray-100">
@@ -2399,36 +2409,49 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {bookings.length > 0 ? (
-                      bookings.map((booking: any) => (
-                        <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
-                          <td className="px-4 py-2">
-                            <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
-                            <div className="font-bold">{booking.serviceType}</div>
-                            <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
-                            {booking.startDate && booking.endDate && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {(() => {
-                                  const start = new Date(booking.startDate);
-                                  const end = new Date(booking.endDate);
-                                  const diffMs = end.getTime() - start.getTime();
-                                  const diffMin = Math.round(diffMs / 60000);
-                                  return `${diffMin} minutes`;
-                                })()}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">
-                            {booking.paymentStatus === 'complete' ? (
-                              <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
-                            ) : (
-                              <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
-                        </tr>
-                      ))
+                      bookings
+                        .filter((booking: any) => {
+                          const searchTerm = (bookingsSearch || "").toLowerCase();
+                          if (!searchTerm) return true;
+                          return (
+                            (booking.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
+                            (booking.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
+                            (booking.address || booking.userId?.address || "").toLowerCase().includes(searchTerm) ||
+                            (booking.serviceType || "").toLowerCase().includes(searchTerm) ||
+                            (booking.paymentStatus || "").toLowerCase().includes(searchTerm) ||
+                            (booking.notes || "").toLowerCase().includes(searchTerm)
+                          );
+                        })
+                        .map((booking: any) => (
+                          <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
+                            <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
+                            <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
+                            <td className="px-4 py-2">
+                              <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
+                              <div className="font-bold">{booking.serviceType}</div>
+                              <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
+                              {booking.startDate && booking.endDate && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {(() => {
+                                    const start = new Date(booking.startDate);
+                                    const end = new Date(booking.endDate);
+                                    const diffMs = end.getTime() - start.getTime();
+                                    const diffMin = Math.round(diffMs / 60000);
+                                    return `${diffMin} minutes`;
+                                  })()}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-2">
+                              {booking.paymentStatus === 'complete' ? (
+                                <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
+                              ) : (
+                                <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
+                          </tr>
+                        ))
                     ) : (
                       <tr>
                         <td colSpan={5} className="text-center py-8 text-gray-500">No bookings found.</td>
