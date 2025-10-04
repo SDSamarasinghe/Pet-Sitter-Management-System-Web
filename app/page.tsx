@@ -96,46 +96,54 @@ export default function LandingPage() {
             {[
               {
                 name: "Dog Walking",
-                icon: "🐕",
-                image: "/public/dog-walking.jpg",
+                image: "/dog-walking.jpg",
                 description: "Daily exercise and socialization"
               },
               {
                 name: "Pet Sitting",
-                icon: "🏠",
-                image: "/public/pet-sitting.jpg",
+                image: "/pet-sitting.jpg",
                 description: "In-home care and companionship"
               },
               {
                 name: "Cat Care",
-                icon: "🐱",
-                image: "/public/cat-care.jpg",
+                image: "/cat-care.jpg",
                 description: "Specialized feline attention"
               },
               {
                 name: "Specialized Care",
-                icon: "🐦",
-                image: "/public/specialized-care.jpg",
+                image: "/exotic-pets.jpg",
                 description: "Birds, rabbits, and exotic pets"
               }
             ].map((service, index) => (
               <div
                 key={service.name}
-                className="card-modern spacing-md text-center group bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.04] hover:border-primary/40 cursor-pointer flex flex-col items-center"
-                style={{ minHeight: '220px' }}
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-primary/50"
+                style={{ minHeight: '300px' }}
               >
-                <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center mt-4 mb-2 bg-gray-100">
-                  {/* Use image if available, fallback to emoji */}
+                {/* Image Container */}
+                <div className="relative h-48 overflow-hidden">
                   <img
                     src={service.image}
-                    alt={service.name + ' image'}
-                    className="w-full h-full object-cover"
-                    onError={e => { e.currentTarget.style.display = 'none'; }}
+                    alt={service.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <span className="text-3xl absolute">{service.icon}</span>
+                  {/* Gradient Overlay on Hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  {/* Icon on hover */}
+                  {/* <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
+                    <span className="text-6xl filter drop-shadow-lg">{service.icon}</span>
+                  </div> */}
                 </div>
-                <h3 className="text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors">{service.name}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-2">{service.description}</p>
+                
+                {/* Content */}
+                <div className="p-6 text-center">
+                  <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors duration-300">
+                    {service.name}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {service.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
