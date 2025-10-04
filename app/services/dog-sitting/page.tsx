@@ -16,7 +16,7 @@ const dogSittingOptions = [
       "Exercise & playtime",
       "Medication if needed"
     ],
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80",
     color: "bg-primary"
   },
   {
@@ -30,7 +30,7 @@ const dogSittingOptions = [
       "Photo & video updates",
       "Special dietary needs"
     ],
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=400&q=80",
     color: "bg-primary",
     special: "top"
   },
@@ -45,7 +45,7 @@ const dogSittingOptions = [
       "Home security checks",
       "Plant & mail service"
     ],
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80",
     color: "bg-primary"
   }
 ];
@@ -72,7 +72,7 @@ export default function DogSittingPage() {
           <div className="max-w-4xl mx-auto mb-8">
             <div className="bg-gray-100 rounded-lg overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80" 
+                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80" 
                 alt="Happy dog" 
                 className="w-full h-80 object-cover"
               />
@@ -152,12 +152,12 @@ export default function DogSittingPage() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {[
-              { title: "Fresh Food & Water", image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=300&q=80" },
-              { title: "Exercise & Play", image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80" },
-              { title: "Potty Breaks", image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=300&q=80" },
-              { title: "Medication if Needed", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=300&q=80" },
-              { title: "Lots of Love", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=300&q=80" },
-              { title: "Daily Photo Updates", image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80" }
+              { title: "Fresh Food & Water", image: "https://images.unsplash.com/photo-1589883661923-6476cb0ae9f2?w=300&q=80" },
+              { title: "Exercise & Play", image: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=300&q=80" },
+              { title: "Potty Breaks", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&q=80" },
+              { title: "Medication if Needed", image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=80" },
+              { title: "Lots of Love", image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&q=80" },
+              { title: "Daily Photo Updates", image: "https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=300&q=80" }
             ].map((service, idx) => (
               <div key={idx} className="text-center bg-green-50 p-6 rounded-lg">
                 <div className="mb-4">
@@ -190,7 +190,7 @@ export default function DogSittingPage() {
             </div>
             <div className="flex-1 text-center">
               <img 
-                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80" 
+                src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=80" 
                 alt="Happy dog" 
                 className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
               />
