@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -307,7 +307,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = 
     !user.profilePicture.includes('sample');
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center flex-shrink-0 ${className}`}>
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 ${className}`}>
       {isValidProfilePicture ? (
         <img 
           src={user.profilePicture} 
@@ -470,7 +470,7 @@ export default function DashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge variant="outline" className="bg-accent/10 text-accent">Pending</Badge>;
       case 'approved':
         return <Badge variant="outline" className="bg-green-100 text-green-800">Approved</Badge>;
       case 'rejected':
@@ -536,8 +536,18 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clients, setClients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("communication");
+  
+  // Get active tab from URL search params instead of local state
+  const searchParams = useSearchParams();
+  const activeTab = searchParams?.get('tab') || (user?.role === 'sitter' ? 'dashboard' : user?.role === 'client' ? 'profile' : 'communication');
+  
   const [clientSearch, setClientSearch] = useState("");
+    // Pets tab search state
+    const [petSearch, setPetSearch] = useState("");
+  // Admin search states
+  const [usersSearch, setUsersSearch] = useState("");
+  const [sittersSearch, setSittersSearch] = useState("");
+  const [bookingsSearch, setBookingsSearch] = useState("");
   // Per-pet tab state for My Pets tab
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
   const [selectedClient, setSelectedClient] = useState("");
@@ -577,11 +587,11 @@ export default function DashboardPage() {
   const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [bookingFormData, setBookingFormData] = useState({
-    service: 'Once A Day Pet Sitting 45min - C$40',
+    service: 'Once A Day Pet Sitting 30min - C$28',
     startDate: '',
     endDate: '',
     startTime: '09:00',
-    endTime: '09:45'
+    endTime: '09:30'
   });
   
   // Add-on booking modal state
@@ -823,6 +833,19 @@ export default function DashboardPage() {
       window.removeEventListener('petDataUpdated', handlePetDataUpdated);
     };
   }, [router]);
+
+  // Redirect sitters, clients, and admins to their default tab if no tab is specified
+  useEffect(() => {
+    if (user?.role === 'sitter' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=dashboard');
+    }
+    if (user?.role === 'client' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=profile');
+    }
+    if (user?.role === 'admin' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=users');
+    }
+  }, [user, searchParams, router]);
 
   const handleLogout = () => {
     removeToken();
@@ -1108,15 +1131,23 @@ export default function DashboardPage() {
       
       // Get service type mapping
       const serviceTypeMap: { [key: string]: string } = {
-        'Once A Day Pet Sitting 45min - C$40': 'pet-sitting',
-        'Twice A Day Pet Sitting 30min each - C$55': 'pet-sitting',
-        'Dog Walking 30min - C$25': 'dog-walking',
-        'Extended Pet Sitting 60min - C$50': 'pet-sitting'
+          'Pet Sitting 30min - CAD 28': 'pet-sitting',
+          'Pet Sitting 30min Holiday - CAD 35': 'pet-sitting',
+          'Pet Sitting 45min - CAD 32': 'pet-sitting',
+          'Pet Sitting 45min Holiday - CAD 40': 'pet-sitting',
+          'Pet Sitting 1hr - CAD 35': 'pet-sitting',
+          'Pet Sitting 1hr Holiday - CAD 46': 'pet-sitting',
+          'Dog Walking 30min - CAD 28': 'dog-walking',
+          'Dog Walking 30min Holiday - CAD 35': 'dog-walking',
+          'Dog Walking 45min - CAD 32': 'dog-walking',
+          'Dog Walking 45min Holiday - CAD 40': 'dog-walking',
+          'Dog Walking 1hr - CAD 35': 'dog-walking',
+          'Dog Walking 1hr Holiday - CAD 46': 'dog-walking'
       };
       
       // Extract price from service string
       const priceMatch = bookingFormData.service.match(/C\$(\d+)/);
-      const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 40;
+      const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 28;
       
       // Map pet species to the enum values expected by the backend
       const mapPetTypeToEnum = (species: string): string => {
@@ -1167,7 +1198,7 @@ export default function DashboardPage() {
       
       // Reset form
       setBookingFormData({
-        service: 'Once A Day Pet Sitting 45min - C$40',
+        service: 'Once A Day Pet Sitting 30min - C$28',
         startDate: '',
         endDate: '',
         startTime: '09:00',
@@ -1387,8 +1418,8 @@ export default function DashboardPage() {
   const serviceImg = "https://images.unsplash.com/photo-1518715308788-300e1e1bdfb0?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <main className="container-modern section-padding">
+    <div className="bg-gradient-to-br from-gray-50 to-white h-full overflow-y-auto">
+      <main className="container-modern section-padding pb-8 min-h-full">
         <div className="mb-8 animate-fadeIn">
           <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
             Welcome back, {user?.firstName ? user?.firstName : user?.email || "User"}
@@ -1400,183 +1431,10 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Modern Tab Navigation */}
-        <section className="mb-8">
-          <div className="card-modern p-2 inline-flex animate-slideUp">
-            <nav className="flex space-x-1 overflow-x-auto scrollbar-hide">
-              <button
-                onClick={() => setActiveTab("communication")}
-                className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                  activeTab === "communication"
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                }`}
-              >
-                Communication
-              </button>
-              {user?.role === "admin" ? (
-                <>
-                  <button
-                    onClick={() => setActiveTab("users")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "users"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Users ({adminUsers.length})</span>
-                    <span className="sm:hidden">Users</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("sitters")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "sitters"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Sitters ({adminSitters.length})</span>
-                    <span className="sm:hidden">Sitters</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("bookings")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "bookings"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Bookings ({adminBookings.length})</span>
-                    <span className="sm:hidden">Bookings</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("address-changes")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "address-changes"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    <span className="hidden md:inline">Address Changes ({addressChanges.length})</span>
-                    <span className="md:hidden">Address</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("pets")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "pets"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Pets ({adminPets.length})</span>
-                    <span className="sm:hidden">Pets</span>
-                  </button>
-                </>
-              ) : user?.role === "sitter" ? (
-                <>
-                  <button
-                    onClick={() => setActiveTab("users")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "users"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    My Users
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("scheduling")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "scheduling"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    Scheduling
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("profile")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "profile"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    My Profile
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "dashboard"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    Dashboard
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setActiveTab("profile")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "profile"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    My Profile
-                  </button>
-                  {/* <button
-                    onClick={() => setActiveTab("pets")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "pets"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    My Pets
-                  </button> */}
-                  <button
-                    onClick={() => setActiveTab("security")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "security"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    Key Security
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("booking")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "booking"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    Book Now
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("invoices")}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      activeTab === "invoices"
-                        ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:text-primary hover:bg-gold-50"
-                    }`}
-                  >
-                    Invoices
-                  </button>
-                </>
-              )}
-            </nav>
-          </div>
-        </section>
-
-        {/* Modern Tab Content */}
+        {/* Tab Content - Navigation now handled by sidebar */}
         <section className="animate-fadeIn">
           {activeTab === "communication" && (
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto scrollbar-modern min-h-0">
               {/* Add Note Section (not for clients) */}
               {user?.role !== 'client' && (
                 <div className="card-modern p-6">
@@ -1701,7 +1559,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 {/* Notes List */}
-                <div className="space-y-4 h-[40rem] overflow-y-auto scrollbar-modern pr-2">
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pr-2">
                   {notes.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
                       No notes yet. Add your first note above!
@@ -1923,6 +1781,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search users by name, email, phone, or address..."
+                    value={usersSearch}
+                    onChange={(e) => setUsersSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -1940,7 +1808,18 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminUsers.length > 0 ? (
-                        adminUsers.map((user, index) => (
+                        adminUsers
+                          .filter(user => {
+                            const searchTerm = usersSearch.toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              (user.email || '').toLowerCase().includes(searchTerm) ||
+                              (user.phone || '').toLowerCase().includes(searchTerm) ||
+                              (user.address || '').toLowerCase().includes(searchTerm)
+                            );
+                          })
+                          .map((user, index) => (
                           <TableRow key={user._id || user.id || `user-${index}`}>
                             <TableCell className="font-medium">
                               {user.firstName} {user.lastName}
@@ -1992,6 +1871,16 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Search Input */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search sitters by name, email, phone, or status..."
+                      value={sittersSearch}
+                      onChange={(e) => setSittersSearch(e.target.value)}
+                      className="input-modern w-full"
+                    />
+                  </div>
                   <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -2006,7 +1895,18 @@ export default function DashboardPage() {
                       </TableHeader>
                       <TableBody>
                         {adminSitters.length > 0 ? (
-                          adminSitters.map((sitter, index) => (
+                          adminSitters
+                            .filter(sitter => {
+                              const searchTerm = sittersSearch.toLowerCase();
+                              if (!searchTerm) return true;
+                              return (
+                                `${sitter.firstName || ''} ${sitter.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                                (sitter.email || '').toLowerCase().includes(searchTerm) ||
+                                (sitter.phone || '').toLowerCase().includes(searchTerm) ||
+                                (sitter.status || '').toLowerCase().includes(searchTerm)
+                              );
+                            })
+                            .map((sitter, index) => (
                             <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
                               <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
                               <TableCell>{sitter.email}</TableCell>
@@ -2145,6 +2045,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search bookings by client name, service type, status, or sitter..."
+                    value={bookingsSearch}
+                    onChange={(e) => setBookingsSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -2162,7 +2072,19 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminBookings.length > 0 ? (
-                        adminBookings.map((booking, index) => (
+                        adminBookings
+                          .filter(booking => {
+                            const searchTerm = bookingsSearch.toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              `${booking.userId?.firstName || ''} ${booking.userId?.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              `${booking.sitterId?.firstName || ''} ${booking.sitterId?.lastName || ''}`.toLowerCase().includes(searchTerm) ||
+                              (booking.serviceType || '').toLowerCase().includes(searchTerm) ||
+                              (booking.status || '').toLowerCase().includes(searchTerm) ||
+                              (booking.pets && booking.pets.some((pet: any) => pet.name?.toLowerCase().includes(searchTerm)))
+                            );
+                          })
+                          .map((booking, index) => (
                           <TableRow key={booking._id || booking.id || `booking-${index}`}>
                             <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
                             <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
@@ -2324,6 +2246,16 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Input for Admin Pets Table */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search pets by name, type, breed, age, or owner..."
+                    value={petSearch}
+                    onChange={e => setPetSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -2339,21 +2271,35 @@ export default function DashboardPage() {
                     </TableHeader>
                     <TableBody>
                       {adminPets.length > 0 ? (
-                        adminPets.map((pet, index) => (
-                          <TableRow key={pet._id || pet.id || `pet-${index}`}>
-                            <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
-                            <TableCell>{pet.type || pet.species || 'N/A'}</TableCell>
-                            <TableCell>{pet.breed || 'N/A'}</TableCell>
-                            <TableCell>{pet.age || 'N/A'}</TableCell>
-                            <TableCell>
-                              {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
-                            </TableCell>
-                            <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
-                            <TableCell>
-                              {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        adminPets
+                          .filter(pet => {
+                            const searchTerm = (petSearch || "").toLowerCase();
+                            if (!searchTerm) return true;
+                            return (
+                              (pet.name || "").toLowerCase().includes(searchTerm) ||
+                              (pet.type || pet.species || "").toLowerCase().includes(searchTerm) ||
+                              (pet.breed || "").toLowerCase().includes(searchTerm) ||
+                              (pet.age !== undefined && String(pet.age).toLowerCase().includes(searchTerm)) ||
+                              (pet.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
+                              (pet.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
+                              (pet.userId?.email || "").toLowerCase().includes(searchTerm)
+                            );
+                          })
+                          .map((pet, index) => (
+                            <TableRow key={pet._id || pet.id || `pet-${index}`}> 
+                              <TableCell className="font-medium">{pet.name || 'N/A'}</TableCell>
+                              <TableCell>{pet.type || pet.species || 'N/A'}</TableCell>
+                              <TableCell>{pet.breed || 'N/A'}</TableCell>
+                              <TableCell>{pet.age || 'N/A'}</TableCell>
+                              <TableCell>
+                                {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
+                              </TableCell>
+                              <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
+                              <TableCell>
+                                {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
+                              </TableCell>
+                            </TableRow>
+                          ))
                       ) : (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8">
@@ -2440,6 +2386,16 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-semibold">My Bookings</h3>
                 <Button variant="outline" size="sm" onClick={() => router.push('/bookings')}>View All Bookings</Button>
               </div>
+              {/* Search Input for Sitter Bookings Table */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search bookings by client, location, service, or status..."
+                  value={bookingsSearch}
+                  onChange={e => setBookingsSearch(e.target.value)}
+                  className="input-modern w-full"
+                />
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full border text-sm">
                   <thead className="bg-gray-100">
@@ -2453,36 +2409,49 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {bookings.length > 0 ? (
-                      bookings.map((booking: any) => (
-                        <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
-                          <td className="px-4 py-2">
-                            <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
-                            <div className="font-bold">{booking.serviceType}</div>
-                            <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
-                            {booking.startDate && booking.endDate && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {(() => {
-                                  const start = new Date(booking.startDate);
-                                  const end = new Date(booking.endDate);
-                                  const diffMs = end.getTime() - start.getTime();
-                                  const diffMin = Math.round(diffMs / 60000);
-                                  return `${diffMin} minutes`;
-                                })()}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">
-                            {booking.paymentStatus === 'complete' ? (
-                              <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
-                            ) : (
-                              <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
-                        </tr>
-                      ))
+                      bookings
+                        .filter((booking: any) => {
+                          const searchTerm = (bookingsSearch || "").toLowerCase();
+                          if (!searchTerm) return true;
+                          return (
+                            (booking.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
+                            (booking.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
+                            (booking.address || booking.userId?.address || "").toLowerCase().includes(searchTerm) ||
+                            (booking.serviceType || "").toLowerCase().includes(searchTerm) ||
+                            (booking.paymentStatus || "").toLowerCase().includes(searchTerm) ||
+                            (booking.notes || "").toLowerCase().includes(searchTerm)
+                          );
+                        })
+                        .map((booking: any) => (
+                          <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
+                            <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
+                            <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
+                            <td className="px-4 py-2">
+                              <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
+                              <div className="font-bold">{booking.serviceType}</div>
+                              <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
+                              {booking.startDate && booking.endDate && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {(() => {
+                                    const start = new Date(booking.startDate);
+                                    const end = new Date(booking.endDate);
+                                    const diffMs = end.getTime() - start.getTime();
+                                    const diffMin = Math.round(diffMs / 60000);
+                                    return `${diffMin} minutes`;
+                                  })()}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-2">
+                              {booking.paymentStatus === 'complete' ? (
+                                <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
+                              ) : (
+                                <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
+                          </tr>
+                        ))
                     ) : (
                       <tr>
                         <td colSpan={5} className="text-center py-8 text-gray-500">No bookings found.</td>
@@ -2500,9 +2469,8 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="card-modern p-8">
                 <div className="flex items-center space-x-6 mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-gold-600 flex items-center justify-center shadow-lg">
-                    <span className="text-3xl font-bold text-white">{user?.firstName?.[0]}</span>
-                  </div>
+                  {/* Use UserAvatar for profile picture */}
+                  <UserAvatar user={user} size="lg" className="w-20 h-20 rounded-2xl shadow-lg" />
                   <div>
                     <h3 className="text-2xl font-semibold text-gray-900 mb-1">{user?.firstName} {user?.lastName}</h3>
                     <p className="text-gray-600 mb-2">{user?.email}</p>
@@ -2520,14 +2488,35 @@ export default function DashboardPage() {
 
           {activeTab === "pets" && (
             <div className="space-y-8">
-              {pets.length === 0 ? (
-                <div className="text-gray-500">No pets found. <Button onClick={() => router.push('/pets/add')} className="font-semibold">Add Pet</Button></div>
-              ) : (
-                pets.map((pet, petIndex) => {
-                  const petKey = pet.id || (pet as any)?._id || `pet-${petIndex}`;
-                  const tab = petTabs[petKey] || "basic";
-                  return (
-                    <div key={petKey} className="mb-12">
+                {/* Search Input for Pets */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search pets by name, species, breed, or age..."
+                    value={petSearch}
+                    onChange={e => setPetSearch(e.target.value)}
+                    className="input-modern w-full"
+                  />
+                </div>
+                {pets.length === 0 ? (
+                  <div className="text-gray-500">No pets found. <Button onClick={() => router.push('/pets/add')} className="font-semibold">Add Pet</Button></div>
+                ) : (
+                  pets
+                    .filter(pet => {
+                      const searchTerm = (petSearch || "").toLowerCase();
+                      if (!searchTerm) return true;
+                      return (
+                        (pet.name || "").toLowerCase().includes(searchTerm) ||
+                        (pet.species || "").toLowerCase().includes(searchTerm) ||
+                        (pet.breed || "").toLowerCase().includes(searchTerm) ||
+                        (pet.age !== undefined && String(pet.age).toLowerCase().includes(searchTerm))
+                      );
+                    })
+                    .map((pet, petIndex) => {
+                      const petKey = pet.id || (pet as any)?._id || `pet-${petIndex}`;
+                      const tab = petTabs[petKey] || "basic";
+                      return (
+                        <div key={petKey} className="mb-12">
                       <h2 className="text-5xl font-light mb-8 mt-2">{pet.name}</h2>
                       <div className="border-b border-gray-200 mb-6">
                         <nav className="flex space-x-8">
@@ -3033,10 +3022,18 @@ export default function DashboardPage() {
                         onChange={(e) => setBookingFormData(prev => ({ ...prev, service: e.target.value }))}
                         className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                       >
-                        <option>Once A Day Pet Sitting 45min - C$40</option>
-                        <option>Twice A Day Pet Sitting 30min each - C$55</option>
-                        <option>Dog Walking 30min - C$25</option>
-                        <option>Extended Pet Sitting 60min - C$50</option>
+                        <option>Pet Sitting 30min - CAD 28</option>
+                        <option>Pet Sitting 30min Holiday - CAD 35</option>
+                        <option>Pet Sitting 45min - CAD 32</option>
+                        <option>Pet Sitting 45min Holiday - CAD 40</option>
+                        <option>Pet Sitting 1hr - CAD 35</option>
+                        <option>Pet Sitting 1hr Holiday - CAD 46</option>
+                        <option>Dog Walking 30min - CAD 28</option>
+                        <option>Dog Walking 30min Holiday - CAD 35</option>
+                        <option>Dog Walking 45min - CAD 32</option>
+                        <option>Dog Walking 45min Holiday - CAD 40</option>
+                        <option>Dog Walking 1hr - CAD 35</option>
+                        <option>Dog Walking 1hr Holiday - CAD 46</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3119,7 +3116,7 @@ export default function DashboardPage() {
               <Card className="card-modern">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Other Payments
@@ -3371,7 +3368,7 @@ export default function DashboardPage() {
                           <span className="text-sm text-gray-700">
                             I have read and agree to the{' '}
                             <a href="#" className="text-primary underline">
-                              Flying Duchess Pet Sitters Policies, Terms and Conditions
+                              Whiskarz Pet Sitters Policies, Terms and Conditions
                             </a>
                           </span>
                         </label>
@@ -3731,9 +3728,6 @@ export default function DashboardPage() {
         </section>
 
         {/* Overview */}
-       
-
-        {/* Service Areas */}
        
       </main>
     </div>

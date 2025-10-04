@@ -14,7 +14,7 @@ const catVisitOptions = [
       "Up to 2 Cats",
       "★ Kids"
     ],
-    image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -26,7 +26,7 @@ const catVisitOptions = [
       "Up to 3 Cats",
       "★★ Kids & Older Cats"
     ],
-    image: "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1529257414772-1960b7bea4eb?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -38,7 +38,7 @@ const catVisitOptions = [
       "Up to 3 Cats",
       "★ Meds mixed in with food only"
     ],
-    image: "https://images.unsplash.com/photo-1487300023790-ffbb8016a78b?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1491485880348-85d48a9e5312?w=300&q=80",
     color: "bg-primary",
     special: "top"
   },
@@ -52,7 +52,7 @@ const catVisitOptions = [
       "Once-a-day (AM/PM visit)",
       "★ Needles (Insulin BDP Suit-Q)"
     ],
-    image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=300&q=80",
     color: "bg-primary"
   },
   {
@@ -64,27 +64,27 @@ const catVisitOptions = [
       "Elderly Cats & Special Needs",
       "★★★ Medical Care"
     ],
-    image: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=300&q=80",
+    image: "https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=300&q=80",
     color: "bg-primary"
   }
 ];
 
 const catVisitServices = [
-  { title: "Fresh Food", image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=300&q=80" },
-  { title: "Fresh Water", image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=300&q=80" },
-  { title: "Some Playtime", image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=300&q=80" },
-  { title: "Scoop Litter", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=300&q=80" },
-  { title: "Bring in Mail", image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=300&q=80" },
-  { title: "Some Loving", image: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=300&q=80" },
-  { title: "And Daily Reports", image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80" }
+  { title: "Fresh Food", image: "https://images.unsplash.com/photo-1589883661923-6476cb0ae9f2?w=300&q=80" },
+  { title: "Fresh Water", image: "https://images.unsplash.com/photo-1601758260722-8ec4d8cbf5ec?w=300&q=80" },
+  { title: "Some Playtime", image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&q=80" },
+  { title: "Scoop Litter", image: "https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=300&q=80" },
+  { title: "Bring in Mail", image: "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=300&q=80" },
+  { title: "Some Loving", image: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300&q=80" },
+  { title: "And Daily Reports", image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&q=80" }
 ];
 
 export default function CatSittingPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10">
       {/* Hero Section */}
-      <div className="relative bg-white">
+      <div className="relative bg-gradient-to-r from-primary/5 to-secondary/10">
         {/* Navigation breadcrumb style header */}
        
         
@@ -98,7 +98,7 @@ export default function CatSittingPage() {
           {/* Main cat image */}
           <div className="mb-6 bg-gray-100 rounded-lg max-w-4xl mx-auto">
             <img 
-              src="https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80" 
+              src="https://images.unsplash.com/photo-1573865526739-10c1dd3aa326?w=800&q=80" 
               alt="Tabby cat lying down" 
               className="w-full h-80 object-cover rounded-lg"
             />
@@ -117,14 +117,14 @@ export default function CatSittingPage() {
               WHAT IS INCLUDED IN EVERY VISIT →
             </Button>
             <Button className="bg-primary hover:bg-primary text-white px-8 py-3 text-sm font-bold">
-              THE FLYING DUCHESS DIFFERENCE →
+              THE Whiskarz DIFFERENCE →
             </Button>
           </div>
         </div>
       </div>
 
       {/* Service Options */}
-      <div className="bg-white py-16">
+      <div className="bg-gradient-to-b from-secondary/5 to-background py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
@@ -192,11 +192,11 @@ export default function CatSittingPage() {
               <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
                 We provide that much needed bright spot in your pet's day, while you are away ~ And being able to do that makes our day!
               </h3>
-              <div className="font-bold text-gray-800 mt-4 text-lg">FLYING DUCHESS ©</div>
+              <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
             </div>
             <div className="flex-1 text-center">
               <img 
-                src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80" 
+                src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&q=80" 
                 alt="Black cat with green eyes" 
                 className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
               />
@@ -206,7 +206,7 @@ export default function CatSittingPage() {
       </div>
 
       {/* Every Cat Visit Section */}
-      <div className="bg-white py-16">
+      <div className="bg-gradient-to-r from-primary/5 to-accent/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4 text-gray-800">
             Every Cat Visit
@@ -245,7 +245,7 @@ export default function CatSittingPage() {
       </div>
 
       {/* Trust Section */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gradient-to-t from-primary/5 to-secondary/10 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -278,7 +278,7 @@ export default function CatSittingPage() {
               </div>
             </div>
             <div className="text-center">
-              <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=400&q=80" alt="Pet Care" className="w-full max-w-md mx-auto rounded-lg shadow-lg" />
+              <img src="https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=400&q=80" alt="Pet Care" className="w-full max-w-md mx-auto rounded-lg shadow-lg" />
             </div>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
@@ -298,6 +298,9 @@ export default function CatSittingPage() {
             </div>
           </div>
         </div>
+
+        {/* Contact Information */}
+       
       </div>
     </div>
   );

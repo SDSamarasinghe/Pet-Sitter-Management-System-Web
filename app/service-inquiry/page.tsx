@@ -333,6 +333,9 @@ export default function ServiceInquiryPage() {
             </div>
           </form>
         </div>
+
+        {/* Contact Information Footer */}
+        
       </main>
     </div>
   );

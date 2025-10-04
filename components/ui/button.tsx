@@ -5,20 +5,17 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary to-gold-600 text-primary-foreground shadow-sm hover:shadow-md hover:from-gold-600 hover:to-gold-700",
-        destructive:
-          "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm hover:shadow-md hover:from-red-600 hover:to-red-700",
-        outline:
-          "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5 hover:border-primary/40",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-green-300 hover:border-green-400",
-        ghost: "hover:bg-muted hover:text-primary",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-red-600 text-white hover:bg-red-700",
+        outline: "border border-primary/20 bg-white text-primary hover:bg-primary/5 hover:border-primary/40",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+        ghost: "text-primary hover:bg-primary/8",
         link: "text-primary underline-offset-4 hover:underline p-0 h-auto",
-        accent: "bg-gradient-to-r from-accent to-terracotta-600 text-accent-foreground shadow-sm hover:shadow-md hover:from-terracotta-600 hover:to-terracotta-700",
+        accent: "bg-accent text-accent-foreground hover:bg-accent/90",
       },
       size: {
         default: "h-10 px-4 py-2",

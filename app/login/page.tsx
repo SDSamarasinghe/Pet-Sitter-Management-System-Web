@@ -52,22 +52,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-gold-50 flex items-center justify-center section-padding">
+        <div className="min-h-screen bg-gradient-to-br from-neutral-bg-50 via-white to-navy-blue-50 flex items-center justify-center section-padding">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center -mb-1 animate-fadeIn">
-          <img 
-              src="/Petsitter-logo.svg" 
-              alt="Whiskarz Logo" 
-              className="h-16 lg:h-20 xl:h-96 w-auto mx-auto"
-            />
-        </div>
+        {/* <div className="text-center animate-fade-in-up">
+            <img 
+                src="/Petsitter-logo.png" 
+                alt="Whiskarz Logo" 
+                className="h-48 lg:h-56 xl:h-64 w-auto mx-auto"
+              />
+        </div> */}
 
         {/* Login Form */}
-        <div className="card-modern p-8 animate-slideUp">
+        <div className="card-modern spacing-lg animate-scale-in">
+           <div className="text-center -mt-20 -mb-10 animate-fade-in-up">
+            <img 
+                src="/Petsitter-logo.png" 
+                alt="Whiskarz Logo" 
+                className="h-48 lg:h-56 xl:h-64 w-auto mx-auto"
+              />
+        </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email Address
               </label>
               <input
@@ -77,13 +84,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="input-modern w-full"
+                className="input-modern w-full focus-ring"
                 disabled={isLoading}
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Password
               </label>
               <div className="relative">
@@ -94,13 +101,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="input-modern w-full pr-10"
+                  className="input-modern w-full pr-10 focus-ring"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-primary transition-colors duration-200"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   disabled={isLoading}
                 >
@@ -124,15 +131,15 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-border rounded focus-ring"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-muted-foreground">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="/forgot-password" className="font-medium text-primary hover:text-gold-600 transition-colors duration-200">
+                <a href="/forgot-password" className="font-medium text-primary hover:text-accent transition-colors duration-200">
                   Forgot password?
                 </a>
               </div>
@@ -140,7 +147,7 @@ export default function LoginPage() {
 
             <Button 
               type="submit" 
-              className="w-full btn-primary py-3 text-base font-medium"
+              className="w-full btn-primary py-3 text-base font-medium touch-manipulation"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -154,13 +161,13 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                <span className="px-2 bg-background text-muted-foreground">Don't have an account?</span>
               </div>
             </div>
 
@@ -168,23 +175,23 @@ export default function LoginPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/signup')}
-                className="w-full btn-outline py-3 text-base font-medium"
+                className="w-full btn-outline py-3 text-base font-medium touch-manipulation"
                 disabled={isLoading}
               >
                 Create Account
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
+        <div className="text-center mt-8 text-sm text-muted-foreground animate-fade-in-up">
           By signing in, you agree to our{' '}
-          <a href="/terms" className="text-primary hover:text-gold-600 transition-colors duration-200">
+          <a href="/terms" className="text-primary hover:text-accent transition-colors duration-200">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="/privacy" className="text-primary hover:text-gold-600 transition-colors duration-200">
+          <a href="/privacy" className="text-primary hover:text-accent transition-colors duration-200">
             Privacy Policy
           </a>
         </div>

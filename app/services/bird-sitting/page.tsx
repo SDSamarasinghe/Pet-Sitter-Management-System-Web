@@ -31,7 +31,7 @@ export default function BirdSittingPage() {
               />
             </div>
             <p className="text-center text-gray-500 mt-4 italic">
-              ~A little birdie once told me that Bird Watching never got quite so many rave reviews except when Flying Duchess did it, tweet -tweet ~
+              ~A little birdie once told me that Bird Watching never got quite so many rave reviews except when Whiskarz did it, tweet -tweet ~
             </p>
           </div>
           {/* Info Buttons */}
@@ -142,7 +142,7 @@ export default function BirdSittingPage() {
                 Any Bird Lover knows that it is not the fine feathers that makes their bird so special. Birds are intelligent, talented, inquisitive, affectionate & playful.<br />
                 These feathered friends bring such joy to our lives that our sitters are always happy to have the chance to return the favour.
               </h3>
-              <div className="font-bold text-gray-800 mt-4 text-lg">FLYING DUCHESS ©</div>
+              <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
             </div>
             <div className="flex-1 text-center">
               <img 
@@ -221,7 +221,7 @@ export default function BirdSittingPage() {
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Professional Delivery</h4>
-                  <p className="text-sm text-gray-600">We treat our clients, their pets, and home with a standard of professionalism and care that is unrivaled in our industry. Flying Duchess is continually working to set the bar high for pet sitting standards in our industry.</p>
+                  <p className="text-sm text-gray-600">We treat our clients, their pets, and home with a standard of professionalism and care that is unrivaled in our industry. Whiskarz is continually working to set the bar high for pet sitting standards in our industry.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
