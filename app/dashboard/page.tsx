@@ -539,7 +539,7 @@ export default function DashboardPage() {
   
   // Get active tab from URL search params instead of local state
   const searchParams = useSearchParams();
-  const activeTab = searchParams?.get('tab') || 'communication';
+  const activeTab = searchParams?.get('tab') || (user?.role === 'sitter' ? 'dashboard' : user?.role === 'client' ? 'profile' : 'communication');
   
   const [clientSearch, setClientSearch] = useState("");
   // Per-pet tab state for My Pets tab
@@ -827,6 +827,19 @@ export default function DashboardPage() {
       window.removeEventListener('petDataUpdated', handlePetDataUpdated);
     };
   }, [router]);
+
+  // Redirect sitters, clients, and admins to their default tab if no tab is specified
+  useEffect(() => {
+    if (user?.role === 'sitter' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=dashboard');
+    }
+    if (user?.role === 'client' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=profile');
+    }
+    if (user?.role === 'admin' && !searchParams?.get('tab')) {
+      router.replace('/dashboard?tab=users');
+    }
+  }, [user, searchParams, router]);
 
   const handleLogout = () => {
     removeToken();
@@ -1415,7 +1428,7 @@ export default function DashboardPage() {
         {/* Tab Content - Navigation now handled by sidebar */}
         <section className="animate-fadeIn">
           {activeTab === "communication" && (
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto scrollbar-modern min-h-0">
               {/* Add Note Section (not for clients) */}
               {user?.role !== 'client' && (
                 <div className="card-modern p-6">
