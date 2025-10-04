@@ -222,7 +222,7 @@ export function CommunicationTab({ user }: CommunicationTabProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 max-h-[40rem] overflow-y-auto scrollbar-modern pr-2">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pr-2">
             {notes.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 No notes yet. Add your first note above!
