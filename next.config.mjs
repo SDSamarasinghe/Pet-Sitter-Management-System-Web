@@ -9,8 +9,14 @@ const nextConfig = {
   images: {
     domains: ['res.cloudinary.com'],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+  skipTrailingSlashRedirect: true,
+  skipMiddlewareUrlNormalize: true,
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
-    // Add alias configuration
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, '.'),
@@ -21,7 +27,6 @@ const nextConfig = {
       '@/app': path.resolve(__dirname, 'app'),
     };
 
-    // Ensure proper module resolution
     config.resolve.modules = [
       path.resolve(__dirname, 'node_modules'),
       'node_modules'
