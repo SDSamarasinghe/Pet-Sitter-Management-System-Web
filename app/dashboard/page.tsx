@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/l
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 
-// Client row component with expandable pets
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
   const [petTabs, setPetTabs] = useState<{[key: string]: string}>({});
@@ -323,7 +322,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 'md', className = 
   );
 };
 
-export default function DashboardPage() {
+// Dashboard content component that uses search params
+function DashboardContent() {
+  const router = useRouter();
+  const { toast } = useToast();
+  
   // Helper to check if sitter is actually assigned (not just showing in UI)
   const isSitterAssigned = (booking: any) => {
     // Don't show unassign if booking is still pending
@@ -348,7 +351,6 @@ export default function DashboardPage() {
   // Image modal state for chat images
   const [modalImage, setModalImage] = useState<string | null>(null);
   const closeModal = () => setModalImage(null);
-  const { toast } = useToast();
   
   // Sitter approval modal state
   const [isSitterDialogOpen, setIsSitterDialogOpen] = useState(false);
@@ -358,7 +360,6 @@ export default function DashboardPage() {
   const [sitterError, setSitterError] = useState('');
   const [sitterLoading, setSitterLoading] = useState(false);
 
-  // User approval modal state (similar to sitter approval)
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userActionType, setUserActionType] = useState<'approve' | 'reject'>('approve');
@@ -366,7 +367,6 @@ export default function DashboardPage() {
   const [userError, setUserError] = useState('');
   const [userLoading, setUserLoading] = useState(false);
 
-  // Open modal and set sitter/action
   const openSitterDialog = (sitter: any, action: 'approve' | 'reject') => {
     setSelectedSitter(sitter);
     setSitterActionType(action);
@@ -375,7 +375,6 @@ export default function DashboardPage() {
     setIsSitterDialogOpen(true);
   };
 
-  // Approve/reject sitter handler
   const handleSitterAction = async () => {
     if (!selectedSitter?._id) return;
     setSitterLoading(true);
@@ -404,7 +403,6 @@ export default function DashboardPage() {
         await api.put(`/users/${selectedSitter._id}/reject`, { notes: sitterForm.notes });
         toast({ title: 'Sitter rejected', description: `${selectedSitter.firstName} ${selectedSitter.lastName} rejected.` });
       }
-      // Refresh sitters
       const res = await api.get('/users/admin/sitters');
       setAdminSitters(res.data ?? []);
       setIsSitterDialogOpen(false);
@@ -416,7 +414,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Open user approval/rejection modal (similar to sitter modal)
   const openUserDialog = (user: any, action: 'approve' | 'reject') => {
     setSelectedUser(user);
     setUserActionType(action);
@@ -425,7 +422,6 @@ export default function DashboardPage() {
     setIsUserDialogOpen(true);
   };
 
-  // Approve/reject user handler
   const handleUserAction = async () => {
     if (!selectedUser?._id && !selectedUser?.id) return;
     setUserLoading(true);
@@ -466,7 +462,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Helper: Status badge for sitters/bookings
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -489,13 +484,11 @@ export default function DashboardPage() {
   };
 
 
-  // Assign sitter to booking
   const assignSitter = async (bookingId: string, sitterId: string) => {
     if (!bookingId || !sitterId) return;
     try {
       await api.put(`/bookings/${bookingId}/assign-sitter`, { sitterId });
       toast({ title: 'Sitter assigned', description: 'Sitter assigned successfully.' });
-      // Refresh bookings
       const res = await api.get('/bookings');
       setAdminBookings(res.data ?? []);
     } catch (err: any) {
@@ -503,13 +496,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Unassign sitter from booking
   const unassignSitter = async (bookingId: string) => {
     if (!bookingId) return;
     try {
       await api.delete(`/bookings/${bookingId}/assign-sitter`);
       toast({ title: 'Sitter unassigned', description: 'Sitter unassigned successfully.' });
-      // Refresh bookings
       const res = await api.get('/bookings');
       setAdminBookings(res.data ?? []);
     } catch (err: any) {
@@ -517,13 +508,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Update booking status
   const updateBookingStatus = async (bookingId: string, status: string) => {
     if (!bookingId || !status) return;
     try {
       await api.put(`/bookings/${bookingId}`, { status });
       toast({ title: 'Status updated', description: `Booking status changed to ${status}` });
-      // Refresh bookings
       const res = await api.get('/bookings');
       setAdminBookings(res.data ?? []);
     } catch (err: any) {
@@ -537,18 +526,14 @@ export default function DashboardPage() {
   const [clients, setClients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Get active tab from URL search params instead of local state
   const searchParams = useSearchParams();
   const activeTab = searchParams?.get('tab') || (user?.role === 'sitter' ? 'dashboard' : user?.role === 'client' ? 'profile' : 'communication');
   
   const [clientSearch, setClientSearch] = useState("");
-    // Pets tab search state
     const [petSearch, setPetSearch] = useState("");
-  // Admin search states
   const [usersSearch, setUsersSearch] = useState("");
   const [sittersSearch, setSittersSearch] = useState("");
   const [bookingsSearch, setBookingsSearch] = useState("");
-  // Per-pet tab state for My Pets tab
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
   const [selectedClient, setSelectedClient] = useState("");
   const [noteText, setNoteText] = useState("");
@@ -561,7 +546,6 @@ export default function DashboardPage() {
   const [filterByUser, setFilterByUser] = useState<string>("");
   const [showAllInvoices, setShowAllInvoices] = useState(false);
   
-  // Image upload state for notes
   const [noteImages, setNoteImages] = useState<File[]>([]);
   const [noteImagePreviews, setNoteImagePreviews] = useState<string[]>([]);
   const [replyImages, setReplyImages] = useState<File[]>([]);
@@ -570,19 +554,16 @@ export default function DashboardPage() {
   const noteImageInputRef = useRef<HTMLInputElement>(null);
   const replyImageInputRef = useRef<HTMLInputElement>(null);
   
-  // Admin-specific state
   const [adminUsers, setAdminUsers] = useState<User[]>([]);
   const [adminSitters, setAdminSitters] = useState<any[]>([]);
   const [adminBookings, setAdminBookings] = useState<any[]>([]);
   const [adminPets, setAdminPets] = useState<any[]>([]);
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
   
-  // Client assigned sitters state
   const [assignedSitters, setAssignedSitters] = useState<any[]>([]);
   const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
   const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
   
-  // Availability checking state
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
@@ -594,7 +575,6 @@ export default function DashboardPage() {
     endTime: '09:30'
   });
   
-  // Add-on booking modal state
   const [isAddonModalOpen, setIsAddonModalOpen] = useState(false);
   const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -627,8 +607,6 @@ export default function DashboardPage() {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
-  
-  const router = useRouter();
 
   // Function to refresh pets data
   const refreshPetsData = async () => {
@@ -3731,5 +3709,14 @@ export default function DashboardPage() {
        
       </main>
     </div>
+  );
+}
+
+// Main export with Suspense wrapper
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<Loading message="Loading dashboard..." />}>
+      <DashboardContent />
+    </Suspense>
   );
 }
