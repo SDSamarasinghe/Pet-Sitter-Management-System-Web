@@ -387,28 +387,6 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section className="mt-16">
-          <div className="bg-gradient-to-r from-primary/5 to-secondary/10 rounded-xl p-8">
-            <div className="text-center space-y-6">
-              <h2 className="text-3xl font-bold text-primary">Contact Whiskarz Pet Sitters</h2>
-              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-2">Phone</h4>
-                  <p className="text-primary font-medium">+1 (647) 548-8025</p>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-2">Address</h4>
-                  <p className="text-gray-700">2191 Yonge Street<br />Toronto, ON M4S 3H8</p>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-2">Service Areas</h4>
-                  <p className="text-gray-700">Whiskarz, Oshawa, Ajax, Bowmanville & surrounding areas</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
