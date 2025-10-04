@@ -48,13 +48,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentTab = searchParams?.get('tab');
 
   // Define navigation items based on user roles
+  // Define navigation items based on user roles
   const navItems: NavItem[] = [
+    // Sitter specific items - Dashboard first for sitters
+    {
+      label: 'Dashboard',
+      href: '/dashboard?tab=dashboard',
+      tab: 'dashboard',
+      icon: <Home className="w-5 h-5" />,
+      roles: ['sitter'],
+    },
     {
       label: 'Communication',
       href: '/dashboard?tab=communication',
       tab: 'communication',
       icon: <MessageSquare className="w-5 h-5" />,
       roles: ['admin', 'sitter', 'client'],
+    },
+    {
+      label: 'My Clients',
+      href: '/dashboard?tab=users',
+      tab: 'users',
+      icon: <Users className="w-5 h-5" />,
+      roles: ['sitter'],
+    },
+    {
+      label: 'Scheduling',
+      href: '/dashboard?tab=scheduling',
+      tab: 'scheduling',
+      icon: <Calendar className="w-5 h-5" />,
+      roles: ['sitter'],
+    },
+    {
+      label: 'My Profile',
+      href: '/dashboard?tab=profile',
+      tab: 'profile',
+      icon: <UserCircle className="w-5 h-5" />,
+      roles: ['sitter'],
     },
     // Admin specific items
     {
@@ -85,43 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <PawPrint className="w-5 h-5" />,
       roles: ['admin'],
     },
-    {
-      label: 'Address Changes',
-      href: '/dashboard?tab=address-changes',
-      tab: 'address-changes',
-      icon: <MapPin className="w-5 h-5" />,
-      roles: ['admin'],
-    },
-    // Sitter specific items
-    {
-      label: 'My Clients',
-      href: '/dashboard?tab=users',
-      tab: 'users',
-      icon: <Users className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'Scheduling',
-      href: '/dashboard?tab=scheduling',
-      tab: 'scheduling',
-      icon: <Calendar className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'My Profile',
-      href: '/dashboard?tab=profile',
-      tab: 'profile',
-      icon: <UserCircle className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'Dashboard',
-      href: '/dashboard?tab=dashboard',
-      tab: 'dashboard',
-      icon: <Home className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    // Client specific items
+    // Client specific items - My Profile first for clients
     {
       label: 'My Profile',
       href: '/dashboard?tab=profile',
@@ -153,16 +147,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   // Filter items based on user role
-  const filteredNavItems = navItems.filter(item => 
-    item.roles.includes(userRole)
-  );
+  let filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+  // Move My Profile to top for clients
+  if (userRole === 'client') {
+    const profileIdx = filteredNavItems.findIndex(item => item.tab === 'profile');
+    if (profileIdx > 0) {
+      const [profileItem] = filteredNavItems.splice(profileIdx, 1);
+      filteredNavItems = [profileItem, ...filteredNavItems];
+    }
+  }
+  // Move Users to top for admins
+  if (userRole === 'admin') {
+    const usersIdx = filteredNavItems.findIndex(item => item.tab === 'users');
+    if (usersIdx > 0) {
+      const [usersItem] = filteredNavItems.splice(usersIdx, 1);
+      filteredNavItems = [usersItem, ...filteredNavItems];
+    }
+  }
 
   const isActive = (item: NavItem) => {
     if (pathname !== '/dashboard') return false;
     
-    // If no tab param, first item is active (communication)
+    // If no tab param, determine default based on user role
     if (!currentTab) {
-      return item.tab === 'communication';
+      if (userRole === 'sitter') {
+        return item.tab === 'dashboard';
+      } else if (userRole === 'client') {
+        return item.tab === 'profile';
+      } else if (userRole === 'admin') {
+        return item.tab === 'users';
+      } else {
+        return item.tab === 'communication';
+      }
     }
     
     return currentTab === item.tab;
@@ -185,7 +201,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         {!isCollapsed && (
-          <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {(() => {
+              // Find the active item and show its label
+              const activeItem = filteredNavItems.find(isActive);
+              return activeItem ? activeItem.label : 'Menu';
+            })()}
+          </h2>
         )}
         {onToggleCollapse && (
           <Button
