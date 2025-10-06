@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentTab = searchParams?.get('tab');
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Define navigation items based on user roles
   // Define navigation items based on user roles
@@ -186,18 +187,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleNavigation = (href: string) => {
     router.push(href);
+    setIsMobileOpen(false); // Close mobile menu after navigation
   };
 
   return (
-    <aside
-      className={`
-        fixed left-0 top-16 lg:top-20 bottom-0 z-30
-        bg-white border-r border-gray-200
-        transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'w-16' : 'w-64'}
-        flex flex-col
-      `}
-    >
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="lg:hidden fixed left-4 top-20 z-40 p-2 rounded-lg bg-primary text-white shadow-lg hover:bg-primary/90 transition-colors"
+        aria-label="Toggle menu"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {isMobileOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+
+      {/* Overlay for mobile */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 top-16"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed left-0 top-16 lg:top-20 bottom-0 z-40
+          bg-white border-r border-gray-200
+          transition-all duration-300 ease-in-out
+          ${isCollapsed ? 'lg:w-16' : 'lg:w-64'}
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          w-64
+          flex flex-col
+          shadow-xl lg:shadow-none
+        `}
+      >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         {!isCollapsed && (
@@ -273,5 +303,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </Button>
       </div>
     </aside>
+    </>
   );
 };
