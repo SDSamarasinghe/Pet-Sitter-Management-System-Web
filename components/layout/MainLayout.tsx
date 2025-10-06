@@ -64,21 +64,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-1">
         {/* Sidebar - Conditional */}
         {showSidebar && (
-          <>
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
-              <Sidebar 
-                userRole={userRole}
-                isCollapsed={isSidebarCollapsed}
-                onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              />
-            </div>
-
-            {/* Mobile Sidebar - Drawer Style */}
-            <div className="lg:hidden">
-              {/* Mobile sidebar would go here - can be implemented as a drawer */}
-            </div>
-          </>
+          <Sidebar 
+            userRole={userRole}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          />
         )}
 
         {/* Scrollable Container for Main Content + Footer */}
