@@ -65,12 +65,14 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="card-modern spacing-lg animate-scale-in">
-           <div className="text-center -mt-20 -mb-10 animate-fade-in-up">
+           <div className="text-center mb-12 animate-fade-in-up">
             <img 
-                src="/Petsitter-logo.png" 
+                src="/w-logo.png" 
                 alt="Whiskarz Logo" 
-                className="h-48 lg:h-56 xl:h-64 w-auto mx-auto"
+                className="h-24 lg:h-24 xl:h-24 w-auto mx-auto"
               />
+           <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKERZ</span>
+
         </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
