@@ -120,7 +120,7 @@ const CentralizedHeader: React.FC = () => {
             <img 
               src="/Petsitter-logo.png" 
               alt="Whiskarz Logo" 
-              className="h-10 lg:h-24 w-auto"
+              className="h-14 lg:h-32 w-auto"
             />
           </div>
 
