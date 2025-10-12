@@ -8,9 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/lib/auth";
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
@@ -534,6 +538,10 @@ function DashboardContent() {
   const [usersSearch, setUsersSearch] = useState("");
   const [sittersSearch, setSittersSearch] = useState("");
   const [bookingsSearch, setBookingsSearch] = useState("");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
   const [selectedClient, setSelectedClient] = useState("");
   const [noteText, setNoteText] = useState("");
@@ -1760,7 +1768,7 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 {/* Search Input */}
-                <div className="mb-4">
+                <div className="mb-6">
                   <input
                     type="text"
                     placeholder="Search users by name, email, phone, or address..."
@@ -1769,19 +1777,19 @@ function DashboardContent() {
                     className="input-modern w-full"
                   />
                 </div>
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-lg border bg-white">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Emergency Contact</TableHead>
-                        <TableHead>Created At</TableHead>
-                        <TableHead>Actions</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Name</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Email</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Phone</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Role</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Address</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Emergency Contact</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1797,22 +1805,27 @@ function DashboardContent() {
                               (user.address || '').toLowerCase().includes(searchTerm)
                             );
                           })
+                          .sort((a, b) => {
+                            const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                            const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                            return bDate - aDate;
+                          })
                           .map((user, index) => (
                           <TableRow key={user._id || user.id || `user-${index}`}>
-                            <TableCell className="font-medium">
+                            <TableCell className="font-medium whitespace-nowrap">
                               {user.firstName} {user.lastName}
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.phone || 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{user.phone || 'N/A'}</TableCell>
                             <TableCell className="capitalize">{user.role}</TableCell>
                             <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               {(user as any).createdAt ? formatDateTime((user as any).createdAt) : 'N/A'}
                             </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
                                 {user.status === 'pending' && (
                                   <>
                                     <Button size="sm" onClick={() => openUserDialog(user, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
@@ -1826,7 +1839,7 @@ function DashboardContent() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8">
+                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -1850,7 +1863,7 @@ function DashboardContent() {
                 </CardHeader>
                 <CardContent>
                   {/* Search Input */}
-                  <div className="mb-4">
+                  <div className="mb-6">
                     <input
                       type="text"
                       placeholder="Search sitters by name, email, phone, or status..."
@@ -1859,16 +1872,16 @@ function DashboardContent() {
                       className="input-modern w-full"
                     />
                   </div>
-                  <div className="rounded-md border overflow-x-auto">
+                  <div className="rounded-lg border bg-white">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Applied Date</TableHead>
-                          <TableHead>Actions</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Name</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Email</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Phone</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Applied Date</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1886,13 +1899,13 @@ function DashboardContent() {
                             })
                             .map((sitter, index) => (
                             <TableRow key={sitter._id || sitter.id || `sitter-${index}`}>
-                              <TableCell className="font-medium">{sitter.firstName} {sitter.lastName}</TableCell>
+                              <TableCell className="font-medium whitespace-nowrap">{sitter.firstName} {sitter.lastName}</TableCell>
                               <TableCell>{sitter.email}</TableCell>
-                              <TableCell>{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
+                              <TableCell className="whitespace-nowrap">{sitter.phone ? sitter.phone : sitter.emergencyContact || 'N/A'}</TableCell>
                               <TableCell>{getStatusBadge ? getStatusBadge(sitter.status) : sitter.status}</TableCell>
-                              <TableCell>{sitter.createdAt ? formatDateTime(sitter.createdAt) : 'N/A'}</TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
+                              <TableCell className="whitespace-nowrap">{sitter.createdAt ? formatDateTime(sitter.createdAt) : 'N/A'}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
                                   {sitter.status === 'pending' && (
                                     <>
                                       <Button size="sm" onClick={() => openSitterDialog(sitter, 'approve')} className="bg-green-600 hover:bg-green-700">Approve</Button>
@@ -1906,7 +1919,7 @@ function DashboardContent() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center py-8">No sitters found</TableCell>
+                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No sitters found</TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -2024,7 +2037,7 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 {/* Search Input */}
-                <div className="mb-4">
+                <div className="mb-6">
                   <input
                     type="text"
                     placeholder="Search bookings by client name, service type, status, or sitter..."
@@ -2033,19 +2046,19 @@ function DashboardContent() {
                     className="input-modern w-full"
                   />
                 </div>
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-lg border bg-white">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Sitter</TableHead>
-                        <TableHead>Service Type</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created At</TableHead>
-                        <TableHead>Pets</TableHead>
-                        <TableHead>Actions</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Client</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Sitter</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Service Type</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Start Date</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">End Date</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Pets</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2062,19 +2075,24 @@ function DashboardContent() {
                               (booking.pets && booking.pets.some((pet: any) => pet.name?.toLowerCase().includes(searchTerm)))
                             );
                           })
+                          .sort((a, b) => {
+                            const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                            const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                            return bDate - aDate;
+                          })
                           .map((booking, index) => (
                           <TableRow key={booking._id || booking.id || `booking-${index}`}>
-                            <TableCell>{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
-                            <TableCell>{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
                             <TableCell>{booking.serviceType || 'N/A'}</TableCell>
-                            <TableCell>{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</TableCell>
-                            <TableCell>{booking.endDate ? formatDateTime(booking.endDate) : 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.endDate ? formatDateTime(booking.endDate) : 'N/A'}</TableCell>
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
-                            <TableCell>{booking.createdAt ? formatDateTime(booking.createdAt) : 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.createdAt ? formatDateTime(booking.createdAt) : 'N/A'}</TableCell>
                             <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                               <div className="flex flex-col space-y-2 min-w-[160px]">
-                                <div className="flex space-x-2">
+                                <div className="flex justify-end gap-2">
                                   {/* Assign sitter dropdown if no sitter assigned or booking is pending */}
                                   {!isSitterAssigned(booking) && adminSitters.length > 0 && (
                                     <div className="relative">
@@ -2101,7 +2119,7 @@ function DashboardContent() {
                                   )}
                                 </div>
                                 {/* Status dropdown */}
-                                <label className="text-xs text-gray-600 font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
+                                <label className="text-xs text-muted-foreground font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
                                 <div className="relative">
                                   <select 
                                     id={`booking-status-${booking._id}`} 
@@ -2121,7 +2139,7 @@ function DashboardContent() {
                                   </div>
                                 </div>
                                 {/* Payment status dropdown */}
-                                <label className="text-xs text-gray-600 font-medium mt-2 mb-0.5" htmlFor={`payment-status-${booking._id}`}>Payment Status</label>
+                                <label className="text-xs text-muted-foreground font-medium mt-2 mb-0.5" htmlFor={`payment-status-${booking._id}`}>Payment Status</label>
                                 <div className="relative">
                                   <select 
                                     id={`payment-status-${booking._id}`} 
@@ -2157,7 +2175,7 @@ function DashboardContent() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8">No bookings found</TableCell>
+                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No bookings found</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -2178,7 +2196,7 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 {addressChanges.length > 0 ? (
-                  <div className="rounded-md border overflow-x-auto">
+                  <div className="rounded-lg border bg-card">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -2192,10 +2210,10 @@ function DashboardContent() {
                       <TableBody>
                         {addressChanges.map((change, index) => (
                           <TableRow key={change._id || change.id || `change-${index}`}>
-                            <TableCell>{change.client?.name}</TableCell>
+                            <TableCell className="whitespace-nowrap">{change.client?.name}</TableCell>
                             <TableCell>{change.currentAddress}</TableCell>
                             <TableCell>{change.newAddress}</TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               {change.createdAt ? formatDateTime(change.createdAt) : 'N/A'}
                             </TableCell>
                             <TableCell className="capitalize">{change.status}</TableCell>
@@ -2206,8 +2224,8 @@ function DashboardContent() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No pending address changes</h3>
-                    <p className="text-gray-500">All address change requests have been processed.</p>
+                    <h3 className="text-lg font-medium text-foreground mb-2">No pending address changes</h3>
+                    <p className="text-muted-foreground">All address change requests have been processed.</p>
                   </div>
                 )}
               </CardContent>
@@ -2225,7 +2243,7 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 {/* Search Input for Admin Pets Table */}
-                <div className="mb-4">
+                <div className="mb-6">
                   <input
                     type="text"
                     placeholder="Search pets by name, type, breed, age, or owner..."
@@ -2234,17 +2252,17 @@ function DashboardContent() {
                     className="input-modern w-full"
                   />
                 </div>
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-lg border bg-white">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Breed</TableHead>
-                        <TableHead>Age</TableHead>
-                        <TableHead>Owner</TableHead>
-                        <TableHead>Emergency Contact</TableHead>
-                        <TableHead>Created At</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Name</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Type</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Breed</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Age</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Owner</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Emergency Contact</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2273,14 +2291,14 @@ function DashboardContent() {
                                 {pet.userId?.firstName} {pet.userId?.lastName} ({pet.userId?.email})
                               </TableCell>
                               <TableCell>{pet.emergencyContact || 'N/A'}</TableCell>
-                              <TableCell>
+                              <TableCell className="whitespace-nowrap">
                                 {pet.createdAt ? formatDateTime(pet.createdAt) : 'N/A'}
                               </TableCell>
                             </TableRow>
                           ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No pets found
                           </TableCell>
                         </TableRow>
@@ -2359,13 +2377,15 @@ function DashboardContent() {
           )}
           {/* Sitter: Dashboard Bookings Table */}
           {user?.role === "sitter" && activeTab === "dashboard" && (
-            <div className="bg-white p-6 rounded-lg border mb-8">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">My Bookings</h3>
+            <div className="bg-white p-6 rounded-xl border mb-8 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-foreground">My Bookings</h3>
                 <Button variant="outline" size="sm" onClick={() => router.push('/bookings')}>View All Bookings</Button>
               </div>
-              {/* Search Input for Sitter Bookings Table */}
-              <div className="mb-4">
+              
+              {/* Search and Filter Section */}
+              <div className="mb-6 space-y-4">
+                {/* Search Input */}
                 <input
                   type="text"
                   placeholder="Search bookings by client, location, service, or status..."
@@ -2373,25 +2393,72 @@ function DashboardContent() {
                   onChange={e => setBookingsSearch(e.target.value)}
                   className="input-modern w-full"
                 />
+                
+                {/* Date Range Filter */}
+                <div className="flex items-center gap-4 flex-wrap">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`justify-start text-left font-normal ${!dateRange.from && !dateRange.to ? "text-muted-foreground" : ""}`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "LLL dd, y")
+                          )
+                        ) : (
+                          <span>Filter by date range</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange.from}
+                        selected={{ from: dateRange.from, to: dateRange.to }}
+                        onSelect={(range: any) => setDateRange({ from: range?.from, to: range?.to })}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  {(dateRange.from || dateRange.to) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDateRange({ from: undefined, to: undefined })}
+                      className="h-8 px-2 lg:px-3"
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full border text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-semibold">Client</th>
-                      <th className="px-4 py-2 text-left font-semibold">Location</th>
-                      <th className="px-4 py-2 text-left font-semibold">Service</th>
-                      <th className="px-4 py-2 text-left font-semibold">Actions</th>
-                      <th className="px-4 py-2 text-left font-semibold">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+
+              <div className="rounded-lg border bg-white">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {bookings.length > 0 ? (
                       bookings
                         .filter((booking: any) => {
+                          // Text search filter
                           const searchTerm = (bookingsSearch || "").toLowerCase();
-                          if (!searchTerm) return true;
-                          return (
+                          const matchesSearch = !searchTerm || (
                             (booking.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
                             (booking.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
                             (booking.address || booking.userId?.address || "").toLowerCase().includes(searchTerm) ||
@@ -2399,44 +2466,98 @@ function DashboardContent() {
                             (booking.paymentStatus || "").toLowerCase().includes(searchTerm) ||
                             (booking.notes || "").toLowerCase().includes(searchTerm)
                           );
+
+                          // Date range filter
+                          const matchesDateRange = (() => {
+                            if (!dateRange.from && !dateRange.to) return true;
+                            if (!booking.startDate) return false;
+                            
+                            const bookingDate = new Date(booking.startDate);
+                            bookingDate.setHours(0, 0, 0, 0);
+                            
+                            if (dateRange.from && dateRange.to) {
+                              const from = new Date(dateRange.from);
+                              from.setHours(0, 0, 0, 0);
+                              const to = new Date(dateRange.to);
+                              to.setHours(23, 59, 59, 999);
+                              return bookingDate >= from && bookingDate <= to;
+                            } else if (dateRange.from) {
+                              const from = new Date(dateRange.from);
+                              from.setHours(0, 0, 0, 0);
+                              return bookingDate >= from;
+                            } else if (dateRange.to) {
+                              const to = new Date(dateRange.to);
+                              to.setHours(23, 59, 59, 999);
+                              return bookingDate <= to;
+                            }
+                            return true;
+                          })();
+
+                          return matchesSearch && matchesDateRange;
                         })
                         .map((booking: any) => (
-                          <tr key={booking._id || booking.id} className="border-b hover:bg-gray-50">
-                            <td className="px-4 py-2 whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</td>
-                            <td className="px-4 py-2 whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</td>
-                            <td className="px-4 py-2">
-                              <div className="font-semibold">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
-                              <div className="font-bold">{booking.serviceType}</div>
-                              <div className="italic text-xs text-gray-600">{booking.notes || ''}</div>
+                          <TableRow key={booking._id || booking.id}>
+                            <TableCell className="whitespace-nowrap font-medium">{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
+                            <TableCell className="whitespace-nowrap">{booking.address || booking.userId?.address || 'N/A'}</TableCell>
+                            <TableCell>
+                              <div className="font-semibold text-foreground">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</div>
+                              <div className="font-medium text-sm">{booking.serviceType}</div>
+                              {booking.notes && <div className="italic text-xs text-muted-foreground mt-1">{booking.notes}</div>}
                               {booking.startDate && booking.endDate && (
-                                <div className="text-xs text-gray-500 mt-1">
+                                <div className="text-xs text-muted-foreground mt-1">
                                   {(() => {
                                     const start = new Date(booking.startDate);
                                     const end = new Date(booking.endDate);
                                     const diffMs = end.getTime() - start.getTime();
                                     const diffMin = Math.round(diffMs / 60000);
-                                    return `${diffMin} minutes`;
+                                    return `Duration: ${diffMin} minutes`;
                                   })()}
                                 </div>
                               )}
-                            </td>
-                            <td className="px-4 py-2">
-                              {booking.paymentStatus === 'complete' ? (
-                                <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded font-semibold">Complete</span>
+                            </TableCell>
+                            <TableCell>
+                              {booking.status === 'completed' ? (
+                                <Badge variant="default" className="bg-green-600 text-white hover:bg-green-600">Completed</Badge>
                               ) : (
-                                <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded font-semibold">{booking.paymentStatus ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1) : 'Pending'}</span>
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      await api.put(`/bookings/${booking._id || booking.id}`, {
+                                        status: 'completed'
+                                      });
+                                      toast({
+                                        title: 'Success',
+                                        description: 'Booking marked as completed',
+                                      });
+                                      // Refresh bookings
+                                      const response = await api.get(`/bookings/sitter/${user?.id}`);
+                                      setBookings(response.data || []);
+                                    } catch (error) {
+                                      console.error('Error completing booking:', error);
+                                      toast({
+                                        title: 'Error',
+                                        description: 'Failed to complete booking',
+                                        variant: 'destructive',
+                                      });
+                                    }
+                                  }}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  Complete
+                                </Button>
                               )}
-                            </td>
-                            <td className="px-4 py-2 font-mono">{booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</td>
-                          </tr>
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-medium">${booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</TableCell>
+                          </TableRow>
                         ))
                     ) : (
-                      <tr>
-                        <td colSpan={5} className="text-center py-8 text-gray-500">No bookings found.</td>
-                      </tr>
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No bookings found.</TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
@@ -2467,7 +2588,7 @@ function DashboardContent() {
           {activeTab === "pets" && (
             <div className="space-y-8">
                 {/* Search Input for Pets */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <input
                     type="text"
                     placeholder="Search pets by name, species, breed, or age..."
@@ -2475,7 +2596,7 @@ function DashboardContent() {
                     onChange={e => setPetSearch(e.target.value)}
                     className="input-modern w-full"
                   />
-                </div>
+                </div> */}
                 {pets.length === 0 ? (
                   <div className="text-gray-500">No pets found. <Button onClick={() => router.push('/pets/add')} className="font-semibold">Add Pet</Button></div>
                 ) : (
