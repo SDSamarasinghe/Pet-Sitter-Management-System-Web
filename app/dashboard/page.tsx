@@ -2495,6 +2495,11 @@ function DashboardContent() {
 
                           return matchesSearch && matchesDateRange;
                         })
+                        .sort((a: any, b: any) => {
+                          const aDate = new Date(a.createdAt).getTime();
+                          const bDate = new Date(b.createdAt).getTime();
+                          return bDate - aDate;
+                        })
                         .map((booking: any) => (
                           <TableRow key={booking._id || booking.id}>
                             <TableCell className="whitespace-nowrap font-medium">{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
