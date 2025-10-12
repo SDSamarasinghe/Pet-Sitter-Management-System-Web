@@ -2,24 +2,42 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import BannerSlider from "../components/ui/BannerSlider";
 
 export default function LandingPage() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-bg-50 via-white to-navy-blue-50">
+      {/* Promotional Banner */}
+      <div className="bg-gradient-to-r from-primary via-secondary to-accent text-white py-3 shadow-md">
+        <div className="container-modern">
+          <div className="flex items-center justify-center gap-4 text-center">
+            <svg className="w-5 h-5 flex-shrink-0 hidden sm:block" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm sm:text-base font-medium">
+              🎉 New Customer Special: <span className="font-bold">15% OFF</span> your first booking! Use code: <span className="font-bold bg-white/20 px-2 py-1 rounded">NEWPET15</span>
+            </p>
+            <svg className="w-5 h-5 flex-shrink-0 hidden sm:block" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding">
+      <section className="py-12 sm:py-16 lg:py-20">
         <div className="container-modern">
           <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
-            <h1 className="text-responsive-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
+            <h1 className="text-responsive-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
               Professional Pet Care You Can Trust
             </h1>
-            <p className="text-responsive-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-responsive-lg text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
               Toronto's most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button 
                 size="lg" 
                 onClick={() => router.push('/services')} 
@@ -40,51 +58,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 sm:py-20">
-        <div className="container-modern">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 animate-stagger">
-            {/* Trusted & Insured */}
-            <div className="card-modern spacing-md text-center group bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.04] hover:border-primary/40 cursor-pointer flex flex-col items-center" style={{ minHeight: '220px' }}>
-              <div className="w-16 h-16 rounded-xl flex items-center justify-center mt-6 mb-4 bg-primary/90 group-hover:bg-primary">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors">Trusted & Insured</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-2">All our sitters are fully insured, bonded, and background checked for your peace of mind.</p>
-            </div>
-
-            {/* Experienced Care */}
-            <div className="card-modern spacing-md text-center group bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.04] hover:border-primary/40 cursor-pointer flex flex-col items-center" style={{ minHeight: '220px' }}>
-              <div className="w-16 h-16 rounded-xl flex items-center justify-center mt-6 mb-4 bg-primary/90 group-hover:bg-primary">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-1 text-foreground group-hover:text-primary transition-colors">Experienced Care</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-2">Professional pet sitters with years of experience caring for all types of pets with love and dedication.</p>
-            </div>
-
-            {/* 24/7 Support */}
-            <div className="card-modern spacing-md text-center group bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.04] hover:border-primary/40 cursor-pointer flex flex-col items-center" style={{ minHeight: '220px' }}>
-              <div className="w-16 h-16 rounded-xl flex items-center justify-center mt-6 mb-4 bg-blue-400 group-hover:bg-blue-500">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-1 text-foreground group-hover:text-blue-500 transition-colors">24/7 Support</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-2">Always available for questions, updates, and emergency support whenever you need us.</p>
-            </div>
-          </div>
-        </div>
+      {/* Banner Slide View Section - Full Width */}
+      <section className="w-full py-0">
+        <BannerSlider />
       </section>
 
       {/* Services Preview Section */}
-      <section className="py-16 sm:py-20 bg-muted/30">
+      <section className="py-10 sm:py-12 lg:py-16 bg-muted/30">
         <div className="container-modern">
-          <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-responsive-3xl font-bold mb-6 text-foreground">
+          <div className="text-center mb-10 animate-fade-in-up">
+            <h2 className="text-responsive-3xl font-bold mb-4 text-foreground">
               Complete Pet Care Services
             </h2>
             <p className="text-responsive-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -118,10 +101,9 @@ export default function LandingPage() {
               <div
                 key={service.name}
                 className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 hover:border-primary/50"
-                style={{ minHeight: '300px' }}
               >
                 {/* Image Container */}
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-44 overflow-hidden">
                   <img
                     src={service.image}
                     alt={service.name}
@@ -129,14 +111,10 @@ export default function LandingPage() {
                   />
                   {/* Gradient Overlay on Hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  {/* Icon on hover */}
-                  {/* <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
-                    <span className="text-6xl filter drop-shadow-lg">{service.icon}</span>
-                  </div> */}
                 </div>
                 
                 {/* Content */}
-                <div className="p-6 text-center">
+                <div className="p-5 text-center">
                   <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors duration-300">
                     {service.name}
                   </h3>
@@ -148,44 +126,13 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-10">
             <Button 
               onClick={() => router.push('/services')} 
               className="px-8 py-3 text-lg"
             >
               View All Services
             </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 sm:py-20">
-        <div className="container-modern">
-          <div className="card-modern spacing-xl text-center rounded-3xl">
-            <h2 className="text-responsive-2xl font-bold mb-6 text-foreground">
-              Ready to Give Your Pet the Best Care?
-            </h2>
-            <p className="text-responsive-base text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join hundreds of satisfied pet owners who trust us with their beloved companions. Get started today with a personalized care plan.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                onClick={() => router.push('/service-inquiry')} 
-                className="px-8 py-4 text-lg"
-              >
-                Book Your Service
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                onClick={() => router.push('/signup')} 
-                className="px-8 py-4 text-lg"
-              >
-                Become a Sitter
-              </Button>
-            </div>
           </div>
         </div>
       </section>
