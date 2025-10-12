@@ -112,20 +112,21 @@ const CentralizedHeader: React.FC = () => {
     <header className="glass sticky top-0 z-50 w-full border-b border-gray-200/20 backdrop-blur-xl bg-white/95">
       <div className="container-modern">
         <div className="flex h-16 lg:h-20 items-center justify-between">
-          {/* Logo */}
+          {/* Logo - Left aligned */}
           <div 
-            className="flex items-center space-x-3 cursor-pointer hover:scale-105 transition-transform duration-200" 
+            className="flex items-center space-x-2 cursor-pointer hover:scale-105 transition-transform duration-200 flex-shrink-0" 
             onClick={() => handleNavigation("/")}
           >
             <img 
-              src="/Petsitter-logo.png" 
+              src="/w-logo.png" 
               alt="Whiskarz Logo" 
-              className="h-14 lg:h-32 w-auto"
+              className="h-10 lg:h-12 w-auto"
             />
+            <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKERZ</span>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex lg:items-center lg:space-x-1">
+          {/* Desktop Navigation - Center */}
+          <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
             {navigationItems.map((item) => (
               <Button
                 key={item.href}
@@ -142,8 +143,8 @@ const CentralizedHeader: React.FC = () => {
             ))}
           </nav>
 
-          {/* Right side - Auth section */}
-          <div className="flex items-center space-x-3">
+          {/* Right side - Auth section - Right aligned */}
+          <div className="flex items-center space-x-3 flex-shrink-0">
             {isAuthenticated() && user ? (
               <div className="relative" ref={dropdownRef}>
                 <Button
@@ -253,7 +254,7 @@ const CentralizedHeader: React.FC = () => {
                   onClick={() => handleNavigation("/signup")}
                   className="btn-primary px-6 py-2"
                 >
-                  Get Started
+                  Join As Sitter
                 </Button>
               </div>
             )}
@@ -308,7 +309,7 @@ const CentralizedHeader: React.FC = () => {
                       onClick={() => handleNavigation("/signup")}
                       className="w-full mt-2 btn-primary py-3"
                     >
-                      Get Started
+                      Join As Sitter
                     </Button>
                   </div>
                 </>
