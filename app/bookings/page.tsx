@@ -276,7 +276,7 @@ export default function BookingsPage() {
                 {bookings.map((booking) => (
                   <Card 
                     key={booking._id} 
-                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-primary"
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-border/40"
                     onClick={() => router.push(`/bookings/${booking._id}`)}
                   >
                     <CardHeader className="pb-3">
