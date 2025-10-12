@@ -75,7 +75,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div 
           className={`
             flex-1 
-            ${showSidebar ? (isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : ''}
+            ${showSidebar ? (isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64') : ''}
             transition-all duration-300
             overflow-y-auto
             h-[calc(100vh-4rem)]
