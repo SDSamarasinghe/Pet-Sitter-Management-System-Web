@@ -195,10 +195,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed left-4 top-20 z-40 p-2 rounded-lg bg-primary text-white shadow-lg hover:bg-primary/90 transition-colors"
+        className="lg:hidden fixed left-4 top-24 z-50 p-3 rounded-xl bg-primary text-white shadow-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105"
         aria-label="Toggle menu"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {isMobileOpen ? (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           ) : (
@@ -210,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Overlay for mobile */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 top-16"
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 top-16 backdrop-blur-sm"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -219,13 +219,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`
           fixed left-0 top-16 lg:top-20 bottom-0 z-40
-          bg-white border-r border-gray-200
+          bg-white border-r border-gray-200/50
           transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'lg:w-16' : 'lg:w-64'}
+          ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           w-64
           flex flex-col
-          shadow-xl lg:shadow-none
+          shadow-2xl lg:shadow-none
         `}
       >
       {/* Sidebar Header */}
