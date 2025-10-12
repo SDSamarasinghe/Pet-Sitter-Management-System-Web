@@ -768,3 +768,34 @@
 .rdp-day:hover:not(.rdp-day_selected):not([disabled]) {
   background-color: hsl(var(--accent) / 0.2);
 }
+
+/* Fix calendar weekday header alignment */
+.rdp-head_cell {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rdp-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.rdp-head_row,
+.rdp-row {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 100%;
+}
+
+.rdp-day {
+  width: 100% !important;
+  height: 2.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
