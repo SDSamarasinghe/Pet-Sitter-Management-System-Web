@@ -86,7 +86,7 @@ export const Footer: React.FC = () => {
               <span className="font-medium text-gray-900">Phone:</span> <a href="tel:+16475488025" className="hover:text-primary transition-colors">+1 (647) 548-8025</a>
             </span>
             <span className="text-xs text-gray-600">
-              <span className="font-medium text-gray-900">Address:</span> 2191 Yonge St, Toronto
+              <span className="font-medium text-gray-900">Address:</span> 2191 Yonge St, Toronto, M4S 3H8
             </span>
           </div>
 
