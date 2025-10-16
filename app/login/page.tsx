@@ -71,7 +71,7 @@ export default function LoginPage() {
                 alt="Whiskarz Logo" 
                 className="h-24 lg:h-24 xl:h-24 w-auto mx-auto"
               />
-           <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKERZ</span>
+           <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKARZ</span>
 
         </div>
           <form onSubmit={handleSubmit} className="space-y-6">
