@@ -122,7 +122,7 @@ const CentralizedHeader: React.FC = () => {
               alt="Whiskarz Logo" 
               className="h-10 lg:h-12 w-auto"
             />
-            <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKERZ</span>
+            <span className="text-xl lg:text-2xl font-bold tracking-wide text-primary select-none hidden sm:inline">WHISKARZ</span>
           </div>
 
           {/* Desktop Navigation - Center */}
