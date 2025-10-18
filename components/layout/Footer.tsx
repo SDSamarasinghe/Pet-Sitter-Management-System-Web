@@ -36,9 +36,20 @@ export const Footer: React.FC = () => {
   ];
 
   const serviceAreas = [
-    'Oshawa',
+    'Toronto',
+    'The beaches',
+    'Bayview',
+    'North York',
+    'Scarborough',
+    'Markham',
+    'Pickering',
+    'Finch',
+    'Whitby',
+    'Richmond Hill',
     'Ajax',
-    'Bowmanville',
+    'Oshawa',
+    'Etobicoke',
+    'Tronhill',
   ];
 
   return (
