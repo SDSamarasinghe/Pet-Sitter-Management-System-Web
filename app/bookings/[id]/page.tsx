@@ -446,7 +446,7 @@ export default function BookingDetailPage() {
             </Card>
 
             {/* Pets */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <PawPrint className="h-5 w-5" />
@@ -470,7 +470,7 @@ export default function BookingDetailPage() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Payment Details */}
             <Card>
