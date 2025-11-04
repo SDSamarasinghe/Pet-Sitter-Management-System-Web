@@ -111,7 +111,8 @@ export default function AddPetPage() {
 
       // Send multipart/form-data request to backend API
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/pets`, {
+      const baseURL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const response = await fetch(`${baseURL}/pets`, {
         method: 'POST',
         body: formDataToSend,
         headers: {
