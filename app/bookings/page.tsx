@@ -312,14 +312,14 @@ export default function BookingsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        <div>
+                        {/* <div>
                           <p className="text-sm font-medium text-gray-700">Pets:</p>
                           <p className="text-sm text-gray-600">
                             {booking.pets && booking.pets.length > 0
                               ? booking.pets.map(pet => pet.name).join(', ')
                               : 'No pets listed'}
                           </p>
-                        </div>
+                        </div> */}
                         {booking.notes && (
                           <div>
                             <p className="text-sm font-medium text-gray-700">Notes:</p>
