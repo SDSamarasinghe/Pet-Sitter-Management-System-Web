@@ -427,7 +427,7 @@ export default function AddPetPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="info">General Info / Special Needs</Label>
+                <Label htmlFor="info">General Info / Special Needs *</Label>
                 <Textarea
                   id="info"
                   name="info"
@@ -435,6 +435,7 @@ export default function AddPetPage() {
                   value={formData.info}
                   onChange={handleInputChange}
                   rows={3}
+                  required
                 />
               </div>
 
