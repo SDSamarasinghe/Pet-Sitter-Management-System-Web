@@ -2449,7 +2449,7 @@ function DashboardContent() {
                       <TableHead>Location</TableHead>
                       <TableHead>Service</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
+                      {/* <TableHead className="text-right">Total</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -2553,7 +2553,7 @@ function DashboardContent() {
                                 </Button>
                               )}
                             </TableCell>
-                            <TableCell className="text-right font-mono font-medium">${booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</TableCell>
+                            {/* <TableCell className="text-right font-mono font-medium">${booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</TableCell> */}
                           </TableRow>
                         ))
                     ) : (
