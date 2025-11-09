@@ -371,6 +371,126 @@ function DashboardContent() {
   const [userError, setUserError] = useState('');
   const [userLoading, setUserLoading] = useState(false);
 
+  // Delete confirmation states
+  const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isDeleteSitterDialogOpen, setIsDeleteSitterDialogOpen] = useState(false);
+  const [sitterToDelete, setSitterToDelete] = useState<any>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [isDeletingSitter, setIsDeletingSitter] = useState(false);
+
+  // User details modal states
+  const [isUserDetailsModalOpen, setIsUserDetailsModalOpen] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<any>(null);
+  const [userDetailsLoading, setUserDetailsLoading] = useState(false);
+  const [userPets, setUserPets] = useState<any[]>([]);
+  const [userKeySecurityData, setUserKeySecurityData] = useState<any>(null);
+
+  // Sitter details modal states
+  const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
+  const [selectedSitterForDetails, setSelectedSitterForDetails] = useState<any>(null);
+  const [sitterDetailsLoading, setSitterDetailsLoading] = useState(false);
+
+  const openDeleteUserDialog = (user: any) => {
+    setUserToDelete(user);
+    setIsDeleteUserDialogOpen(true);
+  };
+
+  const openDeleteSitterDialog = (sitter: any) => {
+    setSitterToDelete(sitter);
+    setIsDeleteSitterDialogOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete?._id && !userToDelete?.id) return;
+    setIsDeletingUser(true);
+    try {
+      const userId = userToDelete._id || userToDelete.id;
+      await api.delete(`/users/clients/${userId}`);
+      toast({ 
+        title: 'Client deleted', 
+        description: `${userToDelete.firstName} ${userToDelete.lastName} has been successfully removed from the system.` 
+      });
+      // Refresh users list
+      const res = await api.get('/users/admin/clients');
+      setAdminUsers(res.data ?? []);
+      setIsDeleteUserDialogOpen(false);
+      setUserToDelete(null);
+    } catch (err: any) {
+      toast({ 
+        title: 'Error', 
+        description: err.response?.data?.message || 'Failed to delete client.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
+
+  const handleDeleteSitter = async () => {
+    if (!sitterToDelete?._id && !sitterToDelete?.id) return;
+    setIsDeletingSitter(true);
+    try {
+      const sitterId = sitterToDelete._id || sitterToDelete.id;
+      await api.delete(`/users/sitters/${sitterId}`);
+      toast({ 
+        title: 'Sitter deleted', 
+        description: `${sitterToDelete.firstName} ${sitterToDelete.lastName} has been successfully removed from the system.` 
+      });
+      // Refresh sitters list
+      const res = await api.get('/users/admin/sitters');
+      setAdminSitters(res.data ?? []);
+      setIsDeleteSitterDialogOpen(false);
+      setSitterToDelete(null);
+    } catch (err: any) {
+      toast({ 
+        title: 'Error', 
+        description: err.response?.data?.message || 'Failed to delete sitter.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDeletingSitter(false);
+    }
+  };
+
+  const openUserDetailsModal = async (user: any) => {
+    setSelectedUserDetails(user);
+    setIsUserDetailsModalOpen(true);
+    setUserDetailsLoading(true);
+    
+    try {
+      const userId = user._id || user.id;
+      
+      // Fetch user's pets
+      try {
+        const petsResponse = await api.get(`/pets/user/${userId}`);
+        setUserPets(Array.isArray(petsResponse.data) ? petsResponse.data : [petsResponse.data]);
+      } catch (error) {
+        console.error('Error fetching user pets:', error);
+        setUserPets([]);
+      }
+      
+      // Fetch key security data
+      try {
+        const keySecurityResponse = await api.get(`/key-security/client/${userId}`);
+        setUserKeySecurityData(keySecurityResponse.data);
+      } catch (error) {
+        console.error('Error fetching key security:', error);
+        setUserKeySecurityData(null);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    } finally {
+      setUserDetailsLoading(false);
+    }
+  };
+
+  const openSitterDetailsModal = async (sitter: any) => {
+    setSelectedSitterForDetails(sitter);
+    setIsSitterDetailsModalOpen(true);
+    setSitterDetailsLoading(false);
+  };
+
   const openSitterDialog = (sitter: any, action: 'approve' | 'reject') => {
     setSelectedSitter(sitter);
     setSitterActionType(action);
@@ -569,8 +689,6 @@ function DashboardContent() {
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
   
   const [assignedSitters, setAssignedSitters] = useState<any[]>([]);
-  const [selectedSitterDetails, setSelectedSitterDetails] = useState<any>(null);
-  const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
   
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
@@ -1832,7 +1950,15 @@ function DashboardContent() {
                                     <Button size="sm" variant="destructive" onClick={() => openUserDialog(user, 'reject')}>Reject</Button>
                                   </>
                                 )}
-                                <Button size="sm" variant="outline" onClick={() => alert(`Name: ${user.firstName} ${user.lastName}\nEmail: ${user.email}\nPhone: ${user.phone}\nRole: ${user.role}\nAddress: ${user.address}\nEmergency Contact: ${user.emergencyContact}`)}>View Details</Button>
+                                <Button size="sm" variant="outline" onClick={() => openUserDetailsModal(user)}>View Details</Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  onClick={() => openDeleteUserDialog(user)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1912,7 +2038,15 @@ function DashboardContent() {
                                       <Button size="sm" variant="destructive" onClick={() => openSitterDialog(sitter, 'reject')}>Reject</Button>
                                     </>
                                   )}
-                                  <Button size="sm" variant="outline" onClick={() => alert(`Name: ${sitter.firstName} ${sitter.lastName}\nEmail: ${sitter.email}\nPhone: ${sitter.phone}\nAddress: ${sitter.address}\nEmergency Contact: ${sitter.emergencyContact}\nExperience: ${sitter.homeCareInfo}`)}>View Details</Button>
+                                  <Button size="sm" variant="outline" onClick={() => openSitterDetailsModal(sitter)}>View Details</Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive" 
+                                    onClick={() => openDeleteSitterDialog(sitter)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -1975,6 +2109,207 @@ function DashboardContent() {
                   </div>
                 </div>
               )}
+
+              {/* Delete Sitter Confirmation Modal */}
+              {isDeleteSitterDialogOpen && sitterToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                    <h2 className="text-2xl font-bold mb-2 text-red-600">Delete Sitter</h2>
+                    <p className="mb-4 text-gray-700">
+                      Are you sure you want to delete <strong>{sitterToDelete.firstName} {sitterToDelete.lastName}</strong>?
+                    </p>
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm text-red-700 font-semibold">
+                            Warning: This action cannot be undone!
+                          </p>
+                          <p className="text-sm text-red-600 mt-1">
+                            This will permanently remove the sitter from the system.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsDeleteSitterDialogOpen(false);
+                          setSitterToDelete(null);
+                        }} 
+                        disabled={isDeletingSitter}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        onClick={handleDeleteSitter} 
+                        disabled={isDeletingSitter}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {isDeletingSitter ? 'Deleting...' : 'Delete Sitter'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sitter Details Modal */}
+              {isSitterDetailsModalOpen && selectedSitterForDetails && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+                  <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-fadeIn flex flex-col">
+                    {/* Modal Header */}
+                    <div className="bg-gradient-to-r from-primary to-accent text-white p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-bold">Sitter Details</h2>
+                        <p className="text-xs sm:text-sm opacity-90 mt-1">{selectedSitterForDetails.firstName} {selectedSitterForDetails.lastName}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsSitterDetailsModalOpen(false);
+                          setSelectedSitterForDetails(null);
+                        }}
+                        className="text-white hover:bg-white/20 rounded-full p-2 transition-colors flex-shrink-0"
+                      >
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Modal Content */}
+                    <div className="p-4 sm:p-6 overflow-y-auto flex-1 scrollbar-modern">
+                      {sitterDetailsLoading ? (
+                        <div className="flex justify-center items-center py-12">
+                          <Loading message="Loading sitter details..." />
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {/* Basic Information */}
+                          <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                            <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              Basic Information
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">First Name</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedSitterForDetails.firstName || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedSitterForDetails.lastName || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Email</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-all">{selectedSitterForDetails.email || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Phone</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedSitterForDetails.phone || selectedSitterForDetails.emergencyContact || 'Not provided'}</p>
+                              </div>
+                              <div className="sm:col-span-2">
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Address</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedSitterForDetails.address || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Role</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border capitalize">{selectedSitterForDetails.role || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Status</label>
+                                <div className="bg-white p-2 rounded border">
+                                  {getStatusBadge(selectedSitterForDetails.status || 'pending')}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Emergency Contact */}
+                          <div className="bg-red-50 rounded-lg p-3 sm:p-5 border border-red-200">
+                            <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-3 sm:mb-4 flex items-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                              </svg>
+                              Emergency Contact
+                            </h3>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 sm:p-3 rounded border whitespace-pre-wrap break-words">{selectedSitterForDetails.emergencyContact || 'Not provided'}</p>
+                          </div>
+
+                          {/* Experience & Qualifications */}
+                          {selectedSitterForDetails.homeCareInfo && (
+                            <div className="bg-blue-50 rounded-lg p-3 sm:p-5 border border-blue-200">
+                              <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3 sm:mb-4 flex items-center">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Experience & Qualifications
+                              </h3>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 sm:p-3 rounded border whitespace-pre-wrap break-words">{selectedSitterForDetails.homeCareInfo}</p>
+                            </div>
+                          )}
+
+                          {/* Account Information */}
+                          <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Account Information
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Applied/Created At</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">
+                                  {selectedSitterForDetails.createdAt ? formatDateTime(selectedSitterForDetails.createdAt) : 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Sitter ID</label>
+                                <p className="text-gray-900 bg-white p-2 rounded border font-mono text-xs sm:text-sm break-all">
+                                  {selectedSitterForDetails._id || selectedSitterForDetails.id || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 border-t flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        className="w-full sm:w-auto order-2 sm:order-1"
+                        onClick={() => {
+                          setIsSitterDetailsModalOpen(false);
+                          setSelectedSitterForDetails(null);
+                        }}
+                      >
+                        Close
+                      </Button>
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
+                        onClick={() => {
+                          window.location.href = `mailto:${selectedSitterForDetails.email}`;
+                        }}
+                      >
+                        <svg className="w-4 h-4 mr-2 sm:inline hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Contact Sitter
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -2026,6 +2361,338 @@ function DashboardContent() {
             </div>
           )}
 
+          {/* Delete User Confirmation Modal */}
+          {isDeleteUserDialogOpen && userToDelete && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                <h2 className="text-2xl font-bold mb-2 text-red-600">Delete Client</h2>
+                <p className="mb-4 text-gray-700">
+                  Are you sure you want to delete <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>?
+                </p>
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700 font-semibold">
+                        Warning: This action cannot be undone!
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        This will permanently remove the client and all associated data (pets, pet care records, pet medical records) from the system.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsDeleteUserDialogOpen(false);
+                      setUserToDelete(null);
+                    }} 
+                    disabled={isDeletingUser}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeleteUser} 
+                    disabled={isDeletingUser}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {isDeletingUser ? 'Deleting...' : 'Delete Client'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* User Details Modal */}
+          {isUserDetailsModalOpen && selectedUserDetails && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+              <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-fadeIn flex flex-col">
+                {/* Modal Header */}
+                <div className="bg-gradient-to-r from-primary to-accent text-white p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold">Client Details</h2>
+                    <p className="text-xs sm:text-sm opacity-90 mt-1">{selectedUserDetails.firstName} {selectedUserDetails.lastName}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsUserDetailsModalOpen(false);
+                      setSelectedUserDetails(null);
+                      setUserPets([]);
+                      setUserKeySecurityData(null);
+                    }}
+                    className="text-white hover:bg-white/20 rounded-full p-2 transition-colors flex-shrink-0"
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1 scrollbar-modern">
+                  {userDetailsLoading ? (
+                    <div className="flex justify-center items-center py-12">
+                      <Loading message="Loading client details..." />
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Basic Information */}
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          Basic Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">First Name</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.firstName || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.lastName || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Email</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-all">{selectedUserDetails.email || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Phone</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.phone || 'Not provided'}</p>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Address</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.address || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Role</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border capitalize">{selectedUserDetails.role || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Status</label>
+                            <div className="bg-white p-2 rounded border">
+                              {getStatusBadge(selectedUserDetails.status || 'pending')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Emergency Contact */}
+                      <div className="bg-red-50 rounded-lg p-5 border border-red-200">
+                        <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          Emergency Contact
+                        </h3>
+                        <p className="text-gray-900 bg-white p-3 rounded border">{selectedUserDetails.emergencyContact || 'Not provided'}</p>
+                      </div>
+
+                      {/* Key Security Information */}
+                      {userKeySecurityData && (
+                        <div className="bg-yellow-50 rounded-lg p-3 sm:p-5 border border-yellow-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-yellow-800 mb-3 sm:mb-4 flex items-center">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Key & Security Information
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Lockbox Code</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border font-mono break-all">{userKeySecurityData.lockboxCode || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Lockbox Location</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{userKeySecurityData.lockboxLocation || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Alarm Code (Enter)</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border font-mono break-all">{userKeySecurityData.alarmCodeToEnter || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Alarm Code (Exit)</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border font-mono break-all">{userKeySecurityData.alarmCodeToExit || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Alarm Company</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{userKeySecurityData.alarmCompanyName || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Alarm Company Phone</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{userKeySecurityData.alarmCompanyPhone || 'Not provided'}</p>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Home Access List</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border whitespace-pre-wrap break-words">{userKeySecurityData.homeAccessList || 'Not provided'}</p>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Additional Comments</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border whitespace-pre-wrap break-words">{userKeySecurityData.additionalComments || 'Not provided'}</p>
+                            </div>
+                            {userKeySecurityData.accessPermissions && (
+                              <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-600 mb-2">Access Permissions</label>
+                                <div className="bg-white p-3 rounded border">
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(userKeySecurityData.accessPermissions)
+                                      .filter(([_, value]) => value)
+                                      .map(([key]) => (
+                                        <span key={key} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                          </svg>
+                                          {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                                        </span>
+                                      ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pets Information */}
+                      <div className="bg-green-50 rounded-lg p-3 sm:p-5 border border-green-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                          </svg>
+                          Registered Pets ({userPets.length})
+                        </h3>
+                        {userPets.length > 0 ? (
+                          <div className="space-y-3 sm:space-y-4">
+                            {userPets.map((pet, index) => (
+                              <div key={pet._id || pet.id || index} className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg mr-2 sm:mr-3 flex-shrink-0">
+                                      {pet.name?.charAt(0).toUpperCase() || 'P'}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h4 className="font-bold text-base sm:text-lg text-gray-900 break-words">{pet.name || 'Unnamed Pet'}</h4>
+                                      <p className="text-xs sm:text-sm text-gray-600 break-words">{pet.species || pet.type || 'Unknown'} • {pet.breed || 'Unknown breed'}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Age:</span>
+                                    <p className="text-gray-900">{pet.age || 'N/A'} years</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Weight:</span>
+                                    <p className="text-gray-900 break-words">{pet.weight || 'N/A'}</p>
+                                  </div>
+                                  <div className="col-span-2 sm:col-span-1">
+                                    <span className="text-gray-600 font-medium">Microchip:</span>
+                                    <p className="text-gray-900 font-mono text-xs break-all">{pet.microchipNumber || 'N/A'}</p>
+                                  </div>
+                                  <div className="col-span-2 sm:col-span-1">
+                                    <span className="text-gray-600 font-medium">Gender:</span>
+                                    <p className="text-gray-900">{pet.gender || 'N/A'}</p>
+                                  </div>
+                                </div>
+                                {pet.careInstructions && (
+                                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-green-100">
+                                    <span className="text-gray-600 font-medium text-xs sm:text-sm">Care Instructions:</span>
+                                    <p className="text-gray-900 text-xs sm:text-sm mt-1 break-words">{pet.careInstructions}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 bg-white rounded-lg border border-dashed border-green-300">
+                            <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <p className="text-gray-600 font-medium">No pets registered</p>
+                            <p className="text-gray-500 text-sm mt-1">This client hasn't added any pets yet</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Home Care Information */}
+                      {selectedUserDetails.homeCareInfo && (
+                        <div className="bg-blue-50 rounded-lg p-3 sm:p-5 border border-blue-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3 sm:mb-4 flex items-center">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Home Care Information
+                          </h3>
+                          <p className="text-sm sm:text-base text-gray-900 bg-white p-2 sm:p-3 rounded border whitespace-pre-wrap break-words">{selectedUserDetails.homeCareInfo}</p>
+                        </div>
+                      )}
+
+                      {/* Account Information */}
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Account Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Created At</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">
+                              {selectedUserDetails.createdAt ? formatDateTime(selectedUserDetails.createdAt) : 'N/A'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">User ID</label>
+                            <p className="text-gray-900 bg-white p-2 rounded border font-mono text-xs sm:text-sm break-all">
+                              {selectedUserDetails._id || selectedUserDetails.id || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 border-t flex-shrink-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto order-2 sm:order-1"
+                    onClick={() => {
+                      setIsUserDetailsModalOpen(false);
+                      setSelectedUserDetails(null);
+                      setUserPets([]);
+                      setUserKeySecurityData(null);
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
+                    onClick={() => {
+                      // Could add functionality to email or contact the client
+                      window.location.href = `mailto:${selectedUserDetails.email}`;
+                    }}
+                  >
+                    <svg className="w-4 h-4 mr-2 sm:inline hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Contact Client
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Admin: Bookings Tab */}
           {user?.role === "admin" && activeTab === "bookings" && (
             <Card>
@@ -2057,7 +2724,7 @@ function DashboardContent() {
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">End Date</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
-                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Pets</TableHead>
+                          {/* <TableHead className="bg-primary/10 text-primary font-bold text-base">Pets</TableHead> */}
                           <TableHead className="bg-primary/10 text-primary font-bold text-base text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -2089,7 +2756,7 @@ function DashboardContent() {
                             <TableCell className="whitespace-nowrap">{booking.endDate ? formatDateTime(booking.endDate) : 'N/A'}</TableCell>
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
                             <TableCell className="whitespace-nowrap">{booking.createdAt ? formatDateTime(booking.createdAt) : 'N/A'}</TableCell>
-                            <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell>
+                            {/* <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell> */}
                             <TableCell className="text-right">
                               <div className="flex flex-col space-y-2 min-w-[160px]">
                                 <div className="flex justify-end gap-2">
@@ -3311,7 +3978,7 @@ function DashboardContent() {
                                   size="sm" 
                                   className="text-xs px-3 py-1"
                                   onClick={() => {
-                                    setSelectedSitterDetails(sitter);
+                                    setSelectedSitterForDetails(sitter);
                                     setIsSitterDetailsModalOpen(true);
                                   }}
                                 >
@@ -3342,38 +4009,6 @@ function DashboardContent() {
                 </div>
                 </CardContent>
               </Card>
-
-              {/* Sitter Details Modal */}
-              {isSitterDetailsModalOpen && selectedSitterDetails && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
-                    <h2 className="text-2xl font-bold mb-1">Sitter Details</h2>
-                    <div className="mb-4">
-                      <div className="mb-2"><span className="font-semibold">Name:</span> {selectedSitterDetails.firstName} {selectedSitterDetails.lastName}</div>
-                      <div className="mb-2"><span className="font-semibold">Email:</span> {selectedSitterDetails.email}</div>
-                      <div className="mb-2"><span className="font-semibold">Phone:</span> {selectedSitterDetails.phone || selectedSitterDetails.emergencyContact || 'N/A'}</div>
-                      <div className="mb-2"><span className="font-semibold">Address:</span> {selectedSitterDetails.address || 'N/A'}</div>
-                      <div className="mb-2"><span className="font-semibold">Experience:</span> {selectedSitterDetails.homeCareInfo || 'N/A'}</div>
-                      <div className="mb-2"><span className="font-semibold">Active Bookings:</span> {selectedSitterDetails.activeBookingsCount || 0}</div>
-                      {selectedSitterDetails.specializations && selectedSitterDetails.specializations.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold">Specializations:</span> 
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {selectedSitterDetails.specializations.map((spec: string, index: number) => (
-                              <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {spec}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-end gap-3 mt-6">
-                      <Button variant="outline" onClick={() => { setIsSitterDetailsModalOpen(false); setSelectedSitterDetails(null); }}>Close</Button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Add-on Booking Modal */}
               {isAddonModalOpen && (
