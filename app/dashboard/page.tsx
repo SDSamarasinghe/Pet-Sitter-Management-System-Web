@@ -3567,9 +3567,9 @@ function DashboardContent() {
                                 <h3 className="text-lg font-semibold text-gray-900">
                                   {result.sitter.firstName} {result.sitter.lastName}
                                 </h3>
-                                <p className="text-sm text-gray-600">
+                                {/* <p className="text-sm text-gray-600">
                                   {result.sitter.email} • {result.sitter.phone || result.sitter.emergencyContact || 'No phone'}
-                                </p>
+                                </p> */}
                               </div>
                             </div>
 
