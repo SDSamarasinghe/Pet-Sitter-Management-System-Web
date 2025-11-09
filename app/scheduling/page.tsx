@@ -1516,13 +1516,13 @@ export default function SchedulingPage() {
               {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between sm:items-center px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 rounded-b-lg sticky bottom-0">
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button variant="outline" size="sm" className="text-primary w-full sm:w-auto text-xs sm:text-sm">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* <Button variant="outline" size="sm" className="text-primary w-full sm:w-auto text-xs sm:text-sm"> */}
+                    {/* <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="hidden sm:inline">Copy to calendar</span>
-                    <span className="sm:hidden">Copy to calendar</span>
-                  </Button>
+                    </svg> */}
+                    {/* <span className="hidden sm:inline">Copy to calendar</span>
+                    <span className="sm:hidden">Copy to calendar</span> */}
+                  {/* </Button> */}
                 </div>
                 <Button 
                   onClick={() => router.push(`/bookings/${selectedSchedule._id}`)}
