@@ -244,15 +244,15 @@ const CentralizedHeader: React.FC = () => {
             ) : (
               <div className="hidden lg:flex lg:items-center lg:space-x-3">
                 <Button 
-                  variant="ghost" 
                   onClick={() => handleNavigation("/login")}
-                  className="px-6 py-2 rounded-xl font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
+                  className="btn-primary px-6 py-2"
                 >
                   Sign In
                 </Button>
                 <Button 
+                  variant="outline"
                   onClick={() => handleNavigation("/signup")}
-                  className="btn-primary px-6 py-2"
+                  className="px-6 py-2 rounded-xl font-medium transition-all duration-200"
                 >
                   Join As Sitter
                 </Button>
@@ -299,15 +299,15 @@ const CentralizedHeader: React.FC = () => {
                 <>
                   <div className="border-t border-gray-200/50 pt-4 mt-4">
                     <Button 
-                      variant="ghost" 
                       onClick={() => handleNavigation("/login")}
-                      className="w-full justify-start px-4 py-3 rounded-xl font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
+                      className="w-full btn-primary py-3"
                     >
                       Sign In
                     </Button>
                     <Button 
+                      variant="outline"
                       onClick={() => handleNavigation("/signup")}
-                      className="w-full mt-2 btn-primary py-3"
+                      className="w-full mt-2 py-3"
                     >
                       Join As Sitter
                     </Button>
