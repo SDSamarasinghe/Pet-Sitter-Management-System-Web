@@ -20,6 +20,62 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
   const [petTabs, setPetTabs] = useState<{[key: string]: string}>({});
   const [showModal, setShowModal] = useState(false);
+  const [petsWithDetails, setPetsWithDetails] = useState<any[]>([]);
+  const [loadingPets, setLoadingPets] = useState(false);
+
+  // Fetch pet details when expanded
+  useEffect(() => {
+    const fetchPetDetails = async () => {
+      if (expanded && client.pets && client.pets.length > 0 && petsWithDetails.length === 0) {
+        setLoadingPets(true);
+        try {
+          const petsData = await Promise.all(
+            client.pets.map(async (pet: any) => {
+              const petId = pet._id || pet.id;
+              console.log(`Fetching details for pet ${pet.name} with ID:`, petId);
+              
+              let careData = null;
+              let medicalData = null;
+              
+              // Fetch care data
+              try {
+                const careResponse = await api.get(`/pets/${petId}/care`);
+                careData = careResponse.data;
+                console.log(`Care data for ${pet.name}:`, careData);
+              } catch (error: any) {
+                console.log(`No care data for pet ${pet.name}:`, error.response?.status);
+              }
+              
+              // Fetch medical data
+              try {
+                const medicalResponse = await api.get(`/pets/${petId}/medical`);
+                medicalData = medicalResponse.data;
+                console.log(`Medical data for ${pet.name}:`, medicalData);
+              } catch (error: any) {
+                console.log(`No medical data for pet ${pet.name}:`, error.response?.status);
+              }
+              
+              return {
+                ...pet,
+                careData,
+                medicalData
+              };
+            })
+          );
+          console.log('All pets with details:', petsData);
+          setPetsWithDetails(petsData);
+        } catch (error) {
+          console.error('Error fetching pet details:', error);
+        } finally {
+          setLoadingPets(false);
+        }
+      }
+    };
+    
+    fetchPetDetails();
+  }, [expanded, client.pets, petsWithDetails.length]);
+
+  const displayPets = petsWithDetails.length > 0 ? petsWithDetails : client.pets || [];
 
   return (
     <div className="border-b pb-2">
@@ -36,123 +92,351 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
         </div>
         <div>
           <Button size="sm" variant="outline" className="mr-2" onClick={() => setShowModal(true)}>View Details</Button>
-          <Button size="sm" variant="outline">Add Note</Button>
         </div>
       </div>
-      {expanded && client.pets && client.pets.length > 0 && (
+      {expanded && displayPets && displayPets.length > 0 && (
         <div className="bg-gray-50 rounded p-4 mt-2">
-          {client.pets.map((pet) => {
-            const currentTab = petTabs[pet.id] || "basic";
-            return (
-            <div key={pet.id} className="mb-6 bg-white rounded-lg p-4 border">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="font-bold text-lg">{pet.name}</h4>
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline">+ Add Note</Button>
-                  <Button size="sm" variant="outline">Profile Preview</Button>
-                  <Button size="sm" variant="outline">PDF Info Sheet</Button>
+          {loadingPets ? (
+            <div className="text-center py-4 text-gray-600">Loading pet details...</div>
+          ) : (
+            displayPets.map((pet) => {
+              const petId = pet._id || pet.id;
+              const currentTab = petTabs[petId] || "basic";
+              return (
+              <div key={petId} className="mb-6 bg-white rounded-lg p-4 border">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-bold text-lg">{pet.name}</h4>
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="outline">+ Add Note</Button>
+                    <Button size="sm" variant="outline">Profile Preview</Button>
+                    <Button size="sm" variant="outline">PDF Info Sheet</Button>
+                  </div>
                 </div>
+                
+                {/* Tab Navigation for Pet Details */}
+                <div className="border-b border-gray-200 mb-4">
+                  <nav className="flex space-x-4">
+                    <button
+                      onClick={() => setPetTabs(prev => ({...prev, [petId]: "basic"}))}
+                      className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                        currentTab === "basic"
+                          ? "border-primary text-primary"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Basic
+                    </button>
+                    <button
+                      onClick={() => setPetTabs(prev => ({...prev, [petId]: "care"}))}
+                      className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                        currentTab === "care"
+                          ? "border-primary text-primary"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Care
+                    </button>
+                    <button
+                      onClick={() => setPetTabs(prev => ({...prev, [petId]: "medical"}))}
+                      className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                        currentTab === "medical"
+                          ? "border-primary text-primary"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Medical
+                    </button>
+                    <button
+                      onClick={() => setPetTabs(prev => ({...prev, [petId]: "insurance"}))}
+                      className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                        currentTab === "insurance"
+                          ? "border-primary text-primary"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Insurance
+                    </button>
+                  </nav>
+                </div>
+
+                {/* Tab Content */}
+                {currentTab === "basic" && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">Type:</span>
+                      <div>{pet.species || pet.type || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Breed:</span>
+                      <div>{pet.breed || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Colouring:</span>
+                      <div>{pet.colouring || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Gender:</span>
+                      <div>{pet.gender || 'Not specified'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Age:</span>
+                      <div>{pet.age ? `${pet.age} years old` : 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Date of Birth:</span>
+                      <div>{pet.dateOfBirth || 'Not specified'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Weight:</span>
+                      <div>{pet.weight || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Spayed/Neutered:</span>
+                      <div>{pet.spayedNeutered || 'Not specified'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium text-gray-600">Microchip Number:</span>
+                      <div className="font-mono text-xs">{pet.microchipNumber || 'N/A'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium text-gray-600">Rabies Tag Number:</span>
+                      <div className="font-mono text-xs">{pet.rabiesTagNumber || 'N/A'}</div>
+                    </div>
+                    {pet.allergies && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-gray-600">Allergies:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.allergies}</div>
+                      </div>
+                    )}
+                    {pet.medications && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-gray-600">Medications:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.medications}</div>
+                      </div>
+                    )}
+                    {pet.behaviorNotes && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-gray-600">Behavior Notes:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.behaviorNotes}</div>
+                      </div>
+                    )}
+                    {pet.info && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-gray-600">Additional Info:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.info}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {currentTab === "care" && (
+                  <div className="text-sm space-y-3">
+                    {pet.careData ? (
+                      <>
+                        {pet.careData.personalityPhobiasPreferences && (
+                          <div>
+                            <span className="font-medium text-gray-600">Personality, Phobias & Preferences:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.personalityPhobiasPreferences}</div>
+                          </div>
+                        )}
+                        {pet.careData.typeOfFood && (
+                          <div>
+                            <span className="font-medium text-gray-600">Type of Food:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.typeOfFood}</div>
+                          </div>
+                        )}
+                        {pet.careData.dietFoodWaterInstructions && (
+                          <div>
+                            <span className="font-medium text-gray-600">Diet, Food & Water Instructions:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.dietFoodWaterInstructions}</div>
+                          </div>
+                        )}
+                        {pet.careData.anyHistoryOfBiting && (
+                          <div>
+                            <span className="font-medium text-gray-600">History of Biting:</span>
+                            <div className="mt-1">{pet.careData.anyHistoryOfBiting}</div>
+                          </div>
+                        )}
+                        {pet.careData.locationOfStoredPetFood && (
+                          <div>
+                            <span className="font-medium text-gray-600">Location of Stored Pet Food:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.locationOfStoredPetFood}</div>
+                          </div>
+                        )}
+                        {pet.careData.litterBoxLocation && (
+                          <div>
+                            <span className="font-medium text-gray-600">Litter Box Location:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.litterBoxLocation}</div>
+                          </div>
+                        )}
+                        {pet.careData.locationOfPetCarrier && (
+                          <div>
+                            <span className="font-medium text-gray-600">Location of Pet Carrier:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.locationOfPetCarrier}</div>
+                          </div>
+                        )}
+                        {pet.careData.careInstructions && (
+                          <div>
+                            <span className="font-medium text-gray-600">Care Instructions:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.careInstructions}</div>
+                          </div>
+                        )}
+                        {pet.careData.feedingSchedule && (
+                          <div>
+                            <span className="font-medium text-gray-600">Feeding Schedule:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.feedingSchedule}</div>
+                          </div>
+                        )}
+                        {pet.careData.exerciseRequirements && (
+                          <div>
+                            <span className="font-medium text-gray-600">Exercise Requirements:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.exerciseRequirements}</div>
+                          </div>
+                        )}
+                        {pet.careData.anyAdditionalInfo && (
+                          <div>
+                            <span className="font-medium text-gray-600">Additional Care Info:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careData.anyAdditionalInfo}</div>
+                          </div>
+                        )}
+                        {!pet.careData.personalityPhobiasPreferences && !pet.careData.typeOfFood && 
+                         !pet.careData.dietFoodWaterInstructions && !pet.careData.careInstructions && 
+                         !pet.careData.feedingSchedule && !pet.careData.exerciseRequirements && (
+                          <div className="text-gray-500 text-center py-4">No care information available</div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {pet.careInstructions && (
+                          <div>
+                            <span className="font-medium text-gray-600">Care Instructions:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.careInstructions}</div>
+                          </div>
+                        )}
+                        {pet.feedingSchedule && (
+                          <div>
+                            <span className="font-medium text-gray-600">Feeding Schedule:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.feedingSchedule}</div>
+                          </div>
+                        )}
+                        {pet.exerciseRequirements && (
+                          <div>
+                            <span className="font-medium text-gray-600">Exercise Requirements:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.exerciseRequirements}</div>
+                          </div>
+                        )}
+                        {pet.dietaryRestrictions && (
+                          <div>
+                            <span className="font-medium text-gray-600">Dietary Restrictions:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.dietaryRestrictions}</div>
+                          </div>
+                        )}
+                        {!pet.careInstructions && !pet.feedingSchedule && !pet.exerciseRequirements && !pet.dietaryRestrictions && (
+                          <div className="text-gray-500 text-center py-4">No care information available</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {currentTab === "medical" && (
+                  <div className="text-sm">
+                    {pet.medicalData ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="font-medium text-gray-600">Vet Business Name:</span>
+                            <div>{pet.medicalData.vetBusinessName || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Vet Doctor Name:</span>
+                            <div>{pet.medicalData.vetDoctorName || 'N/A'}</div>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="font-medium text-gray-600">Vet Address:</span>
+                            <div className="whitespace-pre-wrap">{pet.medicalData.vetAddress || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Vet Phone Number:</span>
+                            <div>{pet.medicalData.vetPhoneNumber || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Current on Vaccines:</span>
+                            <div>{pet.medicalData.currentOnVaccines || 'N/A'}</div>
+                          </div>
+                          {pet.medicalData.onAnyMedication && (
+                            <div className="col-span-2">
+                              <span className="font-medium text-gray-600">On Any Medication:</span>
+                              <div className="mt-1 whitespace-pre-wrap">{pet.medicalData.onAnyMedication}</div>
+                            </div>
+                          )}
+                        </div>
+                        {pet.vaccinations && (
+                          <div>
+                            <span className="font-medium text-gray-600">Vaccinations:</span>
+                            <div className="mt-1 whitespace-pre-wrap">{pet.vaccinations}</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : pet.vetBusinessName || pet.vetDoctorName || pet.currentOnVaccines ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          {pet.vetBusinessName && (
+                            <div>
+                              <span className="font-medium text-gray-600">Vet Business:</span>
+                              <div>{pet.vetBusinessName}</div>
+                            </div>
+                          )}
+                          {pet.vetDoctorName && (
+                            <div>
+                              <span className="font-medium text-gray-600">Vet Doctor:</span>
+                              <div>{pet.vetDoctorName}</div>
+                            </div>
+                          )}
+                          {pet.currentOnVaccines && (
+                            <div className="col-span-2">
+                              <span className="font-medium text-gray-600">Vaccinations:</span>
+                              <div>{pet.currentOnVaccines}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-4">No medical information available</div>
+                    )}
+                  </div>
+                )}
+
+                {currentTab === "insurance" && (
+                  <div className="text-sm space-y-3">
+                    {pet.insuranceDetails ? (
+                      <div>
+                        <span className="font-medium text-gray-600">Insurance Details:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.insuranceDetails}</div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-2">
+                        <p className="text-gray-500">No insurance information available</p>
+                      </div>
+                    )}
+                    {pet.emergencyContact && (
+                      <div>
+                        <span className="font-medium text-gray-600">Pet Emergency Contact:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.emergencyContact}</div>
+                      </div>
+                    )}
+                    {pet.veterinarianInfo && (
+                      <div>
+                        <span className="font-medium text-gray-600">Veterinarian Info:</span>
+                        <div className="mt-1 whitespace-pre-wrap">{pet.veterinarianInfo}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              
-              {/* Tab Navigation for Pet Details */}
-              <div className="border-b border-gray-200 mb-4">
-                <nav className="flex space-x-4">
-                  <button
-                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "basic"}))}
-                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
-                      currentTab === "basic"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    Basic
-                  </button>
-                  <button
-                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "care"}))}
-                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
-                      currentTab === "care"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    Care
-                  </button>
-                  <button
-                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "medical"}))}
-                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
-                      currentTab === "medical"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    Medical
-                  </button>
-                  <button
-                    onClick={() => setPetTabs(prev => ({...prev, [pet.id]: "insurance"}))}
-                    className={`py-2 px-4 border-b-2 font-medium text-sm ${
-                      currentTab === "insurance"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    Insurance
-                  </button>
-                </nav>
-              </div>
-
-              {/* Tab Content */}
-              {currentTab === "basic" && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-600">Type:</span>
-                    <div>{pet.species || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Breed:</span>
-                    <div>{pet.breed || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Age:</span>
-                    <div>{pet.age} years old</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Gender:</span>
-                    <div>Not specified</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Date of Birth:</span>
-                    <div>Not specified</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Spayed/Neutered:</span>
-                    <div>Not specified</div>
-                  </div>
-                </div>
-              )}
-
-              {currentTab === "care" && (
-                <div className="text-sm">
-                  <div className="mb-2">
-                    <span className="font-medium text-gray-600">Care Instructions:</span>
-                    <div className="mt-1">{pet.careInstructions || 'No special care instructions provided.'}</div>
-                  </div>
-                </div>
-              )}
-
-              {currentTab === "medical" && (
-                <div className="text-sm">
-                  <div className="text-gray-500">Medical information not available.</div>
-                </div>
-              )}
-
-              {currentTab === "insurance" && (
-                <div className="text-sm">
-                  <div className="text-gray-500">Insurance information not available.</div>
-                </div>
-              )}
-            </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       )}
       {expanded && (!client.pets || client.pets.length === 0) && (
@@ -162,7 +446,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
       {/* Client Details Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Client Details</h2>
               <button
@@ -191,8 +475,16 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                     <p className="text-gray-900">{client.email || 'Not provided'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600">Phone</label>
-                    <p className="text-gray-900">{client.phone || 'Not provided'}</p>
+                    <label className="block text-sm font-medium text-gray-600">Cell Phone</label>
+                    <p className="text-gray-900">{client.cellPhoneNumber || client.phone || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Home Phone</label>
+                    <p className="text-gray-900">{client.homePhoneNumber || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">ZIP / Postal Code</label>
+                    <p className="text-gray-900">{client.zipCode || 'Not provided'}</p>
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-600">Address</label>
@@ -204,22 +496,119 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
               {/* Emergency Contact */}
               <div className="bg-red-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-red-800">Emergency Contact</h3>
-                <p className="text-gray-900">{client.emergencyContact || 'Not provided'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">First Name</label>
+                    <p className="text-gray-900">{client.emergencyContactFirstName || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Last Name</label>
+                    <p className="text-gray-900">{client.emergencyContactLastName || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Cell Phone</label>
+                    <p className="text-gray-900">{client.emergencyContactCellPhone || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Home Phone</label>
+                    <p className="text-gray-900">{client.emergencyContactHomePhone || 'Not provided'}</p>
+                  </div>
+                  {client.emergencyContact && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-600">Legacy Emergency Contact</label>
+                      <p className="text-gray-900">{client.emergencyContact}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Key Handling */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-blue-800">Key Handling</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Key Handling Method</label>
+                    <p className="text-gray-900 font-medium">{client.keyHandlingMethod || 'Not provided'}</p>
+                  </div>
+                  {client.superintendentContact && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Superintendent / Building Management Contact</label>
+                      <p className="text-gray-900 whitespace-pre-line">{client.superintendentContact}</p>
+                    </div>
+                  )}
+                  {client.friendNeighbourContact && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Friend / Neighbour Contact</label>
+                      <p className="text-gray-900 whitespace-pre-line">{client.friendNeighbourContact}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Home Care Information */}
               <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-primary">Home Care Information</h3>
-                <p className="text-gray-900">{client.homeCareInfo || 'Not provided'}</p>
+                <h3 className="text-lg font-semibold mb-3 text-green-800">Home Care Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Parking for Sitter</label>
+                    <p className="text-gray-900">{client.parkingForSitter || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Garbage Collection Day</label>
+                    <p className="text-gray-900">{client.garbageCollectionDay || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Fuse Box Location</label>
+                    <p className="text-gray-900">{client.fuseBoxLocation || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Video Surveillance</label>
+                    <p className="text-gray-900">{client.videoSurveillance || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Cleaning Supply Location</label>
+                    <p className="text-gray-900">{client.cleaningSupplyLocation || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Broom/Dustpan Location</label>
+                    <p className="text-gray-900">{client.broomDustpanLocation || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Mail Pick Up</label>
+                    <p className="text-gray-900">{client.mailPickUp || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Water Indoor Plants</label>
+                    <p className="text-gray-900">{client.waterIndoorPlants || 'Not provided'}</p>
+                  </div>
+                  {client.outOfBoundAreas && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-600">Out of Bound Areas</label>
+                      <p className="text-gray-900 whitespace-pre-line">{client.outOfBoundAreas}</p>
+                    </div>
+                  )}
+                  {client.additionalHomeCareInfo && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-600">Additional Home Care Info</label>
+                      <p className="text-gray-900 whitespace-pre-line">{client.additionalHomeCareInfo}</p>
+                    </div>
+                  )}
+                  {client.homeCareInfo && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-600">Legacy Home Care Info</label>
+                      <p className="text-gray-900 whitespace-pre-line">{client.homeCareInfo}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Pet Summary */}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-green-800">Pet Summary</h3>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-purple-800">Pet Summary</h3>
                 {client.pets && client.pets.length > 0 ? (
                   <div className="space-y-2">
                     {client.pets.map((pet) => (
-                      <div key={pet.id} className="flex justify-between items-center bg-white p-2 rounded">
+                      <div key={pet.id} className="flex justify-between items-center bg-white p-3 rounded shadow-sm">
                         <span className="font-medium">{pet.name}</span>
                         <span className="text-sm text-gray-600">{pet.species} • {pet.breed} • {pet.age} years</span>
                       </div>
@@ -254,9 +643,29 @@ interface User {
   lastName: string;
   role: string;
   phone?: string;
+  cellPhoneNumber?: string;
+  homePhoneNumber?: string;
   address?: string;
+  zipCode?: string;
   emergencyContact?: string;
+  emergencyContactFirstName?: string;
+  emergencyContactLastName?: string;
+  emergencyContactCellPhone?: string;
+  emergencyContactHomePhone?: string;
   homeCareInfo?: string;
+  parkingForSitter?: string;
+  garbageCollectionDay?: string;
+  fuseBoxLocation?: string;
+  outOfBoundAreas?: string;
+  videoSurveillance?: string;
+  cleaningSupplyLocation?: string;
+  broomDustpanLocation?: string;
+  mailPickUp?: string;
+  waterIndoorPlants?: string;
+  additionalHomeCareInfo?: string;
+  keyHandlingMethod?: string;
+  superintendentContact?: string;
+  friendNeighbourContact?: string;
   pets?: Pet[];
   status?: 'pending' | 'approved' | 'rejected'; // Add status for user approval
   createdAt?: string;
@@ -265,12 +674,49 @@ interface User {
 
 interface Pet {
   id: string;
+  _id?: string;
   name: string;
+  type?: string;
   species: string;
-  breed: string;
-  age: number;
+  breed?: string;
+  colouring?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  spayedNeutered?: string;
+  age: number | string;
+  weight?: string;
+  microchipNumber?: string;
+  rabiesTagNumber?: string;
+  insuranceDetails?: string;
+  vaccinations?: string;
+  medications?: string;
+  allergies?: string;
+  dietaryRestrictions?: string;
+  behaviorNotes?: string;
+  emergencyContact?: string;
+  veterinarianInfo?: string;
+  photo?: string;
   photoUrl?: string;
-  careInstructions: string;
+  careInstructions?: string;
+  info?: string;
+  // Care details
+  personalityPhobiasPreferences?: string;
+  typeOfFood?: string;
+  dietFoodWaterInstructions?: string;
+  anyHistoryOfBiting?: string;
+  locationOfStoredPetFood?: string;
+  litterBoxLocation?: string;
+  locationOfPetCarrier?: string;
+  anyAdditionalInfo?: string;
+  feedingSchedule?: string;
+  exerciseRequirements?: string;
+  // Medical details
+  vetBusinessName?: string;
+  vetDoctorName?: string;
+  vetAddress?: string;
+  vetPhoneNumber?: string;
+  currentOnVaccines?: string;
+  onAnyMedication?: string;
 }
 
 interface Booking {
@@ -385,6 +831,7 @@ function DashboardContent() {
   const [userDetailsLoading, setUserDetailsLoading] = useState(false);
   const [userPets, setUserPets] = useState<any[]>([]);
   const [userKeySecurityData, setUserKeySecurityData] = useState<any>(null);
+  const [petTabStates, setPetTabStates] = useState<{ [key: string]: string }>({});
 
   // Sitter details modal states
   const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
@@ -461,10 +908,42 @@ function DashboardContent() {
     try {
       const userId = user._id || user.id;
       
-      // Fetch user's pets
+      // Fetch user's pets with care and medical data
       try {
         const petsResponse = await api.get(`/pets/user/${userId}`);
-        setUserPets(Array.isArray(petsResponse.data) ? petsResponse.data : [petsResponse.data]);
+        const pets = Array.isArray(petsResponse.data) ? petsResponse.data : [petsResponse.data];
+        
+        // Fetch care and medical data for each pet
+        const petsWithDetails = await Promise.all(
+          pets.map(async (pet: any) => {
+            let careData = null;
+            let medicalData = null;
+            
+            // Fetch care data
+            try {
+              const careResponse = await api.get(`/pets/${pet._id}/care`);
+              careData = careResponse.data;
+            } catch (error: any) {
+              console.log(`No care data for pet ${pet.name}`);
+            }
+            
+            // Fetch medical data
+            try {
+              const medicalResponse = await api.get(`/pets/${pet._id}/medical`);
+              medicalData = medicalResponse.data;
+            } catch (error: any) {
+              console.log(`No medical data for pet ${pet.name}`);
+            }
+            
+            return {
+              ...pet,
+              careData,
+              medicalData
+            };
+          })
+        );
+        
+        setUserPets(petsWithDetails);
       } catch (error) {
         console.error('Error fetching user pets:', error);
         setUserPets([]);
@@ -2426,6 +2905,7 @@ function DashboardContent() {
                       setSelectedUserDetails(null);
                       setUserPets([]);
                       setUserKeySecurityData(null);
+                      setPetTabStates({});
                     }}
                     className="text-white hover:bg-white/20 rounded-full p-2 transition-colors flex-shrink-0"
                   >
@@ -2571,45 +3051,354 @@ function DashboardContent() {
                         </h3>
                         {userPets.length > 0 ? (
                           <div className="space-y-3 sm:space-y-4">
-                            {userPets.map((pet, index) => (
-                              <div key={pet._id || pet.id || index} className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex items-center">
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg mr-2 sm:mr-3 flex-shrink-0">
-                                      {pet.name?.charAt(0).toUpperCase() || 'P'}
+                            {userPets.map((pet, index) => {
+                              const petId = pet._id || pet.id || `pet-${index}`;
+                              const currentTab = petTabStates[petId] || 'basic';
+                              
+                              return (
+                                <div key={petId} className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
+                                  {/* Pet Header */}
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center">
+                                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg mr-2 sm:mr-3 flex-shrink-0">
+                                        {pet.name?.charAt(0).toUpperCase() || 'P'}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <h4 className="font-bold text-base sm:text-lg text-gray-900 break-words">{pet.name || 'Unnamed Pet'}</h4>
+                                        <p className="text-xs sm:text-sm text-gray-600 break-words">{pet.species || pet.type || 'Unknown'} • {pet.breed || 'Unknown breed'}</p>
+                                      </div>
                                     </div>
-                                    <div className="min-w-0">
-                                      <h4 className="font-bold text-base sm:text-lg text-gray-900 break-words">{pet.name || 'Unnamed Pet'}</h4>
-                                      <p className="text-xs sm:text-sm text-gray-600 break-words">{pet.species || pet.type || 'Unknown'} • {pet.breed || 'Unknown breed'}</p>
+                                  </div>
+                                  
+                                  {/* Tabs */}
+                                  <div className="border-b border-gray-200 mb-3">
+                                    <div className="flex space-x-4 text-sm">
+                                      <button
+                                        onClick={() => setPetTabStates(prev => ({ ...prev, [petId]: 'basic' }))}
+                                        className={`pb-2 px-1 border-b-2 transition-colors ${
+                                          currentTab === 'basic'
+                                            ? 'border-primary text-primary font-medium'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                      >
+                                        Basic
+                                      </button>
+                                      <button
+                                        onClick={() => setPetTabStates(prev => ({ ...prev, [petId]: 'care' }))}
+                                        className={`pb-2 px-1 border-b-2 transition-colors ${
+                                          currentTab === 'care'
+                                            ? 'border-primary text-primary font-medium'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                      >
+                                        Care
+                                      </button>
+                                      <button
+                                        onClick={() => setPetTabStates(prev => ({ ...prev, [petId]: 'medical' }))}
+                                        className={`pb-2 px-1 border-b-2 transition-colors ${
+                                          currentTab === 'medical'
+                                            ? 'border-primary text-primary font-medium'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                      >
+                                        Medical
+                                      </button>
+                                      <button
+                                        onClick={() => setPetTabStates(prev => ({ ...prev, [petId]: 'insurance' }))}
+                                        className={`pb-2 px-1 border-b-2 transition-colors ${
+                                          currentTab === 'insurance'
+                                            ? 'border-primary text-primary font-medium'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                      >
+                                        Insurance
+                                      </button>
                                     </div>
                                   </div>
+                                  
+                                  {/* Tab Content */}
+                                  {currentTab === 'basic' && (
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Type:</span>
+                                        <p className="text-gray-900">{pet.type || pet.species || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Breed:</span>
+                                        <p className="text-gray-900 break-words">{pet.breed || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Colouring:</span>
+                                        <p className="text-gray-900">{pet.colouring || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Gender:</span>
+                                        <p className="text-gray-900">{pet.gender || 'Not specified'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Age:</span>
+                                        <p className="text-gray-900">{pet.age ? `${pet.age} years old` : 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Date of Birth:</span>
+                                        <p className="text-gray-900">{pet.dateOfBirth || 'Not specified'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Weight:</span>
+                                        <p className="text-gray-900 break-words">{pet.weight || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-600 font-medium">Spayed/Neutered:</span>
+                                        <p className="text-gray-900">{pet.spayedNeutered || 'Not specified'}</p>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <span className="text-gray-600 font-medium">Microchip Number:</span>
+                                        <p className="text-gray-900 font-mono text-xs break-all">{pet.microchipNumber || 'N/A'}</p>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <span className="text-gray-600 font-medium">Rabies Tag Number:</span>
+                                        <p className="text-gray-900 font-mono text-xs break-all">{pet.rabiesTagNumber || 'N/A'}</p>
+                                      </div>
+                                      {pet.allergies && (
+                                        <div className="col-span-2">
+                                          <span className="text-gray-600 font-medium">Allergies:</span>
+                                          <p className="text-gray-900 whitespace-pre-wrap">{pet.allergies}</p>
+                                        </div>
+                                      )}
+                                      {pet.medications && (
+                                        <div className="col-span-2">
+                                          <span className="text-gray-600 font-medium">Medications:</span>
+                                          <p className="text-gray-900 whitespace-pre-wrap">{pet.medications}</p>
+                                        </div>
+                                      )}
+                                      {pet.behaviorNotes && (
+                                        <div className="col-span-2">
+                                          <span className="text-gray-600 font-medium">Behavior Notes:</span>
+                                          <p className="text-gray-900 whitespace-pre-wrap">{pet.behaviorNotes}</p>
+                                        </div>
+                                      )}
+                                      {pet.info && (
+                                        <div className="col-span-2">
+                                          <span className="text-gray-600 font-medium">Additional Info:</span>
+                                          <p className="text-gray-900 whitespace-pre-wrap">{pet.info}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {currentTab === 'care' && (
+                                    <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                                      {pet.careData ? (
+                                        <>
+                                          {pet.careData.personalityPhobiasPreferences && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Personality, Phobias & Preferences:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.personalityPhobiasPreferences}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.typeOfFood && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Type of Food:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.typeOfFood}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.dietFoodWaterInstructions && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Diet, Food & Water Instructions:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.dietFoodWaterInstructions}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.anyHistoryOfBiting && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">History of Biting:</span>
+                                              <p className="text-gray-900 mt-1">{pet.careData.anyHistoryOfBiting}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.locationOfStoredPetFood && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Location of Stored Pet Food:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.locationOfStoredPetFood}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.litterBoxLocation && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Litter Box Location:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.litterBoxLocation}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.locationOfPetCarrier && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Location of Pet Carrier:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.locationOfPetCarrier}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.careInstructions && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Care Instructions:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.careInstructions}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.feedingSchedule && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Feeding Schedule:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.feedingSchedule}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.exerciseRequirements && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Exercise Requirements:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.exerciseRequirements}</p>
+                                            </div>
+                                          )}
+                                          {pet.careData.anyAdditionalInfo && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Additional Care Info:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careData.anyAdditionalInfo}</p>
+                                            </div>
+                                          )}
+                                          {!pet.careData.personalityPhobiasPreferences && !pet.careData.typeOfFood && 
+                                           !pet.careData.dietFoodWaterInstructions && !pet.careData.careInstructions && 
+                                           !pet.careData.feedingSchedule && !pet.careData.exerciseRequirements && (
+                                            <p className="text-gray-500 text-center py-4">No care information available</p>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <>
+                                          {pet.careInstructions && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Care Instructions:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.careInstructions}</p>
+                                            </div>
+                                          )}
+                                          {pet.feedingSchedule && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Feeding Schedule:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.feedingSchedule}</p>
+                                            </div>
+                                          )}
+                                          {pet.exerciseRequirements && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Exercise Requirements:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.exerciseRequirements}</p>
+                                            </div>
+                                          )}
+                                          {pet.dietaryRestrictions && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Dietary Restrictions:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.dietaryRestrictions}</p>
+                                            </div>
+                                          )}
+                                          {!pet.careInstructions && !pet.feedingSchedule && !pet.exerciseRequirements && !pet.dietaryRestrictions && (
+                                            <p className="text-gray-500 text-center py-4">No care information available</p>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {currentTab === 'medical' && (
+                                    <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                                      {pet.medicalData ? (
+                                        <div className="space-y-3">
+                                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Vet Business Name:</span>
+                                              <p className="text-gray-900">{pet.medicalData.vetBusinessName || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Vet Doctor Name:</span>
+                                              <p className="text-gray-900">{pet.medicalData.vetDoctorName || 'N/A'}</p>
+                                            </div>
+                                            <div className="col-span-2">
+                                              <span className="text-gray-600 font-medium">Vet Address:</span>
+                                              <p className="text-gray-900 break-words whitespace-pre-wrap">{pet.medicalData.vetAddress || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Vet Phone Number:</span>
+                                              <p className="text-gray-900">{pet.medicalData.vetPhoneNumber || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Current on Vaccines:</span>
+                                              <p className="text-gray-900">{pet.medicalData.currentOnVaccines || 'N/A'}</p>
+                                            </div>
+                                            {pet.medicalData.onAnyMedication && (
+                                              <div className="col-span-2">
+                                                <span className="text-gray-600 font-medium">On Any Medication:</span>
+                                                <p className="text-gray-900 whitespace-pre-wrap">{pet.medicalData.onAnyMedication}</p>
+                                              </div>
+                                            )}
+                                            {pet.medicalData.rabiesTagNumber && (
+                                              <div className="col-span-2">
+                                                <span className="text-gray-600 font-medium">Rabies Tag Number:</span>
+                                                <p className="text-gray-900 font-mono text-xs">{pet.medicalData.rabiesTagNumber}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                          {pet.vaccinations && (
+                                            <div>
+                                              <span className="text-gray-600 font-medium">Vaccinations:</span>
+                                              <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.vaccinations}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : pet.vetBusinessName || pet.vetDoctorName || pet.currentOnVaccines ? (
+                                        <div className="space-y-3">
+                                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                            {pet.vetBusinessName && (
+                                              <div>
+                                                <span className="text-gray-600 font-medium">Vet Business:</span>
+                                                <p className="text-gray-900">{pet.vetBusinessName}</p>
+                                              </div>
+                                            )}
+                                            {pet.vetDoctorName && (
+                                              <div>
+                                                <span className="text-gray-600 font-medium">Vet Doctor:</span>
+                                                <p className="text-gray-900">{pet.vetDoctorName}</p>
+                                              </div>
+                                            )}
+                                            {pet.currentOnVaccines && (
+                                              <div className="col-span-2">
+                                                <span className="text-gray-600 font-medium">Vaccinations:</span>
+                                                <p className="text-gray-900">{pet.currentOnVaccines}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className="text-gray-500 text-center py-4">No medical information available</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {currentTab === 'insurance' && (
+                                    <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                                      {pet.insuranceDetails ? (
+                                        <div>
+                                          <span className="text-gray-600 font-medium">Insurance Details:</span>
+                                          <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.insuranceDetails}</p>
+                                        </div>
+                                      ) : (
+                                        <div className="text-center py-4">
+                                          <p className="text-gray-500">No insurance information available</p>
+                                        </div>
+                                      )}
+                                      {pet.emergencyContact && (
+                                        <div>
+                                          <span className="text-gray-600 font-medium">Pet Emergency Contact:</span>
+                                          <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.emergencyContact}</p>
+                                        </div>
+                                      )}
+                                      {pet.veterinarianInfo && (
+                                        <div>
+                                          <span className="text-gray-600 font-medium">Veterinarian Info:</span>
+                                          <p className="text-gray-900 mt-1 whitespace-pre-wrap break-words">{pet.veterinarianInfo}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
-                                  <div>
-                                    <span className="text-gray-600 font-medium">Age:</span>
-                                    <p className="text-gray-900">{pet.age || 'N/A'} years</p>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-600 font-medium">Weight:</span>
-                                    <p className="text-gray-900 break-words">{pet.weight || 'N/A'}</p>
-                                  </div>
-                                  <div className="col-span-2 sm:col-span-1">
-                                    <span className="text-gray-600 font-medium">Microchip:</span>
-                                    <p className="text-gray-900 font-mono text-xs break-all">{pet.microchipNumber || 'N/A'}</p>
-                                  </div>
-                                  <div className="col-span-2 sm:col-span-1">
-                                    <span className="text-gray-600 font-medium">Gender:</span>
-                                    <p className="text-gray-900">{pet.gender || 'N/A'}</p>
-                                  </div>
-                                </div>
-                                {pet.careInstructions && (
-                                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-green-100">
-                                    <span className="text-gray-600 font-medium text-xs sm:text-sm">Care Instructions:</span>
-                                    <p className="text-gray-900 text-xs sm:text-sm mt-1 break-words">{pet.careInstructions}</p>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="text-center py-8 bg-white rounded-lg border border-dashed border-green-300">
@@ -2672,6 +3461,7 @@ function DashboardContent() {
                       setSelectedUserDetails(null);
                       setUserPets([]);
                       setUserKeySecurityData(null);
+                      setPetTabStates({});
                     }}
                   >
                     Close
