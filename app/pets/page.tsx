@@ -117,52 +117,77 @@ export default function MyPetsPage() {
       const token = localStorage.getItem('token');
       console.log('Token exists:', !!token);
       
-      // Use the basic pets endpoint that we know works
+      // Fetch basic pet information
       const response = await api.get(`/pets/user/${user.userId}`);
       
       console.log('Pets API response:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
-        // Transform the API response to match the expected format
-        const transformedData = response.data.map((pet: any) => ({
-          pet: {
-            _id: pet._id,
-            name: pet.name,
-            type: pet.type,
-            breed: pet.breed,
-            age: pet.age,
-            weight: pet.weight,
-            photo: pet.photo,
-            microchipNumber: pet.microchipNumber,
-            medications: pet.medications,
-            allergies: pet.allergies,
-            dietaryRestrictions: pet.dietaryRestrictions,
-            behaviorNotes: pet.behaviorNotes,
-            emergencyContact: pet.emergencyContact,
-            veterinarianInfo: pet.veterinarianInfo,
-            careInstructions: pet.careInstructions,
-            info: pet.info
-          },
-          care: pet.careData ? {
-            _id: pet.careData._id,
-            petId: pet.careData.petId,
-            careInstructions: pet.careData.careInstructions,
-            feedingSchedule: pet.careData.feedingSchedule,
-            exerciseRequirements: pet.careData.exerciseRequirements
-          } : null,
-          medical: pet.medicalData ? {
-            _id: pet.medicalData._id,
-            petId: pet.medicalData.petId,
-            vetBusinessName: pet.medicalData.vetBusinessName,
-            vetDoctorName: pet.medicalData.vetDoctorName,
-            vetAddress: pet.medicalData.vetAddress,
-            vetPhoneNumber: pet.medicalData.vetPhoneNumber,
-            currentOnVaccines: pet.medicalData.currentOnVaccines
-          } : null
-        }));
+        // Fetch care and medical data for each pet
+        const petsWithDetails = await Promise.all(
+          response.data.map(async (pet: any) => {
+            let careData = null;
+            let medicalData = null;
+            
+            // Fetch care data
+            try {
+              const careResponse = await api.get(`/pets/${pet._id}/care`);
+              careData = careResponse.data;
+              console.log(`Care data for ${pet.name}:`, careData);
+            } catch (error: any) {
+              console.log(`No care data for pet ${pet.name}:`, error.response?.status);
+            }
+            
+            // Fetch medical data
+            try {
+              const medicalResponse = await api.get(`/pets/${pet._id}/medical`);
+              medicalData = medicalResponse.data;
+              console.log(`Medical data for ${pet.name}:`, medicalData);
+            } catch (error: any) {
+              console.log(`No medical data for pet ${pet.name}:`, error.response?.status);
+            }
+            
+            return {
+              pet: {
+                _id: pet._id,
+                name: pet.name,
+                type: pet.type,
+                breed: pet.breed,
+                age: pet.age,
+                weight: pet.weight,
+                photo: pet.photo,
+                microchipNumber: pet.microchipNumber,
+                medications: pet.medications,
+                allergies: pet.allergies,
+                dietaryRestrictions: pet.dietaryRestrictions,
+                behaviorNotes: pet.behaviorNotes,
+                emergencyContact: pet.emergencyContact,
+                veterinarianInfo: pet.veterinarianInfo,
+                careInstructions: pet.careInstructions,
+                info: pet.info
+              },
+              care: careData ? {
+                _id: careData._id,
+                petId: careData.petId,
+                careInstructions: careData.careInstructions,
+                feedingSchedule: careData.feedingSchedule,
+                exerciseRequirements: careData.exerciseRequirements
+              } : null,
+              medical: medicalData ? {
+                _id: medicalData._id,
+                petId: medicalData.petId,
+                vetBusinessName: medicalData.vetBusinessName,
+                vetDoctorName: medicalData.vetDoctorName,
+                vetAddress: medicalData.vetAddress,
+                vetPhoneNumber: medicalData.vetPhoneNumber,
+                currentOnVaccines: medicalData.currentOnVaccines
+              } : null
+            };
+          })
+        );
         
-        console.log('Transformed pets data:', transformedData);
-        setPets(transformedData);
+        console.log('Pets with complete details:', petsWithDetails);
+        setPets(petsWithDetails);
       } else {
         console.warn('Unexpected pets response format:', response.data);
         setPets([]);
