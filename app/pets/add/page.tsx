@@ -14,21 +14,47 @@ import { isAuthenticated } from '@/lib/auth';
 
 export default function AddPetPage() {
   const [formData, setFormData] = useState({
+    // Basic Information
     name: '',
     type: '',
-    photo: '',
     breed: '',
+    colouring: '',
+    gender: '',
+    dateOfBirth: '',
     age: '',
-    species: '',
     weight: 0,
+    spayedNeutered: '',
     microchipNumber: '',
+    rabiesTagNumber: '',
+    insuranceDetails: '',
+    
+    // Medical Information
+    vetBusinessName: '',
+    vetDoctorName: '',
+    vetAddress: '',
+    vetPhoneNumber: '',
+    currentOnVaccines: '',
+    onAnyMedication: '',
     vaccinations: '',
     medications: '',
     allergies: '',
+    
+    // Care Information
+    personalityPhobiasPreferences: '',
+    typeOfFood: '',
+    dietFoodWaterInstructions: '',
+    anyHistoryOfBiting: '',
+    locationOfStoredPetFood: '',
+    litterBoxLocation: '',
+    locationOfPetCarrier: '',
+    feedingSchedule: '',
+    exerciseRequirements: '',
+    anyAdditionalInfo: '',
+    
+    // Other
     dietaryRestrictions: '',
     behaviorNotes: '',
     emergencyContact: '',
-    veterinarianInfo: '',
     careInstructions: '',
     info: '',
   });``
@@ -83,24 +109,28 @@ export default function AddPetPage() {
     setSuccess('');
 
     try {
-      // Create FormData for multipart/form-data request
+      // Step 1: Create FormData for basic pet information with photo
       const formDataToSend = new FormData();
       
-      // Add all text fields
+      // Add basic pet fields only
       formDataToSend.append('name', formData.name);
       if (formData.type) formDataToSend.append('type', formData.type);
       if (formData.breed) formDataToSend.append('breed', formData.breed);
+      if (formData.colouring) formDataToSend.append('colouring', formData.colouring);
+      if (formData.gender) formDataToSend.append('gender', formData.gender);
+      if (formData.dateOfBirth) formDataToSend.append('dateOfBirth', formData.dateOfBirth);
       if (formData.age) formDataToSend.append('age', formData.age);
-      if (formData.species) formDataToSend.append('species', formData.species);
       if (formData.weight) formDataToSend.append('weight', formData.weight.toString());
+      if (formData.spayedNeutered) formDataToSend.append('spayedNeutered', formData.spayedNeutered);
       if (formData.microchipNumber) formDataToSend.append('microchipNumber', formData.microchipNumber);
+      if (formData.rabiesTagNumber) formDataToSend.append('rabiesTagNumber', formData.rabiesTagNumber);
+      if (formData.insuranceDetails) formDataToSend.append('insuranceDetails', formData.insuranceDetails);
       if (formData.vaccinations) formDataToSend.append('vaccinations', formData.vaccinations);
       if (formData.medications) formDataToSend.append('medications', formData.medications);
       if (formData.allergies) formDataToSend.append('allergies', formData.allergies);
       if (formData.dietaryRestrictions) formDataToSend.append('dietaryRestrictions', formData.dietaryRestrictions);
       if (formData.behaviorNotes) formDataToSend.append('behaviorNotes', formData.behaviorNotes);
       if (formData.emergencyContact) formDataToSend.append('emergencyContact', formData.emergencyContact);
-      if (formData.veterinarianInfo) formDataToSend.append('veterinarianInfo', formData.veterinarianInfo);
       if (formData.careInstructions) formDataToSend.append('careInstructions', formData.careInstructions);
       if (formData.info) formDataToSend.append('info', formData.info);
       
@@ -109,10 +139,10 @@ export default function AddPetPage() {
         formDataToSend.append('petImage', photoFile);
       }
 
-      // Send multipart/form-data request to backend API
+      // Step 1: Create the pet with basic information
       const token = localStorage.getItem('token');
       const baseURL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const response = await fetch(`${baseURL}/pets`, {
+      const petResponse = await fetch(`${baseURL}/pets`, {
         method: 'POST',
         body: formDataToSend,
         headers: {
@@ -120,13 +150,11 @@ export default function AddPetPage() {
         },
       });
 
-      if (!response.ok) {
-        // Log the response for debugging
-        const responseText = await response.text();
-        console.error('Response status:', response.status);
+      if (!petResponse.ok) {
+        const responseText = await petResponse.text();
+        console.error('Response status:', petResponse.status);
         console.error('Response text:', responseText);
         
-        // Try to parse as JSON, fallback to text
         let errorMessage = 'Failed to add pet';
         try {
           const errorData = JSON.parse(responseText);
@@ -138,26 +166,105 @@ export default function AddPetPage() {
         throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      setSuccess('Pet added successfully!');
+      const petResult = await petResponse.json();
+      const petId = petResult._id || petResult.id;
+      
+      if (!petId) {
+        throw new Error('Pet created but ID not returned from server');
+      }
+
+      console.log('Pet created successfully with ID:', petId);
+
+      // Step 2: Add medical information if any medical fields are filled
+      const hasMedicalData = 
+        formData.vetBusinessName || 
+        formData.vetDoctorName || 
+        formData.vetAddress || 
+        formData.vetPhoneNumber || 
+        formData.currentOnVaccines || 
+        formData.onAnyMedication;
+
+      if (hasMedicalData) {
+        const medicalData: any = {};
+        if (formData.vetBusinessName) medicalData.vetBusinessName = formData.vetBusinessName;
+        if (formData.vetDoctorName) medicalData.vetDoctorName = formData.vetDoctorName;
+        if (formData.vetAddress) medicalData.vetAddress = formData.vetAddress;
+        if (formData.vetPhoneNumber) medicalData.vetPhoneNumber = formData.vetPhoneNumber;
+        if (formData.currentOnVaccines) medicalData.currentOnVaccines = formData.currentOnVaccines;
+        if (formData.onAnyMedication) medicalData.onAnyMedication = formData.onAnyMedication;
+
+        const medicalResponse = await api.put(`/pets/${petId}/medical`, medicalData);
+        console.log('Medical data added successfully:', medicalResponse.data);
+      }
+
+      // Step 3: Add care information if any care fields are filled
+      const hasCareData = 
+        formData.personalityPhobiasPreferences || 
+        formData.typeOfFood || 
+        formData.dietFoodWaterInstructions || 
+        formData.anyHistoryOfBiting || 
+        formData.locationOfStoredPetFood || 
+        formData.litterBoxLocation || 
+        formData.locationOfPetCarrier || 
+        formData.feedingSchedule || 
+        formData.exerciseRequirements || 
+        formData.anyAdditionalInfo;
+
+      if (hasCareData) {
+        const careData: any = {};
+        if (formData.personalityPhobiasPreferences) careData.personalityPhobiasPreferences = formData.personalityPhobiasPreferences;
+        if (formData.typeOfFood) careData.typeOfFood = formData.typeOfFood;
+        if (formData.dietFoodWaterInstructions) careData.dietFoodWaterInstructions = formData.dietFoodWaterInstructions;
+        if (formData.anyHistoryOfBiting) careData.anyHistoryOfBiting = formData.anyHistoryOfBiting;
+        if (formData.locationOfStoredPetFood) careData.locationOfStoredPetFood = formData.locationOfStoredPetFood;
+        if (formData.litterBoxLocation) careData.litterBoxLocation = formData.litterBoxLocation;
+        if (formData.locationOfPetCarrier) careData.locationOfPetCarrier = formData.locationOfPetCarrier;
+        if (formData.feedingSchedule) careData.feedingSchedule = formData.feedingSchedule;
+        if (formData.exerciseRequirements) careData.exerciseRequirements = formData.exerciseRequirements;
+        if (formData.anyAdditionalInfo) careData.anyAdditionalInfo = formData.anyAdditionalInfo;
+
+        const careResponse = await api.put(`/pets/${petId}/care`, careData);
+        console.log('Care data added successfully:', careResponse.data);
+      }
+
+      setSuccess('Pet added successfully with all details!');
       
       // Reset form
       setFormData({
         name: '',
         type: '',
-        photo: '',
         breed: '',
+        colouring: '',
+        gender: '',
+        dateOfBirth: '',
         age: '',
-        species: '',
         weight: 0,
+        spayedNeutered: '',
         microchipNumber: '',
+        rabiesTagNumber: '',
+        insuranceDetails: '',
+        vetBusinessName: '',
+        vetDoctorName: '',
+        vetAddress: '',
+        vetPhoneNumber: '',
+        currentOnVaccines: '',
+        onAnyMedication: '',
         vaccinations: '',
         medications: '',
         allergies: '',
+        personalityPhobiasPreferences: '',
+        typeOfFood: '',
+        dietFoodWaterInstructions: '',
+        anyHistoryOfBiting: '',
+        locationOfStoredPetFood: '',
+        litterBoxLocation: '',
+        locationOfPetCarrier: '',
+        feedingSchedule: '',
+        exerciseRequirements: '',
+        anyAdditionalInfo: '',
         dietaryRestrictions: '',
         behaviorNotes: '',
         emergencyContact: '',
-        veterinarianInfo: '',
         careInstructions: '',
         info: '',
       });
@@ -165,7 +272,7 @@ export default function AddPetPage() {
       setPhotoPreview('');
       
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/pets');
       }, 2000);
       
     } catch (error: any) {
@@ -177,7 +284,7 @@ export default function AddPetPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <Card>
           <CardHeader>
             <CardTitle>Pet Information</CardTitle>
@@ -186,179 +293,535 @@ export default function AddPetPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Information - 3 columns */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* BASIC INFORMATION SECTION */}
+              <div className="border-b pb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                
+                {/* Row 1: Name, Type, Breed */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Pet Name *</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="e.g., Buddy"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type *</Label>
+                    <select
+                      id="type"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleSelectChange}
+                      required
+                      className="w-full border rounded-md px-3 py-2 bg-white text-sm"
+                    >
+                      <option value="">Select type</option>
+                      <option value="Cat(s)">Cat(s)</option>
+                      <option value="Dog(s)">Dog(s)</option>
+                      <option value="Rabbit(s)">Rabbit(s)</option>
+                      <option value="Bird(s)">Bird(s)</option>
+                      <option value="Guinea pig(s)">Guinea pig(s)</option>
+                      <option value="Ferret(s)">Ferret(s)</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="breed">Breed *</Label>
+                    <Input
+                      id="breed"
+                      name="breed"
+                      type="text"
+                      placeholder="e.g., Golden Retriever"
+                      value={formData.breed}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Colouring, Gender, Date of Birth */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="colouring">Colouring *</Label>
+                    <Input
+                      id="colouring"
+                      name="colouring"
+                      type="text"
+                      placeholder="e.g., Brown and white"
+                      value={formData.colouring}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender *</Label>
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleSelectChange}
+                      required
+                      className="w-full border rounded-md px-3 py-2 bg-white text-sm"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                    <Input
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Age, Weight, Spayed/Neutered */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Age</Label>
+                    <Input
+                      id="age"
+                      name="age"
+                      type="text"
+                      placeholder="e.g., 3 years"
+                      value={formData.age}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Weight (lbs)</Label>
+                    <Input
+                      id="weight"
+                      name="weight"
+                      type="number"
+                      placeholder="0"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="0.1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="spayedNeutered">Spayed/Neutered *</Label>
+                    <select
+                      id="spayedNeutered"
+                      name="spayedNeutered"
+                      value={formData.spayedNeutered}
+                      onChange={handleSelectChange}
+                      required
+                      className="w-full border rounded-md px-3 py-2 bg-white text-sm"
+                    >
+                      <option value="">Select status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 4: Microchip Number, Rabies Tag Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="microchipNumber">Microchip Number</Label>
+                    <Input
+                      id="microchipNumber"
+                      name="microchipNumber"
+                      type="text"
+                      placeholder="e.g., 123456789012345"
+                      value={formData.microchipNumber}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rabiesTagNumber">Rabies Tag Number</Label>
+                    <Input
+                      id="rabiesTagNumber"
+                      name="rabiesTagNumber"
+                      type="text"
+                      placeholder="e.g., ABC123456"
+                      value={formData.rabiesTagNumber}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 5: Insurance Details (full width) */}
                 <div className="space-y-2">
-                  <Label htmlFor="name">Pet Name *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="e.g., Buddy"
-                    value={formData.name}
+                  <Label htmlFor="insuranceDetails">Insurance Details</Label>
+                  <Textarea
+                    id="insuranceDetails"
+                    name="insuranceDetails"
+                    placeholder="Pet insurance provider, policy number, coverage details"
+                    value={formData.insuranceDetails}
                     onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              {/* MEDICAL INFORMATION SECTION */}
+              <div className="border-b pb-6">
+                <h3 className="text-lg font-semibold text-blue-700 mb-4">Medical Information</h3>
+                
+                {/* Row 1: Vet Business Name, Vet Doctor Name */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="vetBusinessName">Vet Business Name *</Label>
+                    <Input
+                      id="vetBusinessName"
+                      name="vetBusinessName"
+                      type="text"
+                      placeholder="e.g., Happy Paws Veterinary Clinic"
+                      value={formData.vetBusinessName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vetDoctorName">Vet Doctor Name</Label>
+                    <Input
+                      id="vetDoctorName"
+                      name="vetDoctorName"
+                      type="text"
+                      placeholder="e.g., Dr. Sarah Johnson"
+                      value={formData.vetDoctorName}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Vet Address */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="vetAddress">Vet Address *</Label>
+                  <Textarea
+                    id="vetAddress"
+                    name="vetAddress"
+                    placeholder="Full address of the veterinary clinic"
+                    value={formData.vetAddress}
+                    onChange={handleInputChange}
+                    rows={2}
                     required
                   />
                 </div>
 
+                {/* Row 3: Vet Phone Number, Current on Vaccines */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="vetPhoneNumber">Vet Phone Number *</Label>
+                    <Input
+                      id="vetPhoneNumber"
+                      name="vetPhoneNumber"
+                      type="tel"
+                      placeholder="e.g., (555) 123-4567"
+                      value={formData.vetPhoneNumber}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currentOnVaccines">Current on Vaccines *</Label>
+                    <select
+                      id="currentOnVaccines"
+                      name="currentOnVaccines"
+                      value={formData.currentOnVaccines}
+                      onChange={handleSelectChange}
+                      required
+                      className="w-full border rounded-md px-3 py-2 bg-white text-sm"
+                    >
+                      <option value="">Select status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Partial">Partial</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 4: Vaccinations & Status */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="vaccinations">Vaccinations & Status</Label>
+                  <Textarea
+                    id="vaccinations"
+                    name="vaccinations"
+                    placeholder="List current vaccinations and dates (e.g., Rabies 2024-01-15, DHPP 2024-02-10)"
+                    value={formData.vaccinations}
+                    onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Row 5: Current Medications */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="medications">Current Medications</Label>
+                  <Textarea
+                    id="medications"
+                    name="medications"
+                    placeholder="List any medications, dosages, and schedules"
+                    value={formData.medications}
+                    onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Row 6: On Any Medication */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="onAnyMedication">On Any Medication Details</Label>
+                  <Textarea
+                    id="onAnyMedication"
+                    name="onAnyMedication"
+                    placeholder="Detailed information about current medications and administration instructions"
+                    value={formData.onAnyMedication}
+                    onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Row 7: Allergies & Sensitivities */}
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type *</Label>
-                  <select
-                    id="type"
-                    name="type"
-                    value={formData.type}
-                    onChange={handleSelectChange}
+                  <Label htmlFor="allergies">Allergies & Sensitivities</Label>
+                  <Textarea
+                    id="allergies"
+                    name="allergies"
+                    placeholder="List any known allergies or sensitivities"
+                    value={formData.allergies}
+                    onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              {/* CARE INFORMATION SECTION */}
+              <div className="border-b pb-6">
+                <h3 className="text-lg font-semibold text-green-700 mb-4">Care Information</h3>
+                
+                {/* Row 1: Personality, Phobias & Preferences */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="personalityPhobiasPreferences">Personality, Phobias & Preferences *</Label>
+                  <Textarea
+                    id="personalityPhobiasPreferences"
+                    name="personalityPhobiasPreferences"
+                    placeholder="Describe your pet's personality, any phobias, likes and dislikes"
+                    value={formData.personalityPhobiasPreferences}
+                    onChange={handleInputChange}
+                    rows={3}
                     required
-                    className="w-full border rounded px-3 py-2 bg-white"
-                  >
-                    <option value="">Select type</option>
-                    <option value="Cat(s)">Cat(s)</option>
-                    <option value="Dog(s)">Dog(s)</option>
-                    <option value="Rabbit(s)">Rabbit(s)</option>
-                    <option value="Bird(s)">Bird(s)</option>
-                    <option value="Guinea pig(s)">Guinea pig(s)</option>
-                    <option value="Ferret(s)">Ferret(s)</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="breed">Breed</Label>
-                  <Input
-                    id="breed"
-                    name="breed"
-                    type="text"
-                    placeholder="e.g., Golden Retriever"
-                    value={formData.breed}
+                {/* Row 2: Type of Food, Any History of Biting */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="typeOfFood">Type of Food *</Label>
+                    <Input
+                      id="typeOfFood"
+                      name="typeOfFood"
+                      type="text"
+                      placeholder="e.g., Royal Canin Adult Dry Food"
+                      value={formData.typeOfFood}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="anyHistoryOfBiting">Any History of Biting *</Label>
+                    <select
+                      id="anyHistoryOfBiting"
+                      name="anyHistoryOfBiting"
+                      value={formData.anyHistoryOfBiting}
+                      onChange={handleSelectChange}
+                      required
+                      className="w-full border rounded-md px-3 py-2 bg-white text-sm"
+                    >
+                      <option value="">Select option</option>
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                      <option value="Sometimes">Sometimes</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 3: Diet, Food & Water Instructions */}
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="dietFoodWaterInstructions">Diet, Food & Water Instructions *</Label>
+                  <Textarea
+                    id="dietFoodWaterInstructions"
+                    name="dietFoodWaterInstructions"
+                    placeholder="Detailed feeding instructions, portion sizes, meal times, water requirements"
+                    value={formData.dietFoodWaterInstructions}
                     onChange={handleInputChange}
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                {/* Row 4: Feeding Schedule, Exercise Requirements */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="feedingSchedule">Feeding Schedule</Label>
+                    <Textarea
+                      id="feedingSchedule"
+                      name="feedingSchedule"
+                      placeholder="e.g., 8:00 AM - 1 cup, 6:00 PM - 1 cup"
+                      value={formData.feedingSchedule}
+                      onChange={handleInputChange}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="exerciseRequirements">Exercise Requirements</Label>
+                    <Textarea
+                      id="exerciseRequirements"
+                      name="exerciseRequirements"
+                      placeholder="e.g., 30 minutes walk twice daily"
+                      value={formData.exerciseRequirements}
+                      onChange={handleInputChange}
+                      rows={2}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 5: Location of Stored Pet Food, Litter Box Location, Pet Carrier Location */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="locationOfStoredPetFood">Location of Stored Pet Food *</Label>
+                    <Input
+                      id="locationOfStoredPetFood"
+                      name="locationOfStoredPetFood"
+                      type="text"
+                      placeholder="e.g., Kitchen pantry, top shelf"
+                      value={formData.locationOfStoredPetFood}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="litterBoxLocation">Litter Box Location *</Label>
+                    <Input
+                      id="litterBoxLocation"
+                      name="litterBoxLocation"
+                      type="text"
+                      placeholder="e.g., Bathroom, under sink"
+                      value={formData.litterBoxLocation}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="locationOfPetCarrier">Location of Pet Carrier *</Label>
+                    <Input
+                      id="locationOfPetCarrier"
+                      name="locationOfPetCarrier"
+                      type="text"
+                      placeholder="e.g., Garage, top shelf"
+                      value={formData.locationOfPetCarrier}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Row 6: Additional Care Info */}
+                <div className="space-y-2">
+                  <Label htmlFor="anyAdditionalInfo">Additional Care Info</Label>
+                  <Textarea
+                    id="anyAdditionalInfo"
+                    name="anyAdditionalInfo"
+                    placeholder="Any other important care information for sitters"
+                    value={formData.anyAdditionalInfo}
+                    onChange={handleInputChange}
+                    rows={3}
                   />
                 </div>
               </div>
 
-              {/* Physical Details - 3 columns */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
-                  <Input
-                    id="age"
-                    name="age"
-                    type="text"
-                    placeholder="e.g., 3 years"
-                    value={formData.age}
+              {/* OTHER INFORMATION SECTION */}
+              <div className="border-b pb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Information</h3>
+                
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
+                  <Textarea
+                    id="dietaryRestrictions"
+                    name="dietaryRestrictions"
+                    placeholder="Special diet requirements, treats allowed/not allowed"
+                    value={formData.dietaryRestrictions}
                     onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="behaviorNotes">Behavior Notes</Label>
+                  <Textarea
+                    id="behaviorNotes"
+                    name="behaviorNotes"
+                    placeholder="Temperament, behavior with strangers, other pets, children, etc."
+                    value={formData.behaviorNotes}
+                    onChange={handleInputChange}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                  <Textarea
+                    id="emergencyContact"
+                    name="emergencyContact"
+                    placeholder="Emergency contact name and phone number"
+                    value={formData.emergencyContact}
+                    onChange={handleInputChange}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="careInstructions">Care Instructions</Label>
+                  <Textarea
+                    id="careInstructions"
+                    name="careInstructions"
+                    placeholder="General care instructions for your pet"
+                    value={formData.careInstructions}
+                    onChange={handleInputChange}
+                    rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (lbs)</Label>
-                  <Input
-                    id="weight"
-                    name="weight"
-                    type="number"
-                    placeholder="e.g., 25"
-                    value={formData.weight}
+                  <Label htmlFor="info">General Info / Special Needs *</Label>
+                  <Textarea
+                    id="info"
+                    name="info"
+                    placeholder="General pet information, special needs, or notes for sitters"
+                    value={formData.info}
                     onChange={handleInputChange}
-                    min="0"
-                    step="0.1"
+                    rows={3}
+                    required
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="microchipNumber">Microchip Number</Label>
-                  <Input
-                    id="microchipNumber"
-                    name="microchipNumber"
-                    type="text"
-                    placeholder="e.g., 123456789012345"
-                    value={formData.microchipNumber}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="vaccinations">Vaccinations & Status</Label>
-                <Textarea
-                  id="vaccinations"
-                  name="vaccinations"
-                  placeholder="List current vaccinations and dates (e.g., Rabies 2024-01-15, DHPP 2024-02-10)"
-                  value={formData.vaccinations}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="medications">Current Medications</Label>
-                <Textarea
-                  id="medications"
-                  name="medications"
-                  placeholder="List any medications, dosages, and schedules"
-                  value={formData.medications}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="allergies">Allergies & Sensitivities</Label>
-                <Textarea
-                  id="allergies"
-                  name="allergies"
-                  placeholder="List any known allergies or sensitivities"
-                  value={formData.allergies}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
-                <Textarea
-                  id="dietaryRestrictions"
-                  name="dietaryRestrictions"
-                  placeholder="Special diet requirements, feeding schedule, treats allowed/not allowed"
-                  value={formData.dietaryRestrictions}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="behaviorNotes">Behavior Notes</Label>
-                <Textarea
-                  id="behaviorNotes"
-                  name="behaviorNotes"
-                  placeholder="Temperament, behavior with strangers, other pets, children, etc."
-                  value={formData.behaviorNotes}
-                  onChange={handleInputChange}
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                <Textarea
-                  id="emergencyContact"
-                  name="emergencyContact"
-                  placeholder="Emergency contact name and phone number"
-                  value={formData.emergencyContact}
-                  onChange={handleInputChange}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="veterinarianInfo">Veterinarian Information</Label>
-                <Textarea
-                  id="veterinarianInfo"
-                  name="veterinarianInfo"
-                  placeholder="Veterinarian name, clinic, address, and phone number"
-                  value={formData.veterinarianInfo}
-                  onChange={handleInputChange}
-                  rows={3}
-                />
               </div>
 
               {/* Pet Photo Upload Section */}
@@ -414,31 +877,6 @@ export default function AddPetPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="careInstructions">Care Instructions</Label>
-                <Textarea
-                  id="careInstructions"
-                  name="careInstructions"
-                  placeholder="Provide detailed care instructions for your pet (feeding schedule, medications, special needs, etc.)"
-                  value={formData.careInstructions}
-                  onChange={handleInputChange}
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="info">General Info / Special Needs *</Label>
-                <Textarea
-                  id="info"
-                  name="info"
-                  placeholder="General pet information, special needs, or notes for sitters"
-                  value={formData.info}
-                  onChange={handleInputChange}
-                  rows={3}
-                  required
-                />
-              </div>
-
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -469,7 +907,7 @@ export default function AddPetPage() {
                 <Button 
                   type="button" 
                   variant="outline"
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push('/pets')}
                   disabled={isLoading}
                 >
                   Cancel
