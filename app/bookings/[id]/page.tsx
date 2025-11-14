@@ -18,19 +18,47 @@ import { ArrowLeft, Calendar, Clock, MapPin, PawPrint, User, MessageCircle, Send
 interface Pet {
   _id: string;
   name: string;
+  type?: string;
   species: string;
   breed?: string;
-  age?: number;
-  weight?: number;
+  colouring?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  spayedNeutered?: string;
+  age?: number | string;
+  weight?: string;
   microchipNumber?: string;
+  rabiesTagNumber?: string;
+  insuranceDetails?: string;
   vaccinations?: string;
   medications?: string;
   allergies?: string;
   dietaryRestrictions?: string;
   behaviorNotes?: string;
+  emergencyContact?: string;
+  veterinarianInfo?: string;
+  photo?: string;
+  photoUrl?: string;
   careInstructions?: string;
   info?: string;
-  photo?: string;
+  // Care details
+  personalityPhobiasPreferences?: string;
+  typeOfFood?: string;
+  dietFoodWaterInstructions?: string;
+  anyHistoryOfBiting?: string;
+  locationOfStoredPetFood?: string;
+  litterBoxLocation?: string;
+  locationOfPetCarrier?: string;
+  anyAdditionalInfo?: string;
+  feedingSchedule?: string;
+  exerciseRequirements?: string;
+  // Medical details
+  vetBusinessName?: string;
+  vetDoctorName?: string;
+  vetAddress?: string;
+  vetPhoneNumber?: string;
+  currentOnVaccines?: string;
+  onAnyMedication?: string;
 }
 
 interface User {
@@ -39,21 +67,43 @@ interface User {
   lastName: string;
   email: string;
   phone?: string;
+  cellPhoneNumber?: string;
+  homePhoneNumber?: string;
   address?: string | {
     street: string;
     city: string;
     state: string;
     zipCode: string;
   };
+  zipCode?: string;
   emergencyContact?: string | {
     name: string;
     phone: string;
   };
+  emergencyContactFirstName?: string;
+  emergencyContactLastName?: string;
+  emergencyContactCellPhone?: string;
+  emergencyContactHomePhone?: string;
+  homeCareInfo?: string;
+  parkingForSitter?: string;
+  garbageCollectionDay?: string;
+  fuseBoxLocation?: string;
+  outOfBoundAreas?: string;
+  videoSurveillance?: string;
+  cleaningSupplyLocation?: string;
+  broomDustpanLocation?: string;
+  mailPickUp?: string;
+  waterIndoorPlants?: string;
+  additionalHomeCareInfo?: string;
+  keyHandlingMethod?: string;
+  superintendentContact?: string;
+  friendNeighbourContact?: string;
   keyAccess?: {
     hasKey: boolean;
     keyLocation?: string;
     accessInstructions?: string;
   };
+  profilePicture?: string;
 }
 
 interface Booking {
@@ -118,6 +168,7 @@ export default function BookingDetailPage() {
   const params = useParams();
   const { toast } = useToast();
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [clientDetails, setClientDetails] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [keyAccess, setKeyAccess] = useState<any>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -128,6 +179,7 @@ export default function BookingDetailPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
+  const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
 
   const bookingId = params.id as string;
 
@@ -164,6 +216,23 @@ export default function BookingDetailPage() {
     }
   };
 
+  const fetchClientDetails = async (clientId: string) => {
+    try {
+      console.log('Fetching complete client details for:', clientId);
+      const response = await api.get(`/users/${clientId}`);
+      const clientData = response.data;
+      console.log('Fetched client details:', clientData);
+      setClientDetails(clientData);
+    } catch (error: any) {
+      console.error('Error fetching client details:', error);
+      toast({
+        title: 'Warning',
+        description: 'Failed to fetch complete client details',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const fetchKeySecurityDetails = async (clientId: string) => {
     try {
       const response = await api.get(`/key-security/client/${clientId}`);
@@ -184,6 +253,9 @@ export default function BookingDetailPage() {
       setBooking(bookingData);
       
       if (bookingData.userId?._id) {
+        // Fetch complete client details separately
+        await fetchClientDetails(bookingData.userId._id);
+        // Fetch pets
         await fetchPetsByClientId(bookingData.userId._id);
       } else {
         console.log('No client ID found in booking data');
@@ -221,8 +293,11 @@ export default function BookingDetailPage() {
       console.log('Client ID:', bookingData?.userId?._id);
       setBooking(bookingData || null);
       
-      // Fetch all pets for this client
+      // Fetch complete client details and pets for this client
       if (bookingData?.userId?._id) {
+        // Fetch complete client details separately
+        await fetchClientDetails(bookingData.userId._id);
+        // Fetch all pets
         await fetchPetsByClientId(bookingData.userId._id);
       } else {
         console.log('No client ID found in booking data');
@@ -518,7 +593,7 @@ export default function BookingDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Pets - Detailed Information */}
+            {/* Pets - Comprehensive Information */}
             {pets && pets.length > 0 && (
               <Card>
                 <CardHeader>
@@ -529,121 +604,306 @@ export default function BookingDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {pets.map((pet, index) => (
-                      <div key={pet._id} className={index > 0 ? 'pt-6 border-t' : ''}>
-                        <div className="flex items-start gap-4 mb-4">
-                          {pet.photo ? (
-                            <img 
-                              src={pet.photo} 
-                              alt={pet.name}
-                              className="w-16 h-16 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
-                              <PawPrint className="h-8 w-8 text-primary" />
+                    {pets.map((pet, index) => {
+                      const currentTab = petTabs[pet._id] || 'basic';
+                      return (
+                        <div key={pet._id} className={index > 0 ? 'pt-6 border-t-2 border-gray-200' : ''}>
+                          {/* Pet Header */}
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex items-start gap-4">
+                              {(pet.photo || pet.photoUrl) ? (
+                                <img 
+                                  src={pet.photo || pet.photoUrl} 
+                                  alt={pet.name}
+                                  className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                                  <PawPrint className="h-8 w-8 text-gray-400" />
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="font-bold text-xl text-gray-900">{pet.name}</h3>
+                                <p className="text-sm text-gray-600">
+                                  {pet.type || pet.species} {pet.breed && `• ${pet.breed}`}
+                                </p>
+                              </div>
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900">{pet.name}</h3>
-                            <p className="text-sm text-gray-600">
-                              {pet.species} {pet.breed && `• ${pet.breed}`}
-                            </p>
-                            <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                              {pet.age && (
-                                <div>
-                                  <span className="text-gray-500">Age:</span>{' '}
-                                  <span className="text-gray-900">{pet.age} years</span>
-                                </div>
-                              )}
-                              {pet.weight && (
-                                <div>
-                                  <span className="text-gray-500">Weight:</span>{' '}
-                                  <span className="text-gray-900">{pet.weight} lbs</span>
-                                </div>
-                              )}
-                              {pet.microchipNumber && (
-                                <div className="col-span-2">
-                                  <span className="text-gray-500">Microchip:</span>{' '}
-                                  <span className="text-gray-900">{pet.microchipNumber}</span>
-                                </div>
-                              )}
-                            </div>
+                          </div>
+
+                          {/* Tab Navigation */}
+                          <div className="flex gap-4 border-b border-gray-200 mb-4">
+                            <button
+                              onClick={() => setPetTabs(prev => ({ ...prev, [pet._id]: 'basic' }))}
+                              className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                currentTab === 'basic'
+                                  ? 'border-primary text-primary'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              Basic
+                            </button>
+                            <button
+                              onClick={() => setPetTabs(prev => ({ ...prev, [pet._id]: 'care' }))}
+                              className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                currentTab === 'care'
+                                  ? 'border-primary text-primary'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              Care
+                            </button>
+                            <button
+                              onClick={() => setPetTabs(prev => ({ ...prev, [pet._id]: 'medical' }))}
+                              className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                currentTab === 'medical'
+                                  ? 'border-primary text-primary'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              Medical
+                            </button>
+                            <button
+                              onClick={() => setPetTabs(prev => ({ ...prev, [pet._id]: 'insurance' }))}
+                              className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                currentTab === 'insurance'
+                                  ? 'border-primary text-primary'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              Insurance
+                            </button>
+                          </div>
+
+                          {/* Tab Content */}
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            {currentTab === 'basic' && (
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                {pet.type && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Type:</span>
+                                    <p className="text-gray-900">{pet.type}</p>
+                                  </div>
+                                )}
+                                {pet.breed && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Breed:</span>
+                                    <p className="text-gray-900">{pet.breed}</p>
+                                  </div>
+                                )}
+                                {pet.colouring && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Colouring:</span>
+                                    <p className="text-gray-900">{pet.colouring}</p>
+                                  </div>
+                                )}
+                                {pet.gender && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Gender:</span>
+                                    <p className="text-gray-900">{pet.gender}</p>
+                                  </div>
+                                )}
+                                {pet.age && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Age:</span>
+                                    <p className="text-gray-900">{pet.age} {typeof pet.age === 'number' ? 'years old' : ''}</p>
+                                  </div>
+                                )}
+                                {pet.dateOfBirth && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Date of Birth:</span>
+                                    <p className="text-gray-900">{new Date(pet.dateOfBirth).toLocaleDateString()}</p>
+                                  </div>
+                                )}
+                                {pet.weight && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Weight:</span>
+                                    <p className="text-gray-900">{pet.weight}</p>
+                                  </div>
+                                )}
+                                {pet.spayedNeutered && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Spayed/Neutered:</span>
+                                    <p className="text-gray-900">{pet.spayedNeutered}</p>
+                                  </div>
+                                )}
+                                {pet.microchipNumber && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Microchip Number:</span>
+                                    <p className="text-gray-900 font-mono text-xs">{pet.microchipNumber}</p>
+                                  </div>
+                                )}
+                                {pet.rabiesTagNumber && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Rabies Tag Number:</span>
+                                    <p className="text-gray-900 font-mono text-xs">{pet.rabiesTagNumber}</p>
+                                  </div>
+                                )}
+                                {pet.info && (
+                                  <div className="col-span-2">
+                                    <span className="text-gray-600 font-medium">Additional Info:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.info}</p>
+                                  </div>
+                                )}
+                                {pet.anyAdditionalInfo && (
+                                  <div className="col-span-2">
+                                    <span className="text-gray-600 font-medium">Additional Info:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.anyAdditionalInfo}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {currentTab === 'care' && (
+                              <div className="space-y-4 text-sm">
+                                {pet.personalityPhobiasPreferences && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Personality/Phobias/Preferences:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.personalityPhobiasPreferences}</p>
+                                  </div>
+                                )}
+                                {pet.careInstructions && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Care Instructions:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.careInstructions}</p>
+                                  </div>
+                                )}
+                                {pet.typeOfFood && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Type of Food:</span>
+                                    <p className="text-gray-900 mt-1">{pet.typeOfFood}</p>
+                                  </div>
+                                )}
+                                {pet.feedingSchedule && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Feeding Schedule:</span>
+                                    <p className="text-gray-900 mt-1">{pet.feedingSchedule}</p>
+                                  </div>
+                                )}
+                                {pet.dietFoodWaterInstructions && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Diet/Food/Water Instructions:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.dietFoodWaterInstructions}</p>
+                                  </div>
+                                )}
+                                {pet.dietaryRestrictions && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Dietary Restrictions:</span>
+                                    <p className="text-gray-900 mt-1">{pet.dietaryRestrictions}</p>
+                                  </div>
+                                )}
+                                {pet.exerciseRequirements && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Exercise Requirements:</span>
+                                    <p className="text-gray-900 mt-1">{pet.exerciseRequirements}</p>
+                                  </div>
+                                )}
+                                {pet.behaviorNotes && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Behavior Notes:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.behaviorNotes}</p>
+                                  </div>
+                                )}
+                                {pet.anyHistoryOfBiting && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Any History of Biting:</span>
+                                    <p className="text-gray-900 mt-1">{pet.anyHistoryOfBiting}</p>
+                                  </div>
+                                )}
+                                {pet.locationOfStoredPetFood && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Location of Stored Pet Food:</span>
+                                    <p className="text-gray-900 mt-1">{pet.locationOfStoredPetFood}</p>
+                                  </div>
+                                )}
+                                {pet.litterBoxLocation && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Litter Box Location:</span>
+                                    <p className="text-gray-900 mt-1">{pet.litterBoxLocation}</p>
+                                  </div>
+                                )}
+                                {pet.locationOfPetCarrier && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Location of Pet Carrier:</span>
+                                    <p className="text-gray-900 mt-1">{pet.locationOfPetCarrier}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {currentTab === 'medical' && (
+                              <div className="space-y-4 text-sm">
+                                {pet.vetBusinessName && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Vet Business Name:</span>
+                                    <p className="text-gray-900 mt-1">{pet.vetBusinessName}</p>
+                                  </div>
+                                )}
+                                {pet.vetDoctorName && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Vet Doctor Name:</span>
+                                    <p className="text-gray-900 mt-1">{pet.vetDoctorName}</p>
+                                  </div>
+                                )}
+                                {pet.vetAddress && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Vet Address:</span>
+                                    <p className="text-gray-900 mt-1">{pet.vetAddress}</p>
+                                  </div>
+                                )}
+                                {pet.vetPhoneNumber && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Vet Phone Number:</span>
+                                    <p className="text-gray-900 mt-1">{pet.vetPhoneNumber}</p>
+                                  </div>
+                                )}
+                                {(pet.vaccinations || pet.currentOnVaccines) && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Current on Vaccines:</span>
+                                    <p className="text-gray-900 mt-1">{pet.vaccinations || pet.currentOnVaccines}</p>
+                                  </div>
+                                )}
+                                {(pet.medications || pet.onAnyMedication) && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">On Any Medication:</span>
+                                    <p className="text-gray-900 mt-1">{pet.medications || pet.onAnyMedication}</p>
+                                  </div>
+                                )}
+                                {pet.allergies && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Allergies:</span>
+                                    <p className="text-red-700 mt-1 font-medium">{pet.allergies}</p>
+                                  </div>
+                                )}
+                                {pet.veterinarianInfo && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Veterinarian Info:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.veterinarianInfo}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {currentTab === 'insurance' && (
+                              <div className="space-y-4 text-sm">
+                                {pet.insuranceDetails && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Insurance Details:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.insuranceDetails}</p>
+                                  </div>
+                                )}
+                                {pet.emergencyContact && (
+                                  <div>
+                                    <span className="text-gray-600 font-medium">Pet Emergency Contact:</span>
+                                    <p className="text-gray-900 mt-1 whitespace-pre-wrap">{pet.emergencyContact}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        {/* Medical Information */}
-                        {(pet.vaccinations || pet.medications || pet.allergies) && (
-                          <div className="bg-blue-50 rounded-lg p-4 mb-3">
-                            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                              <span>🏥</span> Medical Information
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                              {pet.vaccinations && (
-                                <div>
-                                  <span className="font-medium text-gray-700">Vaccinations:</span>
-                                  <p className="text-gray-600 mt-1">{pet.vaccinations}</p>
-                                </div>
-                              )}
-                              {pet.medications && (
-                                <div>
-                                  <span className="font-medium text-gray-700">Medications:</span>
-                                  <p className="text-gray-600 mt-1">{pet.medications}</p>
-                                </div>
-                              )}
-                              {pet.allergies && (
-                                <div>
-                                  <span className="font-medium text-gray-700">Allergies:</span>
-                                  <p className="mt-1 text-red-700">{pet.allergies}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Diet & Care */}
-                        {(pet.dietaryRestrictions || pet.careInstructions) && (
-                          <div className="bg-amber-50 rounded-lg p-4 mb-3">
-                            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                              <span>🍽️</span> Diet & Care Instructions
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                              {pet.dietaryRestrictions && (
-                                <div>
-                                  <span className="font-medium text-gray-700">Dietary Restrictions:</span>
-                                  <p className="text-gray-600 mt-1">{pet.dietaryRestrictions}</p>
-                                </div>
-                              )}
-                              {pet.careInstructions && (
-                                <div>
-                                  <span className="font-medium text-gray-700">Care Instructions:</span>
-                                  <p className="text-gray-600 mt-1">{pet.careInstructions}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Behavior Notes */}
-                        {pet.behaviorNotes && (
-                          <div className="bg-purple-50 rounded-lg p-4 mb-3">
-                            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                              <span>🐾</span> Behavior Notes
-                            </h4>
-                            <p className="text-sm text-gray-600">{pet.behaviorNotes}</p>
-                          </div>
-                        )}
-
-                        {/* Additional Info */}
-                        {pet.info && (
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                              <span>ℹ️</span> Additional Information
-                            </h4>
-                            <p className="text-sm text-gray-600">{pet.info}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -653,10 +913,7 @@ export default function BookingDetailPage() {
             {currentUser?.role !== 'sitter' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span role="img" aria-label="payment" className="h-5 w-5">💳</span>
-                    Payment Details
-                  </CardTitle>
+                  <CardTitle>Payment Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -714,54 +971,224 @@ export default function BookingDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Client
+                  Client Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="h-10 w-10">
+              <CardContent className="space-y-6">
+                {/* Client Header */}
+                <div className="flex items-center gap-3 pb-4 border-b">
+                  <Avatar className="h-12 w-12">
+                    {clientDetails?.profilePicture ? (
+                      <AvatarImage src={clientDetails.profilePicture} alt={`${clientDetails.firstName} ${clientDetails.lastName}`} />
+                    ) : null}
                     <AvatarFallback>
-                      {booking.userId?.firstName?.[0] || 'U'}{booking.userId?.lastName?.[0] || 'U'}
+                      {clientDetails?.firstName?.[0] || booking.userId?.firstName?.[0] || 'U'}{clientDetails?.lastName?.[0] || booking.userId?.lastName?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-gray-900">
-                      {booking.userId?.firstName || 'Unknown'} {booking.userId?.lastName || 'User'}
+                    <p className="font-semibold text-gray-900 text-lg">
+                      {clientDetails?.firstName || booking.userId?.firstName || 'Unknown'} {clientDetails?.lastName || booking.userId?.lastName || 'User'}
                     </p>
-                    <p className="text-sm text-gray-600">{booking.userId?.email || 'No email provided'}</p>
+                    <p className="text-sm text-gray-600">{clientDetails?.email || booking.userId?.email || 'No email provided'}</p>
                   </div>
                 </div>
-                
-                {booking.userId?.address && (
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="font-medium">Address</span>
+
+                {/* Basic Information */}
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Basic Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.firstName || 'N/A'}</p>
                     </div>
-                    <p className="text-sm text-gray-700">
-                      {typeof booking.userId.address === 'string' ? (
-                        booking.userId.address
-                      ) : (
-                        <>
-                          {booking.userId.address.street}<br />
-                          {booking.userId.address.city}, {booking.userId.address.state} {booking.userId.address.zipCode}
-                        </>
-                      )}
-                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.lastName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Cell Phone</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.cellPhoneNumber || booking.userId?.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Home Phone</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.homePhoneNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">ZIP / Postal Code</label>
+                      <p className="text-sm text-gray-900">{booking.userId?.zipCode || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Address</label>
+                      <p className="text-sm text-gray-900">
+                        {booking.userId?.address ? (
+                          typeof booking.userId.address === 'string' ? (
+                            booking.userId.address
+                          ) : (
+                            `${booking.userId.address.street}, ${booking.userId.address.city}, ${booking.userId.address.state} ${booking.userId.address.zipCode}`
+                          )
+                        ) : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emergency Contact */}
+                {(booking.userId?.emergencyContact || booking.userId?.emergencyContactFirstName || booking.userId?.emergencyContactCellPhone) && (
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <h3 className="text-base font-semibold text-red-900 mb-3">Emergency Contact</h3>
+                    {typeof booking.userId.emergencyContact === 'string' ? (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Legacy Emergency Contact</label>
+                        <p className="text-sm text-gray-900">{booking.userId.emergencyContact}</p>
+                      </div>
+                    ) : booking.userId.emergencyContact ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Name</label>
+                          <p className="text-sm text-gray-900">{booking.userId.emergencyContact.name}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Phone</label>
+                          <p className="text-sm text-gray-900">{booking.userId.emergencyContact.phone}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4">
+                        {(clientDetails?.emergencyContactFirstName || clientDetails?.emergencyContactLastName) && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">First Name</label>
+                              <p className="text-sm text-gray-900">{clientDetails?.emergencyContactFirstName || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                              <p className="text-sm text-gray-900">{clientDetails?.emergencyContactLastName || 'N/A'}</p>
+                            </div>
+                          </>
+                        )}
+                        {clientDetails?.emergencyContactCellPhone && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Cell Phone</label>
+                            <p className="text-sm text-gray-900">{clientDetails.emergencyContactCellPhone}</p>
+                          </div>
+                        )}
+                        {clientDetails?.emergencyContactHomePhone && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Home Phone</label>
+                            <p className="text-sm text-gray-900">{clientDetails.emergencyContactHomePhone}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {booking.userId?.emergencyContact && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Emergency Contact</h4>
-                    {typeof booking.userId.emergencyContact === 'string' ? (
-                      <p className="text-sm text-gray-700">{booking.userId.emergencyContact}</p>
-                    ) : (
-                      <>
-                        <p className="text-sm text-gray-700">{booking.userId.emergencyContact.name}</p>
-                        <p className="text-sm text-gray-600">{booking.userId.emergencyContact.phone}</p>
-                      </>
-                    )}
+                {/* Key Handling */}
+                {(clientDetails?.keyHandlingMethod || clientDetails?.superintendentContact || clientDetails?.friendNeighbourContact) && (
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h3 className="text-base font-semibold text-blue-900 mb-3">Key Handling</h3>
+                    <div className="space-y-3">
+                      {clientDetails.keyHandlingMethod && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Key Handling Method</label>
+                          <p className="text-sm text-gray-900">{clientDetails.keyHandlingMethod}</p>
+                        </div>
+                      )}
+                      {clientDetails.superintendentContact && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Superintendent / Building Management Contact</label>
+                          <p className="text-sm text-gray-900">{clientDetails.superintendentContact}</p>
+                        </div>
+                      )}
+                      {clientDetails.friendNeighbourContact && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Friend / Neighbour Contact</label>
+                          <p className="text-sm text-gray-900">{clientDetails.friendNeighbourContact}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Home Care Information */}
+                {(clientDetails?.parkingForSitter || clientDetails?.garbageCollectionDay || clientDetails?.fuseBoxLocation || 
+                  clientDetails?.videoSurveillance || clientDetails?.cleaningSupplyLocation || clientDetails?.broomDustpanLocation || 
+                  clientDetails?.mailPickUp || clientDetails?.waterIndoorPlants || clientDetails?.outOfBoundAreas || 
+                  clientDetails?.additionalHomeCareInfo || clientDetails?.homeCareInfo) && (
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h3 className="text-base font-semibold text-green-900 mb-3">Home Care Information</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {clientDetails.parkingForSitter && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Parking for Sitter</label>
+                          <p className="text-sm text-gray-900">{clientDetails.parkingForSitter}</p>
+                        </div>
+                      )}
+                      {clientDetails.garbageCollectionDay && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Garbage Collection Day</label>
+                          <p className="text-sm text-gray-900">{clientDetails.garbageCollectionDay}</p>
+                        </div>
+                      )}
+                      {clientDetails.fuseBoxLocation && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Fuse Box Location</label>
+                          <p className="text-sm text-gray-900">{clientDetails.fuseBoxLocation}</p>
+                        </div>
+                      )}
+                      {clientDetails.videoSurveillance && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Video Surveillance</label>
+                          <p className="text-sm text-gray-900">{clientDetails.videoSurveillance}</p>
+                        </div>
+                      )}
+                      {clientDetails.cleaningSupplyLocation && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Cleaning Supply Location</label>
+                          <p className="text-sm text-gray-900">{clientDetails.cleaningSupplyLocation}</p>
+                        </div>
+                      )}
+                      {clientDetails.broomDustpanLocation && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Broom/Dustpan Location</label>
+                          <p className="text-sm text-gray-900">{clientDetails.broomDustpanLocation}</p>
+                        </div>
+                      )}
+                      {clientDetails.mailPickUp && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Mail Pick Up</label>
+                          <p className="text-sm text-gray-900">{clientDetails.mailPickUp}</p>
+                        </div>
+                      )}
+                      {clientDetails.waterIndoorPlants && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Water Indoor Plants</label>
+                          <p className="text-sm text-gray-900">{clientDetails.waterIndoorPlants}</p>
+                        </div>
+                      )}
+                      {clientDetails.outOfBoundAreas && (
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Out of Bound Areas</label>
+                          <p className="text-sm text-gray-900">{clientDetails.outOfBoundAreas}</p>
+                        </div>
+                      )}
+                      {clientDetails.additionalHomeCareInfo && (
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Additional Home Care Info</label>
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{clientDetails.additionalHomeCareInfo}</p>
+                        </div>
+                      )}
+                      {clientDetails.homeCareInfo && (
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Legacy Home Care Info</label>
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{clientDetails.homeCareInfo}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -771,25 +1198,22 @@ export default function BookingDetailPage() {
             {currentUser?.role === 'sitter' && keyAccess && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span role="img" aria-label="key" className="h-5 w-5">🔑</span>
-                    Key & Access Information
-                  </CardTitle>
+                  <CardTitle>Key & Access Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Lockbox Information */}
                     {keyAccess.lockboxCode && (
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-sm">🔐 Lockbox Details</h4>
-                        <div className="space-y-1 text-sm">
+                      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                        <h4 className="font-semibold text-blue-900 mb-3 text-sm">Lockbox Details</h4>
+                        <div className="space-y-2 text-sm">
                           <div>
-                            <span className="font-medium text-gray-700">Code:</span>{' '}
+                            <span className="font-medium text-gray-600">Code:</span>{' '}
                             <span className="text-gray-900 font-mono">{keyAccess.lockboxCode}</span>
                           </div>
                           {keyAccess.lockboxLocation && (
                             <div>
-                              <span className="font-medium text-gray-700">Location:</span>{' '}
+                              <span className="font-medium text-gray-600">Location:</span>{' '}
                               <span className="text-gray-900">{keyAccess.lockboxLocation}</span>
                             </div>
                           )}
@@ -799,30 +1223,30 @@ export default function BookingDetailPage() {
                     
                     {/* Alarm Information */}
                     {(keyAccess.alarmCodeToEnter || keyAccess.alarmCodeToExit || keyAccess.alarmCompanyName) && (
-                      <div className="bg-red-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-sm">🚨 Alarm System</h4>
-                        <div className="space-y-1 text-sm">
+                      <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+                        <h4 className="font-semibold text-red-900 mb-3 text-sm">Alarm System</h4>
+                        <div className="space-y-2 text-sm">
                           {keyAccess.alarmCodeToEnter && (
                             <div>
-                              <span className="font-medium text-gray-700">Code to Enter:</span>{' '}
+                              <span className="font-medium text-gray-600">Code to Enter:</span>{' '}
                               <span className="text-gray-900 font-mono">{keyAccess.alarmCodeToEnter}</span>
                             </div>
                           )}
                           {keyAccess.alarmCodeToExit && (
                             <div>
-                              <span className="font-medium text-gray-700">Code to Exit:</span>{' '}
+                              <span className="font-medium text-gray-600">Code to Exit:</span>{' '}
                               <span className="text-gray-900 font-mono">{keyAccess.alarmCodeToExit}</span>
                             </div>
                           )}
                           {keyAccess.alarmCompanyName && (
                             <div>
-                              <span className="font-medium text-gray-700">Company:</span>{' '}
+                              <span className="font-medium text-gray-600">Company:</span>{' '}
                               <span className="text-gray-900">{keyAccess.alarmCompanyName}</span>
                             </div>
                           )}
                           {keyAccess.alarmCompanyPhone && (
                             <div>
-                              <span className="font-medium text-gray-700">Phone:</span>{' '}
+                              <span className="font-medium text-gray-600">Phone:</span>{' '}
                               <span className="text-gray-900">{keyAccess.alarmCompanyPhone}</span>
                             </div>
                           )}
@@ -832,29 +1256,29 @@ export default function BookingDetailPage() {
 
                     {/* Access Permissions */}
                     {keyAccess.accessPermissions && (
-                      <div className="bg-green-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-sm">👥 Access Permissions</h4>
+                      <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+                        <h4 className="font-semibold text-green-900 mb-3 text-sm">Access Permissions</h4>
                         <div className="flex flex-wrap gap-2">
                           {keyAccess.accessPermissions.landlord && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Landlord</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Landlord</span>
                           )}
                           {keyAccess.accessPermissions.buildingManagement && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Building Management</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Building Management</span>
                           )}
                           {keyAccess.accessPermissions.superintendent && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Superintendent</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Superintendent</span>
                           )}
                           {keyAccess.accessPermissions.housekeeper && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Housekeeper</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Housekeeper</span>
                           )}
                           {keyAccess.accessPermissions.neighbour && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Neighbour</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Neighbour</span>
                           )}
                           {keyAccess.accessPermissions.friend && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Friend</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Friend</span>
                           )}
                           {keyAccess.accessPermissions.family && (
-                            <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Family</span>
+                            <span className="px-3 py-1 bg-white border border-green-300 text-green-900 rounded text-xs font-medium">Family</span>
                           )}
                         </div>
                       </div>
@@ -862,17 +1286,17 @@ export default function BookingDetailPage() {
 
                     {/* Home Access List */}
                     {keyAccess.homeAccessList && (
-                      <div className="bg-purple-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-gray-900 mb-1 text-sm">🏠 Home Access List</h4>
-                        <p className="text-sm text-gray-700">{keyAccess.homeAccessList}</p>
+                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <h4 className="font-semibold text-purple-900 mb-2 text-sm">Home Access List</h4>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{keyAccess.homeAccessList}</p>
                       </div>
                     )}
                     
                     {/* Additional Comments */}
                     {keyAccess.additionalComments && (
-                      <div className="bg-amber-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-gray-900 mb-1 text-sm">📝 Additional Comments</h4>
-                        <p className="text-sm text-gray-700">{keyAccess.additionalComments}</p>
+                      <div className="border border-amber-200 rounded-lg p-4 bg-amber-50">
+                        <h4 className="font-semibold text-amber-900 mb-2 text-sm">Additional Comments</h4>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{keyAccess.additionalComments}</p>
                       </div>
                     )}
                   </div>
