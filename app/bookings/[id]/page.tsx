@@ -1038,7 +1038,7 @@ export default function BookingDetailPage() {
 
                 {/* Emergency Contact */}
                 {(booking.userId?.emergencyContact || booking.userId?.emergencyContactFirstName || booking.userId?.emergencyContactCellPhone) && (
-                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div className="rounded-lg p-4">
                     <h3 className="text-base font-semibold text-red-900 mb-3">Emergency Contact</h3>
                     {typeof booking.userId.emergencyContact === 'string' ? (
                       <div>
@@ -1089,7 +1089,7 @@ export default function BookingDetailPage() {
 
                 {/* Key Handling */}
                 {(clientDetails?.keyHandlingMethod || clientDetails?.superintendentContact || clientDetails?.friendNeighbourContact) && (
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="rounded-lg p-4">
                     <h3 className="text-base font-semibold text-blue-900 mb-3">Key Handling</h3>
                     <div className="space-y-3">
                       {clientDetails.keyHandlingMethod && (
@@ -1119,7 +1119,7 @@ export default function BookingDetailPage() {
                   clientDetails?.videoSurveillance || clientDetails?.cleaningSupplyLocation || clientDetails?.broomDustpanLocation || 
                   clientDetails?.mailPickUp || clientDetails?.waterIndoorPlants || clientDetails?.outOfBoundAreas || 
                   clientDetails?.additionalHomeCareInfo || clientDetails?.homeCareInfo) && (
-                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="rounded-lg p-4">
                     <h3 className="text-base font-semibold text-green-900 mb-3">Home Care Information</h3>
                     <div className="grid grid-cols-2 gap-4">
                       {clientDetails.parkingForSitter && (
@@ -1204,7 +1204,7 @@ export default function BookingDetailPage() {
                   <div className="space-y-4">
                     {/* Lockbox Information */}
                     {keyAccess.lockboxCode && (
-                      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <div className="rounded-lg p-4">
                         <h4 className="font-semibold text-blue-900 mb-3 text-sm">Lockbox Details</h4>
                         <div className="space-y-2 text-sm">
                           <div>
@@ -1223,7 +1223,7 @@ export default function BookingDetailPage() {
                     
                     {/* Alarm Information */}
                     {(keyAccess.alarmCodeToEnter || keyAccess.alarmCodeToExit || keyAccess.alarmCompanyName) && (
-                      <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+                      <div className="rounded-lg p-4">
                         <h4 className="font-semibold text-red-900 mb-3 text-sm">Alarm System</h4>
                         <div className="space-y-2 text-sm">
                           {keyAccess.alarmCodeToEnter && (
@@ -1256,7 +1256,7 @@ export default function BookingDetailPage() {
 
                     {/* Access Permissions */}
                     {keyAccess.accessPermissions && (
-                      <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+                      <div className="rounded-lg p-4">
                         <h4 className="font-semibold text-green-900 mb-3 text-sm">Access Permissions</h4>
                         <div className="flex flex-wrap gap-2">
                           {keyAccess.accessPermissions.landlord && (
@@ -1286,7 +1286,7 @@ export default function BookingDetailPage() {
 
                     {/* Home Access List */}
                     {keyAccess.homeAccessList && (
-                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <div className="rounded-lg p-4">
                         <h4 className="font-semibold text-purple-900 mb-2 text-sm">Home Access List</h4>
                         <p className="text-sm text-gray-900 whitespace-pre-wrap">{keyAccess.homeAccessList}</p>
                       </div>
@@ -1294,7 +1294,7 @@ export default function BookingDetailPage() {
                     
                     {/* Additional Comments */}
                     {keyAccess.additionalComments && (
-                      <div className="border border-amber-200 rounded-lg p-4 bg-amber-50">
+                      <div className="rounded-lg p-4">
                         <h4 className="font-semibold text-amber-900 mb-2 text-sm">Additional Comments</h4>
                         <p className="text-sm text-gray-900 whitespace-pre-wrap">{keyAccess.additionalComments}</p>
                       </div>
