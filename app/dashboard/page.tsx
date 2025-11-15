@@ -2962,9 +2962,21 @@ function DashboardContent() {
                             <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Phone</label>
                             <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.phone || 'Not provided'}</p>
                           </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Cell Phone</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.cellPhone || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Home Phone</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.homePhone || 'Not provided'}</p>
+                          </div>
                           <div className="sm:col-span-2">
                             <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Address</label>
                             <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.address || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">ZIP / Postal Code</label>
+                            <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.zipCode || selectedUserDetails.zip || 'Not provided'}</p>
                           </div>
                           <div>
                             <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Role</label>
@@ -2980,14 +2992,51 @@ function DashboardContent() {
                       </div>
 
                       {/* Emergency Contact */}
-                      <div className="bg-red-50 rounded-lg p-5 border border-red-200">
-                        <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
-                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="bg-red-50 rounded-lg p-3 sm:p-5 border border-red-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
                           Emergency Contact
                         </h3>
-                        <p className="text-gray-900 bg-white p-3 rounded border">{selectedUserDetails.emergencyContact || 'Not provided'}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          {(selectedUserDetails.emergencyContactFirstName || selectedUserDetails.emergencyContactLastName) && (
+                            <>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">First Name</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.emergencyContactFirstName || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Last Name</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.emergencyContactLastName || 'Not provided'}</p>
+                              </div>
+                            </>
+                          )}
+                          {selectedUserDetails.emergencyContact && (
+                            <div className={selectedUserDetails.emergencyContactFirstName ? 'sm:col-span-2' : ''}>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Contact Info</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.emergencyContact}</p>
+                            </div>
+                          )}
+                          {selectedUserDetails.emergencyContactCellPhone && (
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Cell Phone</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.emergencyContactCellPhone}</p>
+                            </div>
+                          )}
+                          {selectedUserDetails.emergencyContactHomePhone && (
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Home Phone</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.emergencyContactHomePhone}</p>
+                            </div>
+                          )}
+                          {selectedUserDetails.emergencyContactRelationship && (
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Relationship</label>
+                              <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.emergencyContactRelationship}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Key Security Information */}
