@@ -656,7 +656,6 @@ export default function AddPetPage() {
                       <option value="">Select option</option>
                       <option value="No">No</option>
                       <option value="Yes">Yes</option>
-                      <option value="Sometimes">Sometimes</option>
                     </select>
                   </div>
                 </div>
