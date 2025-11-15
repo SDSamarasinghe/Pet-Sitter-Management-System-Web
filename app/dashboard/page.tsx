@@ -1122,6 +1122,20 @@ function DashboardContent() {
       toast({ title: 'Error', description: err.response?.data?.message || 'Failed to update status.' });
     }
   };
+
+  // Handler to delete a booking (admin only)
+  const deleteBooking = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await api.delete(`/bookings/admin/${id}`);
+      toast({ title: 'Booking deleted', description: 'Booking deleted successfully.' });
+      // Refresh bookings
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to delete booking.' });
+    }
+  };
   
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -3574,6 +3588,15 @@ function DashboardContent() {
                                   {isSitterAssigned(booking) && (
                                     <Button variant="outline" size="sm" onClick={() => unassignSitter(booking._id)} className="text-red-600 hover:text-red-700">Unassign Sitter</Button>
                                   )}
+                                   {/* Delete Booking button for admin */}
+                                   <Button
+                                     variant="destructive"
+                                     size="sm"
+                                     onClick={() => deleteBooking(booking._id)}
+                                     className="text-red-600 hover:text-red-700 px-4 py-2 font-semibold rounded-lg"
+                                   >
+                                     Delete
+                                   </Button>
                                 </div>
                                 {/* Status dropdown */}
                                 <label className="text-xs text-muted-foreground font-medium mt-1 mb-0.5" htmlFor={`booking-status-${booking._id}`}>Booking Status</label>
