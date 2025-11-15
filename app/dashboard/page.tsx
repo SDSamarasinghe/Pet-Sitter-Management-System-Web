@@ -446,18 +446,18 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
       {/* Client Details Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="rounded-t-lg px-8 py-6 flex justify-between items-center" style={{ background: '#0a3d91', color: '#fff' }}>
               <h2 className="text-2xl font-bold">Client Details</h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-white hover:text-gray-200 text-2xl"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
-            
-            <div className="space-y-4">
+            <div className="space-y-4 p-6">
               {/* Basic Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
@@ -472,23 +472,27 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600">Email</label>
-                    <p className="text-gray-900">{client.email || 'Not provided'}</p>
+                    <p className="text-gray-900 break-all">{client.email || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Phone</label>
+                    <p className="text-gray-900">{client.phone || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600">Cell Phone</label>
-                    <p className="text-gray-900">{client.cellPhoneNumber || client.phone || 'Not provided'}</p>
+                    <p className="text-gray-900">{client.cellPhone || client.cellPhoneNumber || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600">Home Phone</label>
-                    <p className="text-gray-900">{client.homePhoneNumber || 'Not provided'}</p>
+                    <p className="text-gray-900">{client.homePhone || client.homePhoneNumber || 'Not provided'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600">Address</label>
+                    <p className="text-gray-900 break-words">{client.address || 'Not provided'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600">ZIP / Postal Code</label>
                     <p className="text-gray-900">{client.zipCode || 'Not provided'}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-600">Address</label>
-                    <p className="text-gray-900">{client.address || 'Not provided'}</p>
                   </div>
                 </div>
               </div>
@@ -497,26 +501,39 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
               <div className="bg-red-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-red-800">Emergency Contact</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">First Name</label>
-                    <p className="text-gray-900">{client.emergencyContactFirstName || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Last Name</label>
-                    <p className="text-gray-900">{client.emergencyContactLastName || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Cell Phone</label>
-                    <p className="text-gray-900">{client.emergencyContactCellPhone || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">Home Phone</label>
-                    <p className="text-gray-900">{client.emergencyContactHomePhone || 'Not provided'}</p>
-                  </div>
+                  {(client.emergencyContactFirstName || client.emergencyContactLastName) && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">First Name</label>
+                        <p className="text-gray-900">{client.emergencyContactFirstName || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Last Name</label>
+                        <p className="text-gray-900">{client.emergencyContactLastName || 'Not provided'}</p>
+                      </div>
+                    </>
+                  )}
+                  {client.emergencyContactCellPhone && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Cell Phone</label>
+                      <p className="text-gray-900">{client.emergencyContactCellPhone}</p>
+                    </div>
+                  )}
+                  {client.emergencyContactHomePhone && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Home Phone</label>
+                      <p className="text-gray-900">{client.emergencyContactHomePhone}</p>
+                    </div>
+                  )}
                   {client.emergencyContact && (
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-600">Legacy Emergency Contact</label>
-                      <p className="text-gray-900">{client.emergencyContact}</p>
+                      <label className="block text-sm font-medium text-gray-600">Contact Info</label>
+                      <p className="text-gray-900 break-words">{client.emergencyContact}</p>
+                    </div>
+                  )}
+                  {!client.emergencyContactFirstName && !client.emergencyContactLastName && !client.emergencyContactCellPhone && !client.emergencyContactHomePhone && !client.emergencyContact && (
+                    <div className="md:col-span-2">
+                      <p className="text-gray-600">No emergency contact information provided</p>
                     </div>
                   )}
                 </div>
@@ -643,7 +660,9 @@ interface User {
   lastName: string;
   role: string;
   phone?: string;
+  cellPhone?: string;
   cellPhoneNumber?: string;
+  homePhone?: string;
   homePhoneNumber?: string;
   address?: string;
   zipCode?: string;
@@ -2427,7 +2446,7 @@ function DashboardContent() {
                               {user.firstName} {user.lastName}
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
-                            <TableCell className="whitespace-nowrap">{user.phone || 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{user.cellPhone || user.cellPhoneNumber || user.phone || user.homePhone || user.homePhoneNumber || 'N/A'}</TableCell>
                             <TableCell className="capitalize">{user.role}</TableCell>
                             <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
@@ -3473,6 +3492,121 @@ function DashboardContent() {
                           </div>
                         )}
                       </div>
+
+                      {/* Key Handling */}
+                      {(selectedUserDetails.keyHandlingMethod || selectedUserDetails.superintendentContact || selectedUserDetails.friendNeighbourContact) && (
+                        <div className="bg-blue-50 rounded-lg p-3 sm:p-5 border border-blue-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3 sm:mb-4 flex items-center">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Key Handling
+                          </h3>
+                          <div className="space-y-3 sm:space-y-4">
+                            {selectedUserDetails.keyHandlingMethod && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Key Handling Method</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.keyHandlingMethod}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.superintendentContact && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Superintendent / Building Management Contact</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words whitespace-pre-wrap">{selectedUserDetails.superintendentContact}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.friendNeighbourContact && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Friend / Neighbour Contact</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words whitespace-pre-wrap">{selectedUserDetails.friendNeighbourContact}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Home Care Information */}
+                      {(selectedUserDetails.parkingForSitter || selectedUserDetails.garbageCollectionDay || selectedUserDetails.fuseBoxLocation || 
+                        selectedUserDetails.videoSurveillance || selectedUserDetails.cleaningSupplyLocation || selectedUserDetails.broomDustpanLocation || 
+                        selectedUserDetails.mailPickUp || selectedUserDetails.waterIndoorPlants || selectedUserDetails.outOfBoundAreas || 
+                        selectedUserDetails.additionalHomeCareInfo || selectedUserDetails.homeCareInfo) && (
+                        <div className="bg-green-50 rounded-lg p-3 sm:p-5 border border-green-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4 flex items-center">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Home Care Information
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            {selectedUserDetails.parkingForSitter && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Parking for Sitter</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.parkingForSitter}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.garbageCollectionDay && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Garbage Collection Day</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.garbageCollectionDay}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.fuseBoxLocation && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Fuse Box Location</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.fuseBoxLocation}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.videoSurveillance && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Video Surveillance</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border">{selectedUserDetails.videoSurveillance}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.cleaningSupplyLocation && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Cleaning Supply Location</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.cleaningSupplyLocation}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.broomDustpanLocation && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Broom/Dustpan Location</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.broomDustpanLocation}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.mailPickUp && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Mail Pick Up</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.mailPickUp}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.waterIndoorPlants && (
+                              <div>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Water Indoor Plants</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words">{selectedUserDetails.waterIndoorPlants}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.outOfBoundAreas && (
+                              <div className="sm:col-span-2">
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Out of Bound Areas</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words whitespace-pre-wrap">{selectedUserDetails.outOfBoundAreas}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.additionalHomeCareInfo && (
+                              <div className="sm:col-span-2">
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Additional Home Care Info</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words whitespace-pre-wrap">{selectedUserDetails.additionalHomeCareInfo}</p>
+                              </div>
+                            )}
+                            {selectedUserDetails.homeCareInfo && (
+                              <div className="sm:col-span-2">
+                                <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Legacy Home Care Info</label>
+                                <p className="text-sm sm:text-base text-gray-900 bg-white p-2 rounded border break-words whitespace-pre-wrap">{selectedUserDetails.homeCareInfo}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Home Care Information */}
                       {selectedUserDetails.homeCareInfo && (
