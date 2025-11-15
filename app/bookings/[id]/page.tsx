@@ -862,68 +862,6 @@ export default function BookingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Booking Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Date & Time */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Schedule
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">Start</span>
-                  </div>
-                  <p className="text-gray-900">{startDateTime.date}</p>
-                  <p className="text-gray-600">{startDateTime.time}</p>
-                </div>
-                <Separator />
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">End</span>
-                  </div>
-                  <p className="text-gray-900">{endDateTime.date}</p>
-                  <p className="text-gray-600">{endDateTime.time}</p>
-                </div>
-                {/* Sitter status update dropdown */}
-                {currentUser && booking.sitterId && booking.sitterId._id === currentUser.userId && (
-                  <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Update Booking Status</label>
-                    <select
-                      value={booking.status}
-                      onChange={async (e) => {
-                        const newStatus = e.target.value;
-                        try {
-                          const response = await api.put(`/bookings/${bookingId}`, { status: newStatus });
-                          setBooking(response.data);
-                          toast({
-                            title: 'Status updated',
-                            description: `Booking status changed to ${newStatus}`,
-                          });
-                        } catch (error: any) {
-                          toast({
-                            title: 'Error',
-                            description: error.response?.data?.message || 'Failed to update status',
-                            variant: 'destructive',
-                          });
-                        }
-                      }}
-                      className="border rounded px-3 py-2 text-sm"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="assigned">Assigned</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Pets - Comprehensive Information */}
             {(petsWithDetails.length > 0 ? petsWithDetails : pets)?.length > 0 && (
               <Card>
@@ -1605,7 +1543,7 @@ export default function BookingDetailPage() {
                       {clientDetails.mailPickUp && (
                         <div>
                           <label className="block text-sm font-medium text-gray-600 mb-1">Mail Pick Up</label>
-                          <p className="text-sm text-gray-900">{clientDetails.mailPickUp}</p>
+                          <p className="text-sm text-gray-900 break-words">{clientDetails.mailPickUp}</p>
                         </div>
                       )}
                       {clientDetails.waterIndoorPlants && (
