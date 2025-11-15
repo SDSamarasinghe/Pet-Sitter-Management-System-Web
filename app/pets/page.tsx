@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +97,8 @@ export default function MyPetsPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string>("");
   const [editData, setEditData] = useState<{
     pet: Partial<Pet>;
     care: Partial<Whiskarz>;
@@ -260,6 +263,8 @@ export default function MyPetsPage() {
       care: cleanCareData,
       medical: cleanMedicalData
     });
+    setEditPhotoFile(null);
+    setEditPhotoPreview(petWithDetails.pet.photo || "");
     setIsEditDialogOpen(true);
   };
 
@@ -268,14 +273,65 @@ export default function MyPetsPage() {
     setIsViewDialogOpen(true);
   };
 
+  const validateRequiredFields = () => {
+    const missing: string[] = [];
+    const p = editData.pet || {};
+    const c = editData.care || {};
+    const m = editData.medical || {};
+
+    if (!p.name) missing.push('Name');
+    if (!p.type) missing.push('Type');
+    if (!p.breed) missing.push('Breed');
+    if (!p.colouring) missing.push('Colouring');
+    if (!p.dateOfBirth) missing.push('Date of Birth');
+    if (!p.info) missing.push('General Info / Special Needs');
+
+    if (!m.vetBusinessName) missing.push('Vet Business Name');
+    if (!m.vetAddress) missing.push('Vet Address');
+    if (!m.vetPhoneNumber) missing.push('Vet Phone Number');
+
+    if (!c.personalityPhobiasPreferences) missing.push('Personality, Phobias & Preferences');
+    if (!c.typeOfFood) missing.push('Type of Food');
+    if (!c.dietFoodWaterInstructions) missing.push('Diet, Food & Water Instructions');
+    if (!c.locationOfStoredPetFood) missing.push('Location of Stored Pet Food');
+    if (!c.litterBoxLocation) missing.push('Litter Box Location');
+    if (!c.locationOfPetCarrier) missing.push('Location of Pet Carrier');
+
+    return missing;
+  };
+
   const handleSaveChanges = async () => {
     if (!selectedPet) return;
     
+    // Validate required fields mirroring Add Pet form
+    const missing = validateRequiredFields();
+    if (missing.length > 0) {
+      toast({
+        title: 'Missing required fields',
+        description: `Please fill: ${missing.join(', ')}`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // Update pet basic information
+      // Update pet basic information (supports optional photo upload)
       if (Object.keys(editData.pet).length > 0) {
-        await api.put(`/pets/${selectedPet.pet._id}`, editData.pet);
+        if (editPhotoFile) {
+          const formData = new FormData();
+          Object.entries(editData.pet).forEach(([key, value]) => {
+            if (value !== undefined && key !== 'photo') {
+              formData.append(key, String(value));
+            }
+          });
+          formData.append('petImage', editPhotoFile);
+          await api.put(`/pets/${selectedPet.pet._id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        } else {
+          await api.put(`/pets/${selectedPet.pet._id}`, editData.pet);
+        }
       }
 
       // Update or create care information
@@ -338,6 +394,18 @@ export default function MyPetsPage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+  
+  const handleEditPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setEditPhotoFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setEditPhotoPreview((ev.target?.result as string) || '');
+      reader.readAsDataURL(file);
+    } else {
+      setEditPhotoPreview(selectedPet?.pet.photo || '');
     }
   };
 
@@ -429,91 +497,105 @@ export default function MyPetsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pets.map((petWithDetails) => {
-          const { pet, care, medical } = petWithDetails;
+          const { pet } = petWithDetails;
+          const ageDisplay = pet.age ? (/^[0-9]+$/.test(String(pet.age)) ? `${pet.age} yrs` : pet.age) : null;
           return (
-            <Card key={pet._id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-3">
-                    {pet.photo ? (
-                      <img 
-                        src={pet.photo} 
-                        alt={pet.name}
-                        className="w-12 h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Heart className="w-6 h-6 text-gray-400" />
-                      </div>
-                    )}
-                    <div>
-                      <CardTitle className="text-lg">{pet.name}</CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {pet.type}
-                      </Badge>
-                    </div>
+            <Card
+              key={pet._id}
+              className="group overflow-hidden border hover:shadow-md hover:border-primary/40 transition-all duration-200 bg-white"
+            >
+              <div className="relative w-full h-40 bg-gray-100">
+                {pet.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={pet.photo}
+                    alt={pet.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full">
+                    <Heart className="w-10 h-10 text-gray-300" />
                   </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
-                  {pet.breed && (
-                    <div className="flex items-center">
-                      <span className="font-medium">Breed:</span>
-                      <span className="ml-2">{pet.breed}</span>
-                    </div>
+                )}
+                <div className="absolute top-2 left-2 flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                    {pet.type || 'Pet'}
+                  </Badge>
+                  {pet.gender && (
+                    <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                      {pet.gender}
+                    </Badge>
                   )}
-                  {pet.age && (
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      <span>{pet.age} years old</span>
-                    </div>
+                  {pet.spayedNeutered && (
+                    <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                      {pet.spayedNeutered}
+                    </Badge>
+                  )}
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3">
+                  <h3 className="text-sm font-semibold text-white truncate">
+                    {pet.name}
+                  </h3>
+                  <p className="text-xs text-white/80 truncate">
+                    {pet.breed || '—'}{ageDisplay ? ` • ${ageDisplay}` : ''}
+                  </p>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <div className="flex flex-wrap gap-2 text-[11px] text-gray-700 mb-3">
+                  {pet.colouring && (
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1">
+                      <span className="font-medium mr-1">Colour:</span>{pet.colouring}
+                    </span>
                   )}
                   {pet.weight && (
-                    <div className="flex items-center">
-                      <Activity className="w-4 h-4 mr-1" />
-                      <span>{pet.weight}</span>
-                    </div>
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1">
+                      <Activity className="w-3 h-3 mr-1" />{pet.weight}
+                    </span>
+                  )}
+                  {pet.microchipNumber && (
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 font-mono">
+                      Chip: {pet.microchipNumber}
+                    </span>
+                  )}
+                  {pet.rabiesTagNumber && (
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 font-mono">
+                      Rabies: {pet.rabiesTagNumber}
+                    </span>
                   )}
                 </div>
-
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditPet(petWithDetails)}
-                    className="flex items-center justify-center gap-1 text-xs"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDeletePet(pet._id, pet.name)}
-                    className="text-red-600 hover:text-red-700 flex items-center justify-center gap-1 text-xs"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </Button>
+                <div className="grid grid-cols-4 gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleViewPet(petWithDetails)}
-                    className="flex items-center justify-center gap-1 text-xs"
+                    className="h-8 text-[11px] flex items-center justify-center gap-1"
                   >
-                    <Eye className="w-4 h-4" />
-                    Profile Preview
+                    <Eye className="w-3 h-3" /> View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditPet(petWithDetails)}
+                    className="h-8 text-[11px] flex items-center justify-center gap-1"
+                  >
+                    <Edit className="w-3 h-3" /> Edit
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDownloadPDF(pet._id, pet.name)}
-                    className="flex items-center justify-center gap-1 text-xs"
+                    className="h-8 text-[11px] flex items-center justify-center gap-1"
                   >
-                    <FileText className="w-4 h-4" />
-                    PDF Info Sheet
+                    <FileText className="w-3 h-3" /> PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDeletePet(pet._id, pet.name)}
+                    className="h-8 text-[11px] flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" /> Del
                   </Button>
                 </div>
               </CardContent>
@@ -601,11 +683,11 @@ export default function MyPetsPage() {
                     </div>
                     <div>
                       <Label className="font-medium">Vaccinations</Label>
-                      <p className="text-sm text-gray-600">{selectedPet.pet.vaccinations || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.vaccinations || selectedPet.medical?.currentOnVaccines || 'N/A'}</p>
                     </div>
                     <div className="col-span-2">
                       <Label className="font-medium">Medications</Label>
-                      <p className="text-sm text-gray-600">{selectedPet.pet.medications || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.medications || selectedPet.medical?.onAnyMedication || 'N/A'}</p>
                     </div>
                     <div className="col-span-2">
                       <Label className="font-medium">Allergies</Label>
@@ -628,12 +710,10 @@ export default function MyPetsPage() {
                       <p className="text-sm text-gray-600">{selectedPet.pet.careInstructions || 'N/A'}</p>
                     </div>
                 </div>
-                {selectedPet.pet.info && (
-                  <div>
-                      <Label className="font-medium">General Information</Label>
-                    <p className="text-sm text-gray-600 mt-1">{selectedPet.pet.info}</p>
-                  </div>
-                )}
+                <div>
+                  <Label className="font-medium">Additional Info</Label>
+                  <p className="text-sm text-gray-600 mt-1">{selectedPet.pet.info || selectedPet.care?.anyAdditionalInfo || 'N/A'}</p>
+                </div>
               </TabsContent>
               
               <TabsContent value="medical" className="space-y-4">
@@ -809,14 +889,21 @@ export default function MyPetsPage() {
                     </div>
                     <div>
                       <Label htmlFor="gender">Gender</Label>
-                      <Input
+                      <select
                         id="gender"
+                        className="w-full border rounded px-3 py-2 text-sm"
                         value={editData.pet.gender || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
                           pet: { ...prev.pet, gender: e.target.value }
                         }))}
-                      />
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Unknown">Unknown</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="dateOfBirth">Date of Birth *</Label>
@@ -855,14 +942,20 @@ export default function MyPetsPage() {
                     </div>
                     <div>
                       <Label htmlFor="spayedNeutered">Spayed/Neutered</Label>
-                      <Input
+                      <select
                         id="spayedNeutered"
+                        className="w-full border rounded px-3 py-2 text-sm"
                         value={editData.pet.spayedNeutered || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
                           pet: { ...prev.pet, spayedNeutered: e.target.value }
                         }))}
-                      />
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Unknown">Unknown</option>
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="microchip">Microchip Number</Label>
@@ -899,6 +992,26 @@ export default function MyPetsPage() {
                       />
                     </div>
                     <div className="col-span-2">
+                      <Label htmlFor="editPhoto">Pet Photo</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                          {editPhotoPreview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={editPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-xs text-gray-400">No photo</div>
+                          )}
+                        </div>
+                        <input
+                          id="editPhoto"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditPhotoChange}
+                          className="block text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-span-2">
                       <Label htmlFor="vaccinations">Vaccinations & Status</Label>
                       <Textarea
                         id="vaccinations"
@@ -908,6 +1021,7 @@ export default function MyPetsPage() {
                           pet: { ...prev.pet, vaccinations: e.target.value }
                         }))}
                         rows={2}
+                        placeholder="Enter vaccination details and status"
                       />
                     </div>
                     <div className="col-span-2">
@@ -1046,14 +1160,20 @@ export default function MyPetsPage() {
                     </div>
                     <div>
                       <Label htmlFor="vaccines">Current on Vaccines</Label>
-                      <Input
+                      <select
                         id="vaccines"
+                        className="w-full border rounded px-3 py-2 text-sm"
                         value={editData.medical.currentOnVaccines || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
                           medical: { ...prev.medical, currentOnVaccines: e.target.value }
                         }))}
-                      />
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Unknown">Unknown</option>
+                      </select>
                     </div>
                     <div className="col-span-2">
                       <Label htmlFor="onAnyMedication">On Any Medication Details</Label>
@@ -1098,14 +1218,20 @@ export default function MyPetsPage() {
                       </div>
                       <div>
                         <Label htmlFor="anyHistoryOfBiting">Any History of Biting</Label>
-                        <Input
+                        <select
                           id="anyHistoryOfBiting"
+                          className="w-full border rounded px-3 py-2 text-sm"
                           value={editData.care.anyHistoryOfBiting || ''}
                           onChange={(e) => setEditData(prev => ({
                             ...prev,
                             care: { ...prev.care, anyHistoryOfBiting: e.target.value }
                           }))}
-                        />
+                        >
+                          <option value="">Select</option>
+                          <option value="No">No</option>
+                          <option value="Yes">Yes</option>
+                          <option value="Unknown">Unknown</option>
+                        </select>
                       </div>
                     </div>
                     <div>
