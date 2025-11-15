@@ -3593,7 +3593,7 @@ function DashboardContent() {
                                      variant="destructive"
                                      size="sm"
                                      onClick={() => deleteBooking(booking._id)}
-                                     className="text-red-600 hover:text-red-700 px-4 py-2 font-semibold rounded-lg"
+                                    //  className="text-red-600 hover:text-red-700 px-4 py-2 font-semibold rounded-lg"
                                    >
                                      Delete
                                    </Button>
