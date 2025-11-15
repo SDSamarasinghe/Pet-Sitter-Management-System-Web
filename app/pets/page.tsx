@@ -34,12 +34,18 @@ interface Pet {
   name: string;
   type: string;
   breed?: string;
+  colouring?: string;
+  gender?: string;
+  dateOfBirth?: string;
   age?: string;
   weight?: string;
+  spayedNeutered?: string;
+  microchipNumber?: string;
+  rabiesTagNumber?: string;
+  insuranceDetails?: string;
   species?: string;
   photo?: string;
   info?: string;
-  microchipNumber?: string;
   vaccinations?: string;
   medications?: string;
   allergies?: string;
@@ -53,9 +59,17 @@ interface Pet {
 interface Whiskarz {
   _id?: string;
   petId: string;
-  careInstructions?: string;
+  personalityPhobiasPreferences?: string;
+  typeOfFood?: string;
+  dietFoodWaterInstructions?: string;
+  anyHistoryOfBiting?: string;
+  locationOfStoredPetFood?: string;
+  litterBoxLocation?: string;
+  locationOfPetCarrier?: string;
   feedingSchedule?: string;
   exerciseRequirements?: string;
+  anyAdditionalInfo?: string;
+  careInstructions?: string;
 }
 
 interface PetMedical {
@@ -66,6 +80,7 @@ interface PetMedical {
   vetAddress?: string;
   vetPhoneNumber?: string;
   currentOnVaccines?: string;
+  onAnyMedication?: string;
 }
 
 interface PetWithDetails {
@@ -153,10 +168,17 @@ export default function MyPetsPage() {
                 name: pet.name,
                 type: pet.type,
                 breed: pet.breed,
+                colouring: pet.colouring,
+                gender: pet.gender,
+                dateOfBirth: pet.dateOfBirth,
                 age: pet.age,
                 weight: pet.weight,
+                spayedNeutered: pet.spayedNeutered,
                 photo: pet.photo,
                 microchipNumber: pet.microchipNumber,
+                rabiesTagNumber: pet.rabiesTagNumber,
+                insuranceDetails: pet.insuranceDetails,
+                vaccinations: pet.vaccinations,
                 medications: pet.medications,
                 allergies: pet.allergies,
                 dietaryRestrictions: pet.dietaryRestrictions,
@@ -169,9 +191,17 @@ export default function MyPetsPage() {
               care: careData ? {
                 _id: careData._id,
                 petId: careData.petId,
-                careInstructions: careData.careInstructions,
+                personalityPhobiasPreferences: careData.personalityPhobiasPreferences,
+                typeOfFood: careData.typeOfFood,
+                dietFoodWaterInstructions: careData.dietFoodWaterInstructions,
+                anyHistoryOfBiting: careData.anyHistoryOfBiting,
+                locationOfStoredPetFood: careData.locationOfStoredPetFood,
+                litterBoxLocation: careData.litterBoxLocation,
+                locationOfPetCarrier: careData.locationOfPetCarrier,
                 feedingSchedule: careData.feedingSchedule,
-                exerciseRequirements: careData.exerciseRequirements
+                exerciseRequirements: careData.exerciseRequirements,
+                anyAdditionalInfo: careData.anyAdditionalInfo,
+                careInstructions: careData.careInstructions
               } : null,
               medical: medicalData ? {
                 _id: medicalData._id,
@@ -180,7 +210,8 @@ export default function MyPetsPage() {
                 vetDoctorName: medicalData.vetDoctorName,
                 vetAddress: medicalData.vetAddress,
                 vetPhoneNumber: medicalData.vetPhoneNumber,
-                currentOnVaccines: medicalData.currentOnVaccines
+                currentOnVaccines: medicalData.currentOnVaccines,
+                onAnyMedication: medicalData.onAnyMedication
               } : null
             };
           })
@@ -515,10 +546,11 @@ export default function MyPetsPage() {
           
           {selectedPet && (
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="medical">Medical</TabsTrigger>
                 <TabsTrigger value="care">Care</TabsTrigger>
+                  <TabsTrigger value="insurance">Insurance</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic" className="space-y-4">
@@ -535,6 +567,18 @@ export default function MyPetsPage() {
                     <Label className="font-medium">Breed</Label>
                     <p className="text-sm text-gray-600">{selectedPet.pet.breed || 'N/A'}</p>
                   </div>
+                    <div>
+                      <Label className="font-medium">Colouring</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.colouring || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-medium">Gender</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.gender || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-medium">Date of Birth</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.dateOfBirth || 'N/A'}</p>
+                    </div>
                   <div>
                     <Label className="font-medium">Age</Label>
                     <p className="text-sm text-gray-600">{selectedPet.pet.age || 'N/A'}</p>
@@ -543,14 +587,50 @@ export default function MyPetsPage() {
                     <Label className="font-medium">Weight</Label>
                     <p className="text-sm text-gray-600">{selectedPet.pet.weight || 'N/A'}</p>
                   </div>
+                    <div>
+                      <Label className="font-medium">Spayed/Neutered</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.spayedNeutered || 'N/A'}</p>
+                    </div>
                   <div>
                     <Label className="font-medium">Microchip</Label>
                     <p className="text-sm text-gray-600">{selectedPet.pet.microchipNumber || 'N/A'}</p>
                   </div>
+                    <div>
+                      <Label className="font-medium">Rabies Tag Number</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.rabiesTagNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <Label className="font-medium">Vaccinations</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.vaccinations || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Medications</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.medications || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Allergies</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.allergies || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Dietary Restrictions</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.dietaryRestrictions || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Behavior Notes</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.behaviorNotes || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Emergency Contact</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.emergencyContact || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="font-medium">Care Instructions</Label>
+                      <p className="text-sm text-gray-600">{selectedPet.pet.careInstructions || 'N/A'}</p>
+                    </div>
                 </div>
                 {selectedPet.pet.info && (
                   <div>
-                    <Label className="font-medium">Information</Label>
+                      <Label className="font-medium">General Information</Label>
                     <p className="text-sm text-gray-600 mt-1">{selectedPet.pet.info}</p>
                   </div>
                 )}
@@ -579,6 +659,10 @@ export default function MyPetsPage() {
                       <Label className="font-medium">Vaccination Status</Label>
                       <p className="text-sm text-gray-600">{selectedPet.medical.currentOnVaccines || 'N/A'}</p>
                     </div>
+                      <div className="col-span-2">
+                        <Label className="font-medium">On Any Medication</Label>
+                        <p className="text-sm text-gray-600">{selectedPet.medical.onAnyMedication || 'N/A'}</p>
+                      </div>
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No medical information available</p>
@@ -588,17 +672,51 @@ export default function MyPetsPage() {
               <TabsContent value="care" className="space-y-4">
                 {selectedPet.care ? (
                   <div className="space-y-4">
+                      <div>
+                        <Label className="font-medium">Personality, Phobias & Preferences</Label>
+                        <p className="text-sm text-gray-600 mt-1">{selectedPet.care.personalityPhobiasPreferences || 'N/A'}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="font-medium">Type of Food</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.typeOfFood || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <Label className="font-medium">Any History of Biting</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.anyHistoryOfBiting || 'N/A'}</p>
+                        </div>
+                      </div>
                     <div>
-                      <Label className="font-medium">Care Instructions</Label>
-                      <p className="text-sm text-gray-600 mt-1">{selectedPet.care.careInstructions || 'N/A'}</p>
+                        <Label className="font-medium">Diet, Food & Water Instructions</Label>
+                        <p className="text-sm text-gray-600 mt-1">{selectedPet.care.dietFoodWaterInstructions || 'N/A'}</p>
                     </div>
-                    <div>
-                      <Label className="font-medium">Feeding Schedule</Label>
-                      <p className="text-sm text-gray-600 mt-1">{selectedPet.care.feedingSchedule || 'N/A'}</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="font-medium">Feeding Schedule</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.feedingSchedule || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <Label className="font-medium">Exercise Requirements</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.exerciseRequirements || 'N/A'}</p>
+                        </div>
                     </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label className="font-medium">Pet Food Location</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.locationOfStoredPetFood || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <Label className="font-medium">Litter Box Location</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.litterBoxLocation || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <Label className="font-medium">Pet Carrier Location</Label>
+                          <p className="text-sm text-gray-600">{selectedPet.care.locationOfPetCarrier || 'N/A'}</p>
+                        </div>
+                      </div>
                     <div>
-                      <Label className="font-medium">Exercise Requirements</Label>
-                      <p className="text-sm text-gray-600 mt-1">{selectedPet.care.exerciseRequirements || 'N/A'}</p>
+                        <Label className="font-medium">Additional Care Info</Label>
+                        <p className="text-sm text-gray-600 mt-1">{selectedPet.care.anyAdditionalInfo || 'N/A'}</p>
                     </div>
                   </div>
                 ) : (
@@ -611,6 +729,13 @@ export default function MyPetsPage() {
                   </div>
                 )}
               </TabsContent>
+              
+                <TabsContent value="insurance" className="space-y-4">
+                  <div>
+                    <Label className="font-medium">Insurance Details</Label>
+                    <p className="text-sm text-gray-600 mt-1">{selectedPet.pet.insuranceDetails || 'No insurance information available'}</p>
+                  </div>
+                </TabsContent>
             </Tabs>
           )}
         </DialogContent>
@@ -629,16 +754,17 @@ export default function MyPetsPage() {
           {selectedPet && (
             <div>
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="medical">Medical</TabsTrigger>
                   <TabsTrigger value="care">Care</TabsTrigger>
+                  <TabsTrigger value="insurance">Insurance</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="basic" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">Name *</Label>
                       <Input
                         id="name"
                         value={editData.pet.name || ''}
@@ -649,13 +775,58 @@ export default function MyPetsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="breed">Breed</Label>
+                      <Label htmlFor="type">Type *</Label>
+                      <Input
+                        id="type"
+                        value={editData.pet.type || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, type: e.target.value }
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="breed">Breed *</Label>
                       <Input
                         id="breed"
                         value={editData.pet.breed || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
                           pet: { ...prev.pet, breed: e.target.value }
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="colouring">Colouring *</Label>
+                      <Input
+                        id="colouring"
+                        value={editData.pet.colouring || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, colouring: e.target.value }
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="gender">Gender</Label>
+                      <Input
+                        id="gender"
+                        value={editData.pet.gender || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, gender: e.target.value }
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={editData.pet.dateOfBirth || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, dateOfBirth: e.target.value }
                         }))}
                       />
                     </div>
@@ -674,6 +845,7 @@ export default function MyPetsPage() {
                       <Label htmlFor="weight">Weight</Label>
                       <Input
                         id="weight"
+                        type="number"
                         value={editData.pet.weight || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
@@ -681,7 +853,18 @@ export default function MyPetsPage() {
                         }))}
                       />
                     </div>
-                    <div className="col-span-2">
+                    <div>
+                      <Label htmlFor="spayedNeutered">Spayed/Neutered</Label>
+                      <Input
+                        id="spayedNeutered"
+                        value={editData.pet.spayedNeutered || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, spayedNeutered: e.target.value }
+                        }))}
+                      />
+                    </div>
+                    <div>
                       <Label htmlFor="microchip">Microchip Number</Label>
                       <Input
                         id="microchip"
@@ -692,8 +875,115 @@ export default function MyPetsPage() {
                         }))}
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="rabiesTag">Rabies Tag Number</Label>
+                      <Input
+                        id="rabiesTag"
+                        value={editData.pet.rabiesTagNumber || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, rabiesTagNumber: e.target.value }
+                        }))}
+                      />
+                    </div>
                     <div className="col-span-2">
-                      <Label htmlFor="info">Information</Label>
+                      <Label htmlFor="insuranceDetails">Insurance Details</Label>
+                      <Textarea
+                        id="insuranceDetails"
+                        value={editData.pet.insuranceDetails || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, insuranceDetails: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="vaccinations">Vaccinations & Status</Label>
+                      <Textarea
+                        id="vaccinations"
+                        value={editData.pet.vaccinations || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, vaccinations: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="medications">Current Medications</Label>
+                      <Textarea
+                        id="medications"
+                        value={editData.pet.medications || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, medications: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="allergies">Allergies & Sensitivities</Label>
+                      <Textarea
+                        id="allergies"
+                        value={editData.pet.allergies || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, allergies: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
+                      <Textarea
+                        id="dietaryRestrictions"
+                        value={editData.pet.dietaryRestrictions || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, dietaryRestrictions: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="behaviorNotes">Behavior Notes</Label>
+                      <Textarea
+                        id="behaviorNotes"
+                        value={editData.pet.behaviorNotes || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, behaviorNotes: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                      <Textarea
+                        id="emergencyContact"
+                        value={editData.pet.emergencyContact || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, emergencyContact: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="careInstructions">Care Instructions</Label>
+                      <Textarea
+                        id="careInstructions"
+                        value={editData.pet.careInstructions || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, careInstructions: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="info">General Info / Special Needs *</Label>
                       <Textarea
                         id="info"
                         value={editData.pet.info || ''}
@@ -701,6 +991,7 @@ export default function MyPetsPage() {
                           ...prev,
                           pet: { ...prev.pet, info: e.target.value }
                         }))}
+                        rows={3}
                       />
                     </div>
                   </div>
@@ -709,7 +1000,7 @@ export default function MyPetsPage() {
                 <TabsContent value="medical" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="vetBusiness">Vet Business Name</Label>
+                      <Label htmlFor="vetBusiness">Vet Business Name *</Label>
                       <Input
                         id="vetBusiness"
                         value={editData.medical.vetBusinessName || ''}
@@ -730,19 +1021,20 @@ export default function MyPetsPage() {
                         }))}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="vetAddress">Vet Address</Label>
-                      <Input
+                    <div className="col-span-2">
+                      <Label htmlFor="vetAddress">Vet Address *</Label>
+                      <Textarea
                         id="vetAddress"
                         value={editData.medical.vetAddress || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
                           medical: { ...prev.medical, vetAddress: e.target.value }
                         }))}
+                        rows={2}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="vetPhone">Vet Phone Number</Label>
+                      <Label htmlFor="vetPhone">Vet Phone Number *</Label>
                       <Input
                         id="vetPhone"
                         value={editData.medical.vetPhoneNumber || ''}
@@ -752,8 +1044,8 @@ export default function MyPetsPage() {
                         }))}
                       />
                     </div>
-                    <div className="col-span-2">
-                      <Label htmlFor="vaccines">Vaccination Status</Label>
+                    <div>
+                      <Label htmlFor="vaccines">Current on Vaccines</Label>
                       <Input
                         id="vaccines"
                         value={editData.medical.currentOnVaccines || ''}
@@ -763,42 +1055,160 @@ export default function MyPetsPage() {
                         }))}
                       />
                     </div>
+                    <div className="col-span-2">
+                      <Label htmlFor="onAnyMedication">On Any Medication Details</Label>
+                      <Textarea
+                        id="onAnyMedication"
+                        value={editData.medical.onAnyMedication || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          medical: { ...prev.medical, onAnyMedication: e.target.value }
+                        }))}
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="care" className="space-y-4">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="careInstructions">Care Instructions</Label>
+                      <Label htmlFor="personalityPhobiasPreferences">Personality, Phobias & Preferences *</Label>
                       <Textarea
-                        id="careInstructions"
-                        value={editData.care.careInstructions || ''}
+                        id="personalityPhobiasPreferences"
+                        value={editData.care.personalityPhobiasPreferences || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
-                          care: { ...prev.care, careInstructions: e.target.value }
+                          care: { ...prev.care, personalityPhobiasPreferences: e.target.value }
                         }))}
+                        rows={3}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="feedingSchedule">Feeding Schedule</Label>
-                      <Textarea
-                        id="feedingSchedule"
-                        value={editData.care.feedingSchedule || ''}
-                        onChange={(e) => setEditData(prev => ({
-                          ...prev,
-                          care: { ...prev.care, feedingSchedule: e.target.value }
-                        }))}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="typeOfFood">Type of Food *</Label>
+                        <Input
+                          id="typeOfFood"
+                          value={editData.care.typeOfFood || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, typeOfFood: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="anyHistoryOfBiting">Any History of Biting</Label>
+                        <Input
+                          id="anyHistoryOfBiting"
+                          value={editData.care.anyHistoryOfBiting || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, anyHistoryOfBiting: e.target.value }
+                          }))}
+                        />
+                      </div>
                     </div>
                     <div>
-                      <Label htmlFor="exerciseRequirements">Exercise Requirements</Label>
+                      <Label htmlFor="dietFoodWaterInstructions">Diet, Food & Water Instructions *</Label>
                       <Textarea
-                        id="exerciseRequirements"
-                        value={editData.care.exerciseRequirements || ''}
+                        id="dietFoodWaterInstructions"
+                        value={editData.care.dietFoodWaterInstructions || ''}
                         onChange={(e) => setEditData(prev => ({
                           ...prev,
-                          care: { ...prev.care, exerciseRequirements: e.target.value }
+                          care: { ...prev.care, dietFoodWaterInstructions: e.target.value }
                         }))}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="feedingSchedule">Feeding Schedule</Label>
+                        <Textarea
+                          id="feedingSchedule"
+                          value={editData.care.feedingSchedule || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, feedingSchedule: e.target.value }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="exerciseRequirements">Exercise Requirements</Label>
+                        <Textarea
+                          id="exerciseRequirements"
+                          value={editData.care.exerciseRequirements || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, exerciseRequirements: e.target.value }
+                          }))}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="locationOfStoredPetFood">Location of Stored Pet Food *</Label>
+                        <Input
+                          id="locationOfStoredPetFood"
+                          value={editData.care.locationOfStoredPetFood || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, locationOfStoredPetFood: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="litterBoxLocation">Litter Box Location *</Label>
+                        <Input
+                          id="litterBoxLocation"
+                          value={editData.care.litterBoxLocation || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, litterBoxLocation: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="locationOfPetCarrier">Location of Pet Carrier *</Label>
+                        <Input
+                          id="locationOfPetCarrier"
+                          value={editData.care.locationOfPetCarrier || ''}
+                          onChange={(e) => setEditData(prev => ({
+                            ...prev,
+                            care: { ...prev.care, locationOfPetCarrier: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="anyAdditionalInfo">Additional Care Info</Label>
+                      <Textarea
+                        id="anyAdditionalInfo"
+                        value={editData.care.anyAdditionalInfo || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          care: { ...prev.care, anyAdditionalInfo: e.target.value }
+                        }))}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="insurance" className="space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="insuranceDetailsEdit">Insurance Details</Label>
+                      <Textarea
+                        id="insuranceDetailsEdit"
+                        value={editData.pet.insuranceDetails || ''}
+                        onChange={(e) => setEditData(prev => ({
+                          ...prev,
+                          pet: { ...prev.pet, insuranceDetails: e.target.value }
+                        }))}
+                        rows={3}
+                        placeholder="Pet insurance provider, policy number, coverage details"
                       />
                     </div>
                   </div>
