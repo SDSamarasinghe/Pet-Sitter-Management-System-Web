@@ -532,14 +532,15 @@ export default function MyPetsPage() {
                     </Badge>
                   )}
                 </div>
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3">
-                  <h3 className="text-sm font-semibold text-white truncate">
-                    {pet.name}
-                  </h3>
-                  <p className="text-xs text-white/80 truncate">
-                    {pet.breed || '—'}{ageDisplay ? ` • ${ageDisplay}` : ''}
-                  </p>
-                </div>
+              </div>
+              {/* Pet Details Below Image */}
+              <div className="px-4 py-3 bg-gray-50 border-b">
+                <h3 className="text-sm font-semibold text-gray-900 truncate">
+                  {pet.name || 'Unnamed Pet'}
+                </h3>
+                <p className="text-xs text-gray-600 truncate">
+                  {pet.breed || 'Breed unknown'}{ageDisplay ? ` • ${ageDisplay}` : ''}
+                </p>
               </div>
               <CardContent className="p-4">
                 <div className="flex flex-wrap gap-2 text-[11px] text-gray-700 mb-3">
@@ -595,7 +596,7 @@ export default function MyPetsPage() {
                     onClick={() => handleDeletePet(pet._id, pet.name)}
                     className="h-8 text-[11px] flex items-center justify-center gap-1 text-red-600 hover:text-red-700"
                   >
-                    <Trash2 className="w-3 h-3" /> Del
+                    <Trash2 className="w-3 h-3" /> Delete
                   </Button>
                 </div>
               </CardContent>
