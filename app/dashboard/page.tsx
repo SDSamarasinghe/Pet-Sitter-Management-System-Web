@@ -14,7 +14,9 @@ import { isAuthenticated, getUserFromToken, getUserRole, removeToken } from "@/l
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronDownIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { formatDateTimeTZ, formatTimeRangeTZ, getUserTimeZone } from "@/lib/utils";
 
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
@@ -808,14 +810,8 @@ function DashboardContent() {
     return false;
   };
 
-  const formatDateTime = (value?: string | number | Date) => {
-    if (!value) return 'N/A';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return 'N/A';
-    const date = d.toLocaleDateString();
-    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `${date} ${time}`;
-  };
+  const userTimeZone = getUserTimeZone();
+  const formatDateTime = (value?: string | number | Date) => formatDateTimeTZ(value, userTimeZone);
 
   // Image modal state for chat images
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -1170,9 +1166,14 @@ function DashboardContent() {
   const [usersSearch, setUsersSearch] = useState("");
   const [sittersSearch, setSittersSearch] = useState("");
   const [bookingsSearch, setBookingsSearch] = useState("");
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined,
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>(() => {
+    // Initialize with today's date as default
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return {
+      from: today,
+      to: undefined,
+    };
   });
   const [petTabs, setPetTabs] = useState<{ [petId: string]: string }>({});
   const [selectedClient, setSelectedClient] = useState("");
@@ -2197,7 +2198,7 @@ function DashboardContent() {
                                 {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}${note.recipientId.role === 'admin' ? ' (Admin)' : ''}` : note.clientName)}
                               </span>
                               <span className="text-sm text-gray-400">
-                                {new Date(note.createdAt || note.timestamp).toLocaleDateString()} - {new Date(note.createdAt || note.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                {formatDateTimeTZ(note.createdAt || note.timestamp, userTimeZone)}
                               </span>
                             </div>
                             <p className="text-gray-700 text-sm leading-relaxed">{note.text}</p>
@@ -2247,7 +2248,7 @@ function DashboardContent() {
                                             {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}${reply.senderId.role === 'admin' ? ' (Admin)' : ''}` : reply.author)}
                                           </span>
                                           <span className="text-sm text-gray-400">
-                                            {new Date(reply.createdAt || reply.timestamp).toLocaleDateString()} - {new Date(reply.createdAt || reply.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            {formatDateTimeTZ(reply.createdAt || reply.timestamp, userTimeZone)}
                                           </span>
                                         </div>
                                         {/* Reply Text/Body */}
@@ -3709,6 +3710,8 @@ function DashboardContent() {
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Service Type</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Start Date</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">End Date</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Duration</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base">Sitter Payment</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
                           {/* <TableHead className="bg-primary/10 text-primary font-bold text-base">Pets</TableHead> */}
@@ -3741,6 +3744,49 @@ function DashboardContent() {
                             <TableCell>{booking.serviceType || 'N/A'}</TableCell>
                             <TableCell className="whitespace-nowrap">{booking.startDate ? formatDateTime(booking.startDate) : 'N/A'}</TableCell>
                             <TableCell className="whitespace-nowrap">{booking.endDate ? formatDateTime(booking.endDate) : 'N/A'}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {booking.startDate && booking.endDate ? (() => {
+                                const start = new Date(booking.startDate);
+                                const end = new Date(booking.endDate);
+                                const diffMs = end.getTime() - start.getTime();
+                                const diffHours = diffMs / (1000 * 60 * 60);
+                                const diffDays = Math.floor(diffHours / 24);
+                                const remainingHours = Math.floor(diffHours % 24);
+                                const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+                                
+                                if (diffDays > 0) {
+                                  return `${diffDays}d ${remainingHours}h ${diffMinutes}m`;
+                                } else if (remainingHours > 0) {
+                                  return `${remainingHours}h ${diffMinutes}m`;
+                                } else {
+                                  return `${diffMinutes}m`;
+                                }
+                              })() : 'N/A'}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-semibold text-green-700">
+                              {booking.startDate && booking.endDate ? (() => {
+                                const start = new Date(booking.startDate);
+                                const end = new Date(booking.endDate);
+                                const diffMs = Math.abs(end.getTime() - start.getTime());
+                                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                                
+                                console.log(`Admin booking payment calculation: ${diffMinutes} minutes`);
+                                
+                                if (diffMinutes <= 30) {
+                                  return '$20';
+                                } else if (diffMinutes <= 45) {
+                                  return '$24';
+                                } else if (diffMinutes <= 60) {
+                                  return '$27';
+                                } else {
+                                  // For longer durations, calculate hourly rate
+                                  const additionalMinutes = diffMinutes - 60;
+                                  const additionalHours = Math.ceil(additionalMinutes / 60);
+                                  const totalPayment = 27 + (additionalHours * 27);
+                                  return `$${totalPayment}`;
+                                }
+                              })() : 'N/A'}
+                            </TableCell>
                             <TableCell>{getStatusBadge ? getStatusBadge(booking.status) : booking.status}</TableCell>
                             <TableCell className="whitespace-nowrap">{booking.createdAt ? formatDateTime(booking.createdAt) : 'N/A'}</TableCell>
                             {/* <TableCell>{booking.pets && booking.pets.length > 0 ? booking.pets.map((pet: any) => pet.name).join(', ') : 'N/A'}</TableCell> */}
@@ -3838,7 +3884,7 @@ function DashboardContent() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No bookings found</TableCell>
+                          <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">No bookings found</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -4058,47 +4104,91 @@ function DashboardContent() {
                 />
                 
                 {/* Date Range Filter */}
-                <div className="flex items-center gap-4 flex-wrap">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`justify-start text-left font-normal ${!dateRange.from && !dateRange.to ? "text-muted-foreground" : ""}`}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "LLL dd, y")
-                          )
-                        ) : (
-                          <span>Filter by date range</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange.from}
-                        selected={{ from: dateRange.from, to: dateRange.to }}
-                        onSelect={(range: any) => setDateRange({ from: range?.from, to: range?.to })}
-                        numberOfMonths={2}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    {/* From Date Picker - Native Input */}
+                    <div className="flex flex-col gap-2 w-48">
+                      <Label htmlFor="from-date" className="text-sm font-medium text-gray-700">
+                        From Date
+                      </Label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          id="from-date"
+                          className="input-modern w-full pr-8"
+                          value={dateRange.from ? `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth()+1).padStart(2,'0')}-${String(dateRange.from.getDate()).padStart(2,'0')}` : ""}
+                          onChange={e => {
+                            if (!e.target.value) {
+                              setDateRange(prev => ({ ...prev, from: undefined }));
+                              return;
+                            }
+                            const [y, m, d] = e.target.value.split('-').map(Number);
+                            const localDate = new Date(y, (m || 1) - 1, d || 1);
+                            localDate.setHours(0, 0, 0, 0);
+                            setDateRange(prev => ({ ...prev, from: localDate }));
+                          }}
+                          min="1900-01-01"
+                          max={dateRange.to ? `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth()+1).padStart(2,'0')}-${String(dateRange.to.getDate()).padStart(2,'0')}` : undefined}
+                        />
+                        {/* Only calendar icon remains, dropdown chevron removed */}
+                      </div>
+                    </div>
+
+                    {/* To Date Picker - Native Input */}
+                    <div className="flex flex-col gap-2 w-48">
+                      <Label htmlFor="to-date" className="text-sm font-medium text-gray-700">
+                        To Date
+                      </Label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          id="to-date"
+                          className="input-modern w-full pr-8"
+                          value={dateRange.to ? `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth()+1).padStart(2,'0')}-${String(dateRange.to.getDate()).padStart(2,'0')}` : ""}
+                          onChange={e => {
+                            if (!e.target.value) {
+                              setDateRange(prev => ({ ...prev, to: undefined }));
+                              return;
+                            }
+                            const [y, m, d] = e.target.value.split('-').map(Number);
+                            const localDate = new Date(y, (m || 1) - 1, d || 1);
+                            localDate.setHours(23, 59, 59, 999);
+                            setDateRange(prev => ({ ...prev, to: localDate }));
+                          }}
+                          min={dateRange.from ? `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth()+1).padStart(2,'0')}-${String(dateRange.from.getDate()).padStart(2,'0')}` : "1900-01-01"}
+                        />
+                        <span className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
                   
-                  {(dateRange.from || dateRange.to) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      setDateRange({ from: today, to: undefined });
+                    }}
+                    className="h-8 px-2 lg:px-3 text-xs"
+                  >
+                    Today
+                  </Button>
+                  
+                  {dateRange.to && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setDateRange({ from: undefined, to: undefined })}
-                      className="h-8 px-2 lg:px-3"
+                      onClick={() => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        setDateRange({ from: today, to: undefined });
+                      }}
+                      className="h-8 px-2 lg:px-3 text-xs"
                     >
-                      Clear filters
+                      Clear Range
                     </Button>
                   )}
                 </div>
@@ -4111,57 +4201,77 @@ function DashboardContent() {
                       <TableHead>Client</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Service</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Sitter Payment</TableHead>
                       <TableHead>Status</TableHead>
                       {/* <TableHead className="text-right">Total</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {bookings.length > 0 ? (
-                      bookings
-                        .filter((booking: any) => {
-                          // Text search filter
-                          const searchTerm = (bookingsSearch || "").toLowerCase();
-                          const matchesSearch = !searchTerm || (
-                            (booking.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
-                            (booking.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
-                            (booking.address || booking.userId?.address || "").toLowerCase().includes(searchTerm) ||
-                            (booking.serviceType || "").toLowerCase().includes(searchTerm) ||
-                            (booking.paymentStatus || "").toLowerCase().includes(searchTerm) ||
-                            (booking.notes || "").toLowerCase().includes(searchTerm)
-                          );
+                    {(() => {
+                      // Filter bookings
+                      const filteredBookings = bookings.filter((booking: any) => {
+                        // Text search filter
+                        const searchTerm = (bookingsSearch || "").toLowerCase();
+                        const matchesSearch = !searchTerm || (
+                          (booking.userId?.firstName || "").toLowerCase().includes(searchTerm) ||
+                          (booking.userId?.lastName || "").toLowerCase().includes(searchTerm) ||
+                          (booking.address || booking.userId?.address || "").toLowerCase().includes(searchTerm) ||
+                          (booking.serviceType || "").toLowerCase().includes(searchTerm) ||
+                          (booking.paymentStatus || "").toLowerCase().includes(searchTerm) ||
+                          (booking.notes || "").toLowerCase().includes(searchTerm)
+                        );
 
-                          // Date range filter
-                          const matchesDateRange = (() => {
-                            if (!dateRange.from && !dateRange.to) return true;
-                            if (!booking.startDate) return false;
-                            
-                            const bookingDate = new Date(booking.startDate);
-                            bookingDate.setHours(0, 0, 0, 0);
-                            
-                            if (dateRange.from && dateRange.to) {
-                              const from = new Date(dateRange.from);
-                              from.setHours(0, 0, 0, 0);
-                              const to = new Date(dateRange.to);
-                              to.setHours(23, 59, 59, 999);
-                              return bookingDate >= from && bookingDate <= to;
-                            } else if (dateRange.from) {
-                              const from = new Date(dateRange.from);
-                              from.setHours(0, 0, 0, 0);
-                              return bookingDate >= from;
-                            } else if (dateRange.to) {
-                              const to = new Date(dateRange.to);
-                              to.setHours(23, 59, 59, 999);
-                              return bookingDate <= to;
-                            }
-                            return true;
-                          })();
+                        // Date range filter - show only today's bookings if no range is set
+                        const matchesDateRange = (() => {
+                          if (!booking.startDate) return false;
+                          const bookingDate = new Date(booking.startDate);
+                          bookingDate.setHours(0, 0, 0, 0);
+                          // If both dateRange.from and dateRange.to are set, use range
+                          if (dateRange.from && dateRange.to) {
+                            const from = new Date(dateRange.from);
+                            from.setHours(0, 0, 0, 0);
+                            const to = new Date(dateRange.to);
+                            to.setHours(23, 59, 59, 999);
+                            return bookingDate >= from && bookingDate <= to;
+                          }
+                          // If only from is set, show bookings for that day only
+                          if (dateRange.from && !dateRange.to) {
+                            const from = new Date(dateRange.from);
+                            from.setHours(0, 0, 0, 0);
+                            const to = new Date(from);
+                            to.setDate(to.getDate() + 1);
+                            to.setHours(0, 0, 0, 0);
+                            return bookingDate >= from && bookingDate < to;
+                          }
+                          // If only to is set, show bookings for that day only
+                          if (!dateRange.from && dateRange.to) {
+                            const to = new Date(dateRange.to);
+                            to.setHours(0, 0, 0, 0);
+                            const from = new Date(to);
+                            from.setDate(from.getDate() - 1);
+                            from.setHours(0, 0, 0, 0);
+                            return bookingDate >= from && bookingDate < to;
+                          }
+                          // If no range, show only today's bookings
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const tomorrow = new Date(today);
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          tomorrow.setHours(0, 0, 0, 0);
+                          return bookingDate >= today && bookingDate < tomorrow;
+                        })();
 
-                          return matchesSearch && matchesDateRange;
-                        })
+                        return matchesSearch && matchesDateRange;
+                      });
+
+                      return filteredBookings.length > 0 ? (
+                        filteredBookings
                         .sort((a: any, b: any) => {
-                          const aDate = new Date(a.createdAt).getTime();
-                          const bDate = new Date(b.createdAt).getTime();
-                          return bDate - aDate;
+                          // Sort by booking startDate
+                          const aDate = new Date(a.startDate).getTime();
+                          const bDate = new Date(b.startDate).getTime();
+                          return aDate - bDate;
                         })
                         .map((booking: any) => (
                           <TableRow key={booking._id || booking.id}>
@@ -4173,15 +4283,48 @@ function DashboardContent() {
                               {booking.notes && <div className="italic text-xs text-muted-foreground mt-1">{booking.notes}</div>}
                               {booking.startDate && booking.endDate && (
                                 <div className="text-xs text-muted-foreground mt-1">
-                                  {(() => {
-                                    const start = new Date(booking.startDate);
-                                    const end = new Date(booking.endDate);
-                                    const diffMs = end.getTime() - start.getTime();
-                                    const diffMin = Math.round(diffMs / 60000);
-                                    return `Duration: ${diffMin} minutes`;
-                                  })()}
+                                  {formatTimeRangeTZ(booking.startDate, booking.endDate, userTimeZone)}
                                 </div>
                               )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {booking.startDate && booking.endDate ? (() => {
+                                const start = new Date(booking.startDate);
+                                const end = new Date(booking.endDate);
+                                const diffMs = end.getTime() - start.getTime();
+                                const diffHours = diffMs / (1000 * 60 * 60);
+                                const diffDays = Math.floor(diffHours / 24);
+                                const remainingHours = Math.floor(diffHours % 24);
+                                const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+                                
+                                if (diffDays > 0) {
+                                  return `${diffDays}d ${remainingHours}h ${diffMinutes}m`;
+                                } else if (remainingHours > 0) {
+                                  return `${remainingHours}h ${diffMinutes}m`;
+                                } else {
+                                  return `${diffMinutes}m`;
+                                }
+                              })() : 'N/A'}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-semibold text-green-700">
+                              {booking.startDate && booking.endDate ? (() => {
+                                const start = new Date(booking.startDate);
+                                const end = new Date(booking.endDate);
+                                const diffMs = Math.abs(end.getTime() - start.getTime());
+                                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+                                console.log(`Booking payment calculation: ${diffMinutes} minutes`);
+                                
+                                if (diffMinutes <= 30) return '$20';
+                                if (diffMinutes <= 45) return '$24';
+                                if (diffMinutes <= 60) return '$27';
+
+                                // For longer durations, calculate hourly rate
+                                const additionalMinutes = diffMinutes - 60;
+                                const additionalHours = Math.ceil(additionalMinutes / 60);
+                                const totalPayment = 27 + (additionalHours * 27);
+                                return `$${totalPayment}`;
+                              })() : 'N/A'}
                             </TableCell>
                             <TableCell>
                               {booking.status === 'completed' ? (
@@ -4219,11 +4362,26 @@ function DashboardContent() {
                             {/* <TableCell className="text-right font-mono font-medium">${booking.totalAmount ? booking.totalAmount.toFixed(2) : '--'}</TableCell> */}
                           </TableRow>
                         ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No bookings found.</TableCell>
-                      </TableRow>
-                    )}
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            <div className="flex flex-col items-center justify-center space-y-3">
+                              <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <div className="text-gray-500 font-medium">
+                                {bookingsSearch || dateRange.from || dateRange.to 
+                                  ? "No bookings found matching your filters." 
+                                  : "You don't have any sittings scheduled for today."}
+                              </div>
+                              {!bookingsSearch && !dateRange.from && !dateRange.to && (
+                                <p className="text-sm text-gray-400">Use the date filters above to view bookings from other days.</p>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })()}
                   </TableBody>
                 </Table>
               </div>
@@ -5403,8 +5561,8 @@ function DashboardContent() {
                             bookings.slice(0, showAllInvoices ? bookings.length : 1).map((booking, idx) => {
                               // Use only available fields from Booking interface
                               const visitDate = booking.date ? new Date(booking.date) : null;
-                              const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A';
-                              const formatDateTime = (date: Date | null) => date ? `${date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase()}` : '--';
+                              const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-CA', { month: 'short', day: '2-digit', year: 'numeric', timeZone: userTimeZone }) : 'N/A';
+                              const formatDateTime = (date: Date | null) => date ? formatDateTimeTZ(date, userTimeZone) : '--';
                               // Payment status
                               const paymentStatus = (booking as any).paymentStatus || booking.status || '';
                               const isCompleted = paymentStatus.toLowerCase() === 'completed' || paymentStatus.toLowerCase() === 'complete';
