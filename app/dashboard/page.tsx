@@ -16,7 +16,7 @@ import api from "@/lib/api";
 import { format } from "date-fns";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { formatDateTimeTZ, formatTimeRangeTZ, getUserTimeZone } from "@/lib/utils";
+import { formatDateTimeTZ, formatTimeRangeTZ, getUserTimeZone, APP_TIMEZONE } from "@/lib/utils";
 
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
@@ -810,8 +810,9 @@ function DashboardContent() {
     return false;
   };
 
-  const userTimeZone = getUserTimeZone();
-  const formatDateTime = (value?: string | number | Date) => formatDateTimeTZ(value, userTimeZone);
+  // Use Toronto timezone consistently across the app
+  const userTimeZone = APP_TIMEZONE;
+  const formatDateTime = (value?: string | number | Date) => formatDateTimeTZ(value, APP_TIMEZONE);
 
   // Image modal state for chat images
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -2198,7 +2199,7 @@ function DashboardContent() {
                                 {note.recipientId?._id === user?._id || note.recipientId?.id === user?.id ? 'You' : (note.recipientId?.firstName ? `${note.recipientId.firstName} ${note.recipientId.lastName}${note.recipientId.role === 'admin' ? ' (Admin)' : ''}` : note.clientName)}
                               </span>
                               <span className="text-sm text-gray-400">
-                                {formatDateTimeTZ(note.createdAt || note.timestamp, userTimeZone)}
+                                {formatDateTimeTZ(note.createdAt || note.timestamp, APP_TIMEZONE)}
                               </span>
                             </div>
                             <p className="text-gray-700 text-sm leading-relaxed">{note.text}</p>
@@ -2248,7 +2249,7 @@ function DashboardContent() {
                                             {reply.senderId?._id === user?._id || reply.senderId?.id === user?.id ? 'You' : (reply.senderId?.firstName ? `${reply.senderId.firstName} ${reply.senderId.lastName}${reply.senderId.role === 'admin' ? ' (Admin)' : ''}` : reply.author)}
                                           </span>
                                           <span className="text-sm text-gray-400">
-                                            {formatDateTimeTZ(reply.createdAt || reply.timestamp, userTimeZone)}
+                                            {formatDateTimeTZ(reply.createdAt || reply.timestamp, APP_TIMEZONE)}
                                           </span>
                                         </div>
                                         {/* Reply Text/Body */}
@@ -3687,7 +3688,7 @@ function DashboardContent() {
               <CardHeader>
                 <CardTitle>All Bookings ({adminBookings.length})</CardTitle>
                 <CardDescription>
-                  View all bookings in the system
+                  View all bookings in the system. All times displayed in Toronto timezone (EST/EDT).
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -4283,7 +4284,7 @@ function DashboardContent() {
                               {booking.notes && <div className="italic text-xs text-muted-foreground mt-1">{booking.notes}</div>}
                               {booking.startDate && booking.endDate && (
                                 <div className="text-xs text-muted-foreground mt-1">
-                                  {formatTimeRangeTZ(booking.startDate, booking.endDate, userTimeZone)}
+                                  {formatTimeRangeTZ(booking.startDate, booking.endDate, APP_TIMEZONE)}
                                 </div>
                               )}
                             </TableCell>
@@ -5561,8 +5562,8 @@ function DashboardContent() {
                             bookings.slice(0, showAllInvoices ? bookings.length : 1).map((booking, idx) => {
                               // Use only available fields from Booking interface
                               const visitDate = booking.date ? new Date(booking.date) : null;
-                              const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-CA', { month: 'short', day: '2-digit', year: 'numeric', timeZone: userTimeZone }) : 'N/A';
-                              const formatDateTime = (date: Date | null) => date ? formatDateTimeTZ(date, userTimeZone) : '--';
+                              const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-CA', { month: 'short', day: '2-digit', year: 'numeric', timeZone: APP_TIMEZONE }) : 'N/A';
+                              const formatDateTime = (date: Date | null) => date ? formatDateTimeTZ(date, APP_TIMEZONE) : '--';
                               // Payment status
                               const paymentStatus = (booking as any).paymentStatus || booking.status || '';
                               const isCompleted = paymentStatus.toLowerCase() === 'completed' || paymentStatus.toLowerCase() === 'complete';
