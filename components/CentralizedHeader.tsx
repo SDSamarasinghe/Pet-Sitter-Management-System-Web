@@ -127,20 +127,22 @@ const CentralizedHeader: React.FC = () => {
 
           {/* Desktop Navigation - Center */}
           <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
-            {navigationItems.map((item) => (
-              <Button
-                key={item.href}
-                variant="ghost"
-                onClick={() => handleNavigation(item.href)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-                  isCurrentPath(item.href)
-                    ? 'bg-primary/10 text-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
-                }`}
-              >
-                {item.name}
-              </Button>
-            ))}
+            {navigationItems
+              .filter((item) => !(user?.role === 'admin' && item.href === '/bookings'))
+              .map((item) => (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  onClick={() => handleNavigation(item.href)}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                    isCurrentPath(item.href)
+                      ? 'bg-primary/10 text-primary shadow-sm'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                  }`}
+                >
+                  {item.name}
+                </Button>
+              ))}
           </nav>
 
           {/* Right side - Auth section - Right aligned */}
@@ -280,20 +282,22 @@ const CentralizedHeader: React.FC = () => {
         {isOpen && (
           <div className="lg:hidden border-t border-gray-200/20 py-4 animate-slideUp">
             <nav className="flex flex-col space-y-2">
-              {navigationItems.map((item) => (
-                <Button
-                  key={item.href}
-                  variant="ghost"
-                  onClick={() => handleNavigation(item.href)}
-                  className={`justify-start px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                    isCurrentPath(item.href)
-                      ? 'bg-primary/10 text-primary shadow-sm'
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
-                  }`}
-                >
-                  {item.name}
-                </Button>
-              ))}
+              {navigationItems
+                .filter((item) => !(user?.role === 'admin' && item.href === '/bookings'))
+                .map((item) => (
+                  <Button
+                    key={item.href}
+                    variant="ghost"
+                    onClick={() => handleNavigation(item.href)}
+                    className={`justify-start px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                      isCurrentPath(item.href)
+                        ? 'bg-primary/10 text-primary shadow-sm'
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                    }`}
+                  >
+                    {item.name}
+                  </Button>
+                ))}
 
               {!isAuthenticated() && (
                 <>
