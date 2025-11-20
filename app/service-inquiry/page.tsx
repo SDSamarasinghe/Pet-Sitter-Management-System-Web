@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/lib/api';
 import { Spinner } from '@/components/ui/spinner';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 export default function ServiceInquiryPage() {
   const { toast } = useToast();
@@ -80,6 +81,7 @@ export default function ServiceInquiryPage() {
         ...formData,
         numberOfPets: Number(formData.numberOfPets),
         petTypes: formData.petTypes, // already an array
+        timeZone: APP_TIMEZONE, // Always use Toronto timezone
       };
 
       const response = await api.post('/bookings/service-inquiry', payload);
