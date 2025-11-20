@@ -14,6 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import api from '@/lib/api';
 import { isAuthenticated, getUserFromToken } from '@/lib/auth';
 import { ArrowLeft, Calendar, Clock, MapPin, PawPrint, User, MessageCircle, Send, Edit, Trash2 } from 'lucide-react';
+import { formatInTimeZone } from 'date-fns-tz';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 interface Pet {
   _id: string;
@@ -215,20 +217,12 @@ export default function BookingDetailPage() {
 
   const bookingId = params.id as string;
 
-  // Utility: Format date/time for booking
+  // Utility: Format date/time for booking in Toronto timezone
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return {
-      date: date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      time: date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      date: formatInTimeZone(date, APP_TIMEZONE, 'EEEE, MMMM d, yyyy'),
+      time: formatInTimeZone(date, APP_TIMEZONE, 'hh:mm a'),
     };
   };
 
