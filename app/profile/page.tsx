@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { isAuthenticated, getUserFromToken } from "@/lib/auth";
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
+import { Modal, ModalContent, ModalHeader, ModalFooter, ModalTitle, ModalDescription } from '@/components/ui/modal';
 
 interface User {
   _id: string;
@@ -52,6 +53,7 @@ export default function ProfilePage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -226,6 +228,7 @@ export default function ProfilePage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       setProfilePicturePreview(e.target?.result as string);
+      setShowPreviewModal(true);
     };
     reader.readAsDataURL(file);
   };
@@ -249,6 +252,7 @@ export default function ProfilePage() {
       setProfilePicturePreview(null);
       setProfilePictureFile(null);
       setMessage({ type: "success", text: "Profile picture updated successfully!" });
+      setShowPreviewModal(false);
     } catch (error: any) {
       console.error('Error uploading profile picture:', error);
       const errorMessage = error.response?.data?.message || 'Failed to upload profile picture';
@@ -420,6 +424,33 @@ export default function ProfilePage() {
                 onChange={handleProfilePictureSelect}
                 className="hidden"
               />
+              {/* Preview Modal shown when a file is selected */}
+              <Modal open={showPreviewModal} onOpenChange={(open) => setShowPreviewModal(open)}>
+                <ModalContent>
+                  <ModalHeader>
+                    <ModalTitle>Preview Profile Picture</ModalTitle>
+                    <ModalDescription>Review the image before uploading. This modal is responsive on mobile and desktop.</ModalDescription>
+                  </ModalHeader>
+                  <div className="mt-4 flex justify-center">
+                    {profilePicturePreview && (
+                      <img src={profilePicturePreview} alt="Profile preview" className="max-h-[48vh] w-auto rounded-lg object-contain" />
+                    )}
+                  </div>
+                  <ModalFooter>
+                    <Button onClick={handleProfilePictureUpload} disabled={isUploadingImage}>
+                      {isUploadingImage ? 'Uploading...' : 'Upload Picture'}
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setProfilePictureFile(null);
+                      setProfilePicturePreview(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      setShowPreviewModal(false);
+                    }}>
+                      Cancel
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
