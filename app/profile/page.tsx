@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { isAuthenticated, getUserFromToken } from "@/lib/auth";
+import { useToast } from '@/hooks/use-toast';
 import { Loading } from '@/components/ui/loading';
 import api from "@/lib/api";
 import { Modal, ModalContent, ModalHeader, ModalFooter, ModalTitle, ModalDescription } from '@/components/ui/modal';
@@ -84,8 +85,30 @@ export default function ProfilePage() {
     superintendentContact: "",
     friendNeighbourContact: ""
   });
-  const [message, setMessage] = useState({ type: "", text: "" });
+  // Removed inline message state; using Sonner toast instead
   const router = useRouter();
+  const { toast } = useToast();
+
+  // Key Security state (client only)
+  const [lockboxCode, setLockboxCode] = useState("");
+  const [lockboxLocation, setLockboxLocation] = useState("");
+  const [alarmCompanyName, setAlarmCompanyName] = useState("");
+  const [alarmCompanyPhone, setAlarmCompanyPhone] = useState("");
+  const [alarmCodeToEnter, setAlarmCodeToEnter] = useState("");
+  const [alarmCodeToExit, setAlarmCodeToExit] = useState("");
+  const [additionalComments, setAdditionalComments] = useState("");
+  const [homeAccessList, setHomeAccessList] = useState("");
+  const [accessPermissions, setAccessPermissions] = useState({
+    landlord: false,
+    buildingManagement: false,
+    superintendent: false,
+    housekeeper: false,
+    neighbour: false,
+    friend: false,
+    family: false,
+    none: true
+  });
+  // Removed standalone key security update button/state (integrated with profile save)
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -127,9 +150,32 @@ export default function ProfilePage() {
         superintendentContact: userData.superintendentContact || "",
         friendNeighbourContact: userData.friendNeighbourContact || ""
         });
+
+        // Fetch Key Security if client
+        if (userData.role === 'client') {
+          try {
+            const keySecRes = await api.get(`/key-security/client/${userData._id}`);
+            if (keySecRes.data) {
+              const ks = keySecRes.data;
+              setLockboxCode(ks.lockboxCode || "");
+              setLockboxLocation(ks.lockboxLocation || "");
+              setAlarmCompanyName(ks.alarmCompanyName || "");
+              setAlarmCompanyPhone(ks.alarmCompanyPhone || "");
+              setAlarmCodeToEnter(ks.alarmCodeToEnter || "");
+              setAlarmCodeToExit(ks.alarmCodeToExit || "");
+              setAdditionalComments(ks.additionalComments || "");
+              setHomeAccessList(ks.homeAccessList || "");
+              if (ks.accessPermissions) {
+                setAccessPermissions(prev => ({ ...prev, ...ks.accessPermissions }));
+              }
+            }
+          } catch (err) {
+            // no key security yet; ignore
+          }
+        }
       } catch (error) {
         console.error("Error fetching profile:", error);
-        setMessage({ type: "error", text: "Failed to load profile data" });
+        toast({ variant: 'destructive', title: 'Failed to load profile data' });
       } finally {
         setIsLoading(false);
       }
@@ -150,18 +196,39 @@ export default function ProfilePage() {
     }
     
     setIsSaving(true);
-    setMessage({ type: "", text: "" });
+    // Clear any previous notifications handled via toast (no state)
 
     try {
       // Use the new /users/profile endpoint for updates
       const response = await api.put("/users/profile", formData);
       setUser(response.data);
+      // Also update Key Security info if client
+      if (response.data.role === 'client') {
+        try {
+          const keySecurityPayload = {
+            lockboxCode,
+            lockboxLocation,
+            alarmCompanyName,
+            alarmCompanyPhone,
+            alarmCodeToEnter,
+            alarmCodeToExit,
+            additionalComments,
+            homeAccessList,
+            accessPermissions
+          };
+          await api.post(`/key-security/client/${response.data._id}`, keySecurityPayload);
+          toast({ title: 'Key security updated', description: 'Key security details saved.' });
+        } catch (ksErr: any) {
+          console.error('Error updating key security during profile save:', ksErr);
+          toast({ variant: 'destructive', title: 'Key security update failed', description: ksErr.response?.data?.message || 'Profile saved, but key security failed.' });
+        }
+      }
       setIsEditing(false);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      toast({ title: 'Profile updated successfully!' });
     } catch (error: any) {
       console.error("Error updating profile:", error);
       const errorMessage = error.response?.data?.message || "Failed to update profile. Please try again.";
-      setMessage({ type: "error", text: errorMessage });
+      toast({ variant: 'destructive', title: 'Update failed', description: errorMessage });
     } finally {
       setIsSaving(false);
     }
@@ -200,10 +267,37 @@ export default function ProfilePage() {
       });
     }
     setIsEditing(false);
-    setMessage({ type: "", text: "" });
+    // No inline message to clear
     setProfilePicturePreview(null);
     setProfilePictureFile(null);
+
+    // Reset Key Security to existing (do not clear user entries unintentionally)
+    // (Keeping current state; could refetch if needed)
   };
+
+  // Key Security helpers
+  const handleAccessPermissionChange = (permission: string, checked: boolean) => {
+    if (permission === 'none' && checked) {
+      setAccessPermissions({
+        landlord: false,
+        buildingManagement: false,
+        superintendent: false,
+        housekeeper: false,
+        neighbour: false,
+        friend: false,
+        family: false,
+        none: true
+      });
+      return;
+    }
+    if (permission !== 'none' && checked) {
+      setAccessPermissions(prev => ({ ...prev, [permission]: true, none: false }));
+      return;
+    }
+    setAccessPermissions(prev => ({ ...prev, [permission]: checked }));
+  };
+
+  // Removed handleUpdateKeySecurity; key security is saved within handleSave
 
   // Profile Picture Functions
   const handleProfilePictureSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,13 +306,13 @@ export default function ProfilePage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setMessage({ type: "error", text: "Please select a valid image file" });
+      toast({ variant: 'destructive', title: 'Invalid file', description: 'Please select a valid image file' });
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: "error", text: "Image size should be less than 5MB" });
+      toast({ variant: 'destructive', title: 'Image too large', description: 'Image size should be less than 5MB' });
       return;
     }
 
@@ -251,12 +345,12 @@ export default function ProfilePage() {
       setUser(prev => prev ? { ...prev, profilePicture: response.data.profilePicture } : null);
       setProfilePicturePreview(null);
       setProfilePictureFile(null);
-      setMessage({ type: "success", text: "Profile picture updated successfully!" });
+      toast({ title: 'Profile picture updated successfully!' });
       setShowPreviewModal(false);
     } catch (error: any) {
       console.error('Error uploading profile picture:', error);
       const errorMessage = error.response?.data?.message || 'Failed to upload profile picture';
-      setMessage({ type: "error", text: errorMessage });
+      toast({ variant: 'destructive', title: 'Upload failed', description: errorMessage });
     } finally {
       setIsUploadingImage(false);
     }
@@ -266,11 +360,11 @@ export default function ProfilePage() {
     try {
       await api.delete('/users/profile/picture');
       setUser(prev => prev ? { ...prev, profilePicture: undefined } : null);
-      setMessage({ type: "success", text: "Profile picture removed successfully!" });
+      toast({ title: 'Profile picture removed successfully!' });
     } catch (error: any) {
       console.error('Error removing profile picture:', error);
       const errorMessage = error.response?.data?.message || 'Failed to remove profile picture';
-      setMessage({ type: "error", text: errorMessage });
+      toast({ variant: 'destructive', title: 'Removal failed', description: errorMessage });
     }
   };
 
@@ -287,45 +381,52 @@ export default function ProfilePage() {
       {/* Header/Nav */}
 
       <main className="max-w-4xl mx-auto py-10 px-4">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-          <p className="text-gray-600">Manage your account information and preferences</p>
+        
+        {/* Heading + Edit Controls */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
+            <p className="text-gray-600">Manage your account information and preferences</p>
+          </div>
+          {!isEditing ? (
+            <Button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="w-full sm:w-auto shadow-sm"
+            >
+              Edit Profile
+            </Button>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleSave()}
+                disabled={isSaving}
+                className="w-full sm:w-auto"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {message.text && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            message.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : 
-            "bg-red-50 text-red-800 border border-red-200"
-          }`}>
-            {message.text}
-          </div>
-        )}
+        {/* Inline success/error message box removed; using Sonner toast notifications */}
 
         <form onSubmit={handleSave}>
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>
-                    Update your personal details and contact information
-                  </CardDescription>
-                </div>
-                {!isEditing ? (
-                  <Button type="button" onClick={() => setIsEditing(true)}>
-                    Edit Profile
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>
+                Update your personal details and contact information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
             {/* Profile Picture Section */}
@@ -841,6 +942,158 @@ export default function ProfilePage() {
                   rows={4}
                 />
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Key Security Section - Only for Clients */}
+        {user?.role === 'client' && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Key Security</CardTitle>
+              <CardDescription>Manage access and security information for your home</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                {/* Lockbox Code */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Lockbox Code <span className="text-red-500">*</span></Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      value={lockboxCode}
+                      onChange={e => setLockboxCode(e.target.value)}
+                      disabled={!isEditing}
+                      required
+                      placeholder="Enter lockbox code"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">If key is with concierge enter: "Key with concierge in envelope C/O Pet Sitter Management" plus sitter name.</p>
+                  </div>
+                </div>
+                {/* Lockbox Location */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Lockbox Location</Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      value={lockboxLocation}
+                      onChange={e => setLockboxLocation(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Describe lockbox location"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Alarm Company Name */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Alarm Company Name</Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      value={alarmCompanyName}
+                      onChange={e => setAlarmCompanyName(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Enter alarm company name"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Alarm Company Phone */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Alarm Company Phone</Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      value={alarmCompanyPhone}
+                      onChange={e => setAlarmCompanyPhone(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Enter phone number"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Alarm Code Enter */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Alarm Code to Enter</Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      type="password"
+                      value={alarmCodeToEnter}
+                      onChange={e => setAlarmCodeToEnter(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Enter alarm code"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Alarm Code Exit */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                  <Label className="text-sm font-medium">Alarm Code to Exit</Label>
+                  <div className="md:col-span-2">
+                    <Input
+                      type="password"
+                      value={alarmCodeToExit}
+                      onChange={e => setAlarmCodeToExit(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder="Enter exit code"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Additional Comments */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  <Label className="text-sm font-medium">Additional Comments</Label>
+                  <div className="md:col-span-2">
+                    <Textarea
+                      value={additionalComments}
+                      onChange={e => setAdditionalComments(e.target.value)}
+                      disabled={!isEditing}
+                      rows={3}
+                      placeholder="Any extra key, concierge or alarm info"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                {/* Access Permissions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  <Label className="text-sm font-medium">Who Else Has Access <span className="text-red-500">*</span></Label>
+                  <div className="md:col-span-2 space-y-2">
+                    {[
+                      { key: 'landlord', label: 'Landlord' },
+                      { key: 'buildingManagement', label: 'Building Management' },
+                      { key: 'superintendent', label: 'Superintendent' },
+                      { key: 'housekeeper', label: 'Housekeeper / Cleaner' },
+                      { key: 'neighbour', label: 'Neighbour' },
+                      { key: 'friend', label: 'Friend' },
+                      { key: 'family', label: 'Family' },
+                      { key: 'none', label: 'None' }
+                    ].map(opt => (
+                      <label key={opt.key} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          disabled={!isEditing}
+                          checked={accessPermissions[opt.key as keyof typeof accessPermissions]}
+                          onChange={e => handleAccessPermissionChange(opt.key, e.target.checked)}
+                          className="w-4 h-4 text-primary border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {/* Home Access List */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  <Label className="text-sm font-medium">Names & Phones of Those With Access</Label>
+                  <div className="md:col-span-2">
+                    <Textarea
+                      value={homeAccessList}
+                      onChange={e => setHomeAccessList(e.target.value)}
+                      disabled={!isEditing}
+                      rows={3}
+                      placeholder="Eg. Rhoda Smith - 416-123-4567"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* Standalone update button removed; Save Changes now persists key security */}
             </CardContent>
           </Card>
         )}
