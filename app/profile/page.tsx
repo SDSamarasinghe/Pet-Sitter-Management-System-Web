@@ -199,6 +199,12 @@ export default function ProfilePage() {
     // Clear any previous notifications handled via toast (no state)
 
     try {
+      // Validate lockbox code for client users before proceeding
+      if (user?.role === 'client' && !lockboxCode.trim()) {
+        toast({ variant: 'destructive', title: 'Lockbox code required', description: 'Please enter a lockbox code before saving.' });
+        setIsSaving(false);
+        return;
+      }
       // Use the new /users/profile endpoint for updates
       const response = await api.put("/users/profile", formData);
       setUser(response.data);
