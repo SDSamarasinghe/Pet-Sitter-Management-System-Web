@@ -128,7 +128,10 @@ const CentralizedHeader: React.FC = () => {
           {/* Desktop Navigation - Center */}
           <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
             {navigationItems
-              .filter((item) => !(user?.role === 'admin' && item.href === '/bookings'))
+              .filter((item) => (
+                // Comment out Service Inquiry for now
+                item.name !== 'Service Inquiry' && !(user?.role === 'admin' && item.href === '/bookings')
+              ))
               .map((item) => (
                 <Button
                   key={item.href}
