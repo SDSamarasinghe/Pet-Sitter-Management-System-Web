@@ -54,23 +54,23 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
-      <div className="container-modern py-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="container-modern py-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           {/* Brand & Description */}
-          <div className="flex items-center gap-3 min-w-[180px]">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <img 
               src="/Petsitter-logo.png" 
               alt="Whiskarz Logo" 
-              className="h-8 w-auto"
+              className="h-7 w-auto"
             />
             <span className="text-xs text-gray-600 hidden sm:inline">
               Toronto's most trusted in-home pet care service.
             </span>
           </div>
 
-          {/* Footer Links (flattened) */}
-          <div className="flex flex-wrap gap-6">
-            {footerLinks.flatMap(section => section.links).map(link => (
+          {/* Footer Links (flattened, mobile: only key links) */}
+          <div className="flex flex-wrap gap-3">
+            {footerLinks[0].links.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -81,18 +81,8 @@ export const Footer: React.FC = () => {
             ))}
           </div>
 
-          {/* Service Areas */}
-          <div className="flex items-center gap-2 min-w-[120px]">
-            <span className="text-xs font-semibold text-gray-900">Areas:</span>
-            {serviceAreas.map(area => (
-              <span key={area} className="text-xs text-gray-600">
-                {area}
-              </span>
-            ))}
-          </div>
-
-          {/* Contact Info */}
-          <div className="flex flex-col sm:flex-row items-center gap-2 min-w-[180px]">
+          {/* Contact Info (always visible) */}
+          <div className="flex flex-col items-center gap-1 min-w-[120px]">
             <span className="text-xs text-gray-600">
               <span className="font-medium text-gray-900">Phone:</span> <a href="tel:+16475488025" className="hover:text-primary transition-colors">+1 (647) 548-8025</a>
             </span>
@@ -101,8 +91,8 @@ export const Footer: React.FC = () => {
             </span>
           </div>
 
-          {/* Legal & Social */}
-          <div className="flex items-center gap-3 min-w-[120px]">
+          {/* Legal & Social (hide on mobile) */}
+          <div className="hidden sm:flex items-center gap-3 min-w-[120px]">
             <span className="text-xs text-gray-600">© {currentYear} Whiskarz</span>
             <Link href="/privacy" className="text-xs text-gray-600 hover:text-primary">Privacy</Link>
             <Link href="/terms" className="text-xs text-gray-600 hover:text-primary">Terms</Link>
