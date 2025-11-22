@@ -1190,6 +1190,7 @@ function DashboardContent() {
   
   const [noteImages, setNoteImages] = useState<File[]>([]);
   const [noteImagePreviews, setNoteImagePreviews] = useState<string[]>([]);
+  const [isUpdatingKeySecurity, setIsUpdatingKeySecurity] = useState(false);
   const [replyImages, setReplyImages] = useState<File[]>([]);
   const [replyImagePreviews, setReplyImagePreviews] = useState<string[]>([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
@@ -1239,6 +1240,7 @@ function DashboardContent() {
     family: false,
     none: true
   });
+  // Removed lockboxCodeError state
   
   // Helper function to format date without timezone issues
   const formatDateLocal = (date: Date) => {
@@ -1958,6 +1960,7 @@ function DashboardContent() {
   }, [filterByUser, user]);
 
   const handleUpdateKeySecurity = async () => {
+    setIsUpdatingKeySecurity(true);
     try {
       if (!user || !user.id) {
         toast({
@@ -1965,6 +1968,7 @@ function DashboardContent() {
           description: 'Please try again.',
           variant: 'destructive',
         });
+        setIsUpdatingKeySecurity(false);
         return;
       }
       const securityData = {
@@ -1980,7 +1984,7 @@ function DashboardContent() {
       };
       await api.post(`/key-security/client/${user.id}`, securityData);
       toast({
-        title: 'Key Security updated!',
+        title: 'Key Security Updated',
         description: 'Your key security information was saved successfully.',
         variant: 'default',
       });
@@ -1991,6 +1995,8 @@ function DashboardContent() {
         description: 'Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsUpdatingKeySecurity(false);
     }
   };
 
@@ -4877,7 +4883,11 @@ function DashboardContent() {
 
                 {/* Update Button */}
                 <div className="mt-6 flex justify-start px-6 pb-6">
-                  <Button onClick={handleUpdateKeySecurity} size="sm" className="button-modern">
+                  <Button
+                    onClick={handleUpdateKeySecurity}
+                    size="lg"
+                    className="button-modern"
+                  >
                     Update
                   </Button>
                 </div>
