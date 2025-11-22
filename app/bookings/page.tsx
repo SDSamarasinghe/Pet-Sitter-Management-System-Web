@@ -234,14 +234,7 @@ export default function BookingsPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
             <div className="flex space-x-4">
-              {userRole !== 'sitter' && (
-                <Button 
-                  onClick={() => setShowCreateForm(!showCreateForm)}
-                  variant={showCreateForm ? "outline" : "default"}
-                >
-                  {showCreateForm ? 'Cancel' : 'Book Service'}
-                </Button>
-              )}
+             
               <Button onClick={() => router.push('/dashboard')} variant="outline">
                 Back to Dashboard
               </Button>
