@@ -848,6 +848,8 @@ function DashboardContent() {
   const [userPets, setUserPets] = useState<any[]>([]);
   const [userKeySecurityData, setUserKeySecurityData] = useState<any>(null);
   const [petTabStates, setPetTabStates] = useState<{ [key: string]: string }>({});
+  const [userBookings, setUserBookings] = useState<any[]>([]);
+  const [userServiceInquiries, setUserServiceInquiries] = useState<any[]>([]);
 
   // Sitter details modal states
   const [isSitterDetailsModalOpen, setIsSitterDetailsModalOpen] = useState(false);
@@ -973,6 +975,24 @@ function DashboardContent() {
         console.error('Error fetching key security:', error);
         setUserKeySecurityData(null);
       }
+      
+      // Fetch user's bookings
+      try {
+        const bookingsResponse = await api.get(`/bookings/user/${userId}`);
+        setUserBookings(Array.isArray(bookingsResponse.data) ? bookingsResponse.data : []);
+      } catch (error) {
+        console.error('Error fetching user bookings:', error);
+        setUserBookings([]);
+      }
+      
+      // Fetch user's service inquiries
+      // try {
+      //   const inquiriesResponse = await api.get(`/service-inquiries/user/${userId}`);
+      //   setUserServiceInquiries(Array.isArray(inquiriesResponse.data) ? inquiriesResponse.data : []);
+      // } catch (error) {
+      //   console.error('Error fetching service inquiries:', error);
+      //   setUserServiceInquiries([]);
+      // }
     } catch (error) {
       console.error('Error fetching user details:', error);
     } finally {
@@ -2935,7 +2955,7 @@ function DashboardContent() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
               <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-fadeIn flex flex-col">
                 {/* Modal Header */}
-                <div className="bg-gradient-to-r from-primary to-accent text-white p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
+                <div className="bg-primary text-white p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold">Client Details</h2>
                     <p className="text-xs sm:text-sm opacity-90 mt-1">{selectedUserDetails.firstName} {selectedUserDetails.lastName}</p>
@@ -2947,6 +2967,8 @@ function DashboardContent() {
                       setUserPets([]);
                       setUserKeySecurityData(null);
                       setPetTabStates({});
+                      setUserBookings([]);
+                      setUserServiceInquiries([]);
                     }}
                     className="text-white hover:bg-white/20 rounded-full p-2 transition-colors flex-shrink-0"
                   >
@@ -3019,8 +3041,8 @@ function DashboardContent() {
                       </div>
 
                       {/* Emergency Contact */}
-                      <div className="bg-red-50 rounded-lg p-3 sm:p-5 border border-red-200">
-                        <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-3 sm:mb-4 flex items-center">
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                           <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
@@ -3068,8 +3090,8 @@ function DashboardContent() {
 
                       {/* Key Security Information */}
                       {userKeySecurityData && (
-                        <div className="bg-yellow-50 rounded-lg p-3 sm:p-5 border border-yellow-200">
-                          <h3 className="text-base sm:text-lg font-semibold text-yellow-800 mb-3 sm:mb-4 flex items-center">
+                        <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                             </svg>
@@ -3132,8 +3154,8 @@ function DashboardContent() {
                       )}
 
                       {/* Pets Information */}
-                      <div className="bg-green-50 rounded-lg p-3 sm:p-5 border border-green-200">
-                        <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4 flex items-center">
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                           <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                           </svg>
@@ -3146,11 +3168,11 @@ function DashboardContent() {
                               const currentTab = petTabStates[petId] || 'basic';
                               
                               return (
-                                <div key={petId} className="bg-white p-3 sm:p-4 rounded-lg border border-green-200">
+                                <div key={petId} className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
                                   {/* Pet Header */}
                                   <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center">
-                                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg mr-2 sm:mr-3 flex-shrink-0">
+                                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg mr-2 sm:mr-3 flex-shrink-0">
                                         {pet.name?.charAt(0).toUpperCase() || 'P'}
                                       </div>
                                       <div className="min-w-0">
@@ -3491,7 +3513,7 @@ function DashboardContent() {
                             })}
                           </div>
                         ) : (
-                          <div className="text-center py-8 bg-white rounded-lg border border-dashed border-green-300">
+                          <div className="text-center py-8 bg-white rounded-lg border border-dashed border-gray-300">
                             <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
@@ -3503,8 +3525,8 @@ function DashboardContent() {
 
                       {/* Key Handling */}
                       {(selectedUserDetails.keyHandlingMethod || selectedUserDetails.superintendentContact || selectedUserDetails.friendNeighbourContact) && (
-                        <div className="bg-blue-50 rounded-lg p-3 sm:p-5 border border-blue-200">
-                          <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3 sm:mb-4 flex items-center">
+                        <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                             </svg>
@@ -3538,8 +3560,8 @@ function DashboardContent() {
                         selectedUserDetails.videoSurveillance || selectedUserDetails.cleaningSupplyLocation || selectedUserDetails.broomDustpanLocation || 
                         selectedUserDetails.mailPickUp || selectedUserDetails.waterIndoorPlants || selectedUserDetails.outOfBoundAreas || 
                         selectedUserDetails.additionalHomeCareInfo || selectedUserDetails.homeCareInfo) && (
-                        <div className="bg-green-50 rounded-lg p-3 sm:p-5 border border-green-200">
-                          <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4 flex items-center">
+                        <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                             </svg>
@@ -3616,10 +3638,102 @@ function DashboardContent() {
                         </div>
                       )}
 
-                      {/* Home Care Information */}
+                      {/* Bookings */}
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Bookings ({userBookings.length})
+                        </h3>
+                        {userBookings.length > 0 ? (
+                          <div className="space-y-3">
+                            {userBookings.map((booking, idx) => (
+                              <div key={booking._id || idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-gray-900">{booking.serviceType || 'Service'}</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {formatDateTime(booking.startDate)} - {formatDateTime(booking.endDate)}
+                                    </p>
+                                  </div>
+                                  <div className="ml-2">
+                                    {getStatusBadge(booking.status || 'pending')}
+                                  </div>
+                                </div>
+                                {booking.sitterId && (
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Sitter:</span> {typeof booking.sitterId === 'object' ? `${booking.sitterId.firstName} ${booking.sitterId.lastName}` : 'Assigned'}
+                                  </p>
+                                )}
+                                {booking.totalAmount && (
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Total:</span> ${booking.totalAmount}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 bg-white rounded-lg border border-dashed border-gray-300">
+                            <svg className="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-gray-600 text-sm">No bookings found</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Service Inquiries */}
+                      {/* <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                        <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Service Inquiries ({userServiceInquiries.length})
+                        </h3>
+                        {userServiceInquiries.length > 0 ? (
+                          <div className="space-y-3">
+                            {userServiceInquiries.map((inquiry, idx) => (
+                              <div key={inquiry._id || idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-gray-900">{inquiry.serviceType || 'General Inquiry'}</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {inquiry.createdAt ? formatDateTime(inquiry.createdAt) : 'Date not available'}
+                                    </p>
+                                  </div>
+                                  <div className="ml-2">
+                                    {getStatusBadge(inquiry.status || 'pending')}
+                                  </div>
+                                </div>
+                                {inquiry.message && (
+                                  <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words">
+                                    {inquiry.message.length > 150 ? `${inquiry.message.substring(0, 150)}...` : inquiry.message}
+                                  </p>
+                                )}
+                                {inquiry.petTypes && inquiry.petTypes.length > 0 && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    <span className="font-medium">Pets:</span> {inquiry.petTypes.join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 bg-white rounded-lg border border-dashed border-gray-300">
+                            <svg className="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-gray-600 text-sm">No service inquiries found</p>
+                          </div>
+                        )}
+                      </div> */}
+
+                      {/* Legacy Home Care Information */}
                       {selectedUserDetails.homeCareInfo && (
-                        <div className="bg-blue-50 rounded-lg p-3 sm:p-5 border border-blue-200">
-                          <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3 sm:mb-4 flex items-center">
+                        <div className="bg-gray-50 rounded-lg p-3 sm:p-5 border border-gray-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                             </svg>
@@ -3667,6 +3781,8 @@ function DashboardContent() {
                       setUserPets([]);
                       setUserKeySecurityData(null);
                       setPetTabStates({});
+                      setUserBookings([]);
+                      setUserServiceInquiries([]);
                     }}
                   >
                     Close
