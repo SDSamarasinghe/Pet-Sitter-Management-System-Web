@@ -1837,11 +1837,18 @@ function DashboardContent() {
   const refreshNotes = async () => {
     try {
       let endpoint = '/notes/recent/20';
-      if (filterByUser) {
-        endpoint = `/notes?recipientId=${filterByUser}&limit=20`;
-      }
       const response = await api.get(endpoint);
-      setNotes(response.data.notes || response.data || []);
+      let fetchedNotes = response.data.notes || response.data || [];
+      
+      // Client-side filtering if filterByUser is set
+      if (filterByUser && fetchedNotes.length > 0) {
+        fetchedNotes = fetchedNotes.filter((note: any) => {
+          const recipientId = note.recipientId?._id || note.recipientId?.id || note.recipientId;
+          return recipientId === filterByUser;
+        });
+      }
+      
+      setNotes(fetchedNotes);
     } catch (error) {
       console.error("Error refreshing notes:", error);
     }
