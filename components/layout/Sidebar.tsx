@@ -48,6 +48,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentTab = searchParams?.get('tab');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Listen for tour events to control mobile sidebar
+  useEffect(() => {
+    const handleOpenSidebar = () => setIsMobileOpen(true);
+    const handleCloseSidebar = () => setIsMobileOpen(false);
+    
+    window.addEventListener('tour:openSidebar', handleOpenSidebar);
+    window.addEventListener('tour:closeSidebar', handleCloseSidebar);
+    
+    return () => {
+      window.removeEventListener('tour:openSidebar', handleOpenSidebar);
+      window.removeEventListener('tour:closeSidebar', handleCloseSidebar);
+    };
+  }, []);
+
   // Define navigation items based on user roles
   // Define navigation items based on user roles
   const navItems: NavItem[] = [
@@ -125,6 +139,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       roles: ['client'],
     },
     {
+      label: 'My Pets',
+      href: '/dashboard?tab=pets',
+      tab: 'pets',
+      icon: <PawPrint className="w-5 h-5" />,
+      roles: ['client'],
+    },
+    {
       label: 'Key Security',
       href: '/dashboard?tab=security',
       tab: 'security',
@@ -195,6 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
+        data-tour="mobile-menu-trigger"
         className="lg:hidden fixed left-4 top-24 z-50 p-3 rounded-xl bg-primary text-white shadow-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105"
         aria-label="Toggle menu"
       >
@@ -257,32 +279,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation Items */}
       <nav className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-3 space-y-1 min-h-0">
-        {filteredNavItems.map((item) => (
-          <button
-            key={item.href}
-            onClick={() => handleNavigation(item.href)}
-            className={`
-              w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-              text-sm font-medium transition-all duration-200
-              ${isActive(item)
-                ? 'bg-primary text-white shadow-sm'
-                : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-              }
-              ${isCollapsed ? 'justify-center' : ''}
-            `}
-            title={isCollapsed ? item.label : undefined}
-          >
-            {item.icon}
-            {!isCollapsed && (
-              <span className="flex-1 text-left">{item.label}</span>
-            )}
-            {!isCollapsed && item.badge && (
-              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-red-100 text-red-600">
-                {item.badge}
-              </span>
-            )}
-          </button>
-        ))}
+        {filteredNavItems.map((item) => {
+          // Determine data-tour attribute for client navigation items
+          let dataTour = '';
+          if (userRole === 'client') {
+            if (item.tab === 'profile') dataTour = 'my-profile-nav';
+            else if (item.tab === 'pets') dataTour = 'my-pets-nav';
+            else if (item.tab === 'communication') dataTour = 'communication-nav';
+            else if (item.tab === 'security') dataTour = 'key-security-nav';
+            else if (item.tab === 'booking') dataTour = 'book-now-nav';
+            else if (item.tab === 'invoices') dataTour = 'invoices-nav';
+          }
+          
+          return (
+            <button
+              key={item.href}
+              onClick={() => handleNavigation(item.href)}
+              data-tour={dataTour || undefined}
+              className={`
+                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                text-sm font-medium transition-all duration-200
+                ${isActive(item)
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
+                }
+                ${isCollapsed ? 'justify-center' : ''}
+              `}
+              title={isCollapsed ? item.label : undefined}
+            >
+              {item.icon}
+              {!isCollapsed && (
+                <span className="flex-1 text-left">{item.label}</span>
+              )}
+              {!isCollapsed && item.badge && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-red-100 text-red-600">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Sidebar Footer */}
