@@ -842,6 +842,10 @@ function DashboardContent() {
   const [sitterToDelete, setSitterToDelete] = useState<any>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [isDeletingSitter, setIsDeletingSitter] = useState(false);
+  // Booking delete confirmation states
+  const [isDeleteBookingDialogOpen, setIsDeleteBookingDialogOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<any>(null);
+  const [isDeletingBooking, setIsDeletingBooking] = useState(false);
 
   // User details modal states
   const [isUserDetailsModalOpen, setIsUserDetailsModalOpen] = useState(false);
@@ -1163,16 +1167,42 @@ function DashboardContent() {
 
   // Handler to delete a booking (admin only)
   const deleteBooking = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    // Legacy direct deletion kept for reuse (not used in UI after modal added)
     try {
       await api.delete(`/bookings/admin/${id}`);
       toast({ title: 'Booking deleted', description: 'Booking deleted successfully.' });
-      // Refresh bookings
       const res = await api.get('/bookings');
       setAdminBookings(res.data ?? []);
     } catch (err: any) {
       toast({ title: 'Error', description: err.response?.data?.message || 'Failed to delete booking.' });
     }
+  };
+
+  const openDeleteBookingDialog = (booking: any) => {
+    setBookingToDelete(booking);
+    setIsDeleteBookingDialogOpen(true);
+  };
+
+  const handleConfirmDeleteBooking = async () => {
+    if (!bookingToDelete?._id) return;
+    setIsDeletingBooking(true);
+    try {
+      await api.delete(`/bookings/admin/${bookingToDelete._id}`);
+      toast({ title: 'Booking deleted', description: 'Booking deleted successfully.' });
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+      setIsDeleteBookingDialogOpen(false);
+      setBookingToDelete(null);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to delete booking.' });
+    } finally {
+      setIsDeletingBooking(false);
+    }
+  };
+
+  const handleCancelDeleteBooking = () => {
+    setIsDeleteBookingDialogOpen(false);
+    setBookingToDelete(null);
   };
   
   const [user, setUser] = useState<User | null>(null);
@@ -4045,7 +4075,7 @@ function DashboardContent() {
                                    <Button
                                      variant="destructive"
                                      size="sm"
-                                     onClick={() => deleteBooking(booking._id)}
+                                     onClick={() => openDeleteBookingDialog(booking)}
                                     //  className="text-red-600 hover:text-red-700 px-4 py-2 font-semibold rounded-lg"
                                    >
                                      Delete
@@ -4116,6 +4146,58 @@ function DashboardContent() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Delete Booking Confirmation Modal */}
+          {isDeleteBookingDialogOpen && bookingToDelete && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 relative animate-fadeIn">
+                <h2 className="text-2xl font-bold mb-2 text-red-600">Delete Booking</h2>
+                <p className="mb-4 text-gray-700">
+                  Are you sure you want to delete this booking?
+                </p>
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700 font-semibold">
+                        Warning: This action cannot be undone!
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        This will permanently remove the booking record and its associated scheduling data.
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        <strong>Service:</strong> {bookingToDelete.service || bookingToDelete.serviceType || 'N/A'}
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        <strong>Date Range:</strong> {bookingToDelete.startDate || 'N/A'} - {bookingToDelete.endDate || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancelDeleteBooking} 
+                    disabled={isDeletingBooking}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleConfirmDeleteBooking} 
+                    disabled={isDeletingBooking}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {isDeletingBooking ? 'Deleting...' : 'Delete Booking'}
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Admin: Address Changes Tab */}
