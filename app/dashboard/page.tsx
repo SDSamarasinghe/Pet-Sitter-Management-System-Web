@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { formatDateTimeTZ, formatTimeRangeTZ, getUserTimeZone, APP_TIMEZONE } from "@/lib/utils";
+import { OnboardingTour } from "@/components/ui/onboarding-tour";
 
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
@@ -691,6 +692,7 @@ interface User {
   status?: 'pending' | 'approved' | 'rejected'; // Add status for user approval
   createdAt?: string;
   profilePicture?: string;
+  firstTimeLogin?: boolean; // Track if user is logging in for the first time
 }
 
 interface Pet {
@@ -1240,6 +1242,95 @@ function DashboardContent() {
   const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
+  // Onboarding Tour state
+  const [showTour, setShowTour] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is a client and it's their first time logging in (from backend)
+    if (user && user.role === 'client' && !isLoading) {
+      // Use firstTimeLogin from backend - more reliable than localStorage
+      if (user.firstTimeLogin === true) {
+        // Small delay to ensure elements are rendered
+        setTimeout(() => setShowTour(true), 1000);
+      }
+    }
+  }, [user, isLoading]);
+  
+  const handleTourComplete = async () => {
+    setShowTour(false);
+    // Update backend to mark user has completed onboarding
+    try {
+      await api.put('/users/profile/first-time-login');
+      // Update local user state to reflect the change
+      if (user) {
+        setUser({ ...user, firstTimeLogin: false });
+      }
+      toast({
+        title: "Welcome aboard! 🎉",
+        description: "You've completed the onboarding tour. Enjoy using the platform!",
+      });
+    } catch (error) {
+      console.error('Error updating firstTimeLogin status:', error);
+      toast({
+        title: "Tour completed",
+        description: "However, we couldn't update your tour status. Please contact support if this persists.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleTourSkip = async () => {
+    setShowTour(false);
+    // Update backend to mark user has skipped onboarding
+    try {
+      await api.put('/users/profile/first-time-login');
+      // Update local user state to reflect the change
+      if (user) {
+        setUser({ ...user, firstTimeLogin: false });
+      }
+    } catch (error) {
+      console.error('Error updating firstTimeLogin status:', error);
+    }
+  };
+  
+  const tourSteps = [
+    {
+      target: '[data-tour="profile-section"]',
+      title: '👋 Welcome to Pet Sitter Management!',
+      description: 'This is your profile overview. Here you can see your basic information and quickly access profile settings by clicking "Edit Profile".'
+    },
+    {
+      target: '[data-tour="my-profile-nav"]',
+      title: '📝 My Profile',
+      description: 'Navigate here to manage your personal information, emergency contacts, home care details, and key security settings. Keep your profile up-to-date for better service!'
+    },
+    {
+      target: '[data-tour="my-pets-nav"]',
+      title: '🐾 My Pets',
+      description: 'View and manage all your beloved pets here. Add new pets, update their information, medical records, care preferences, and keep everything organized in one place.'
+    },
+    {
+      target: '[data-tour="communication-nav"]',
+      title: '💬 Communication Hub',
+      description: 'Stay connected with your pet sitters and the admin team. View notes, messages, and important updates about your pets here.'
+    },
+    {
+      target: '[data-tour="key-security-nav"]',
+      title: '🔐 Key Security',
+      description: 'Manage your home access information securely. Add lockbox codes, alarm details, and specify who has access to your home for safe pet sitting services.'
+    },
+    {
+      target: '[data-tour="book-now-nav"]',
+      title: '📅 Book Now',
+      description: 'Ready to book a pet sitter? Click here to check sitter availability, select your preferred dates and times, and create new booking requests.'
+    },
+    {
+      target: '[data-tour="invoices-nav"]',
+      title: '💳 Invoices',
+      description: 'View and manage all your invoices and payment history. Keep track of your pet sitting expenses in one convenient place.'
+    }
+  ];
   
   // Key Security form state
   const [lockboxCode, setLockboxCode] = useState("");
@@ -2063,6 +2154,16 @@ function DashboardContent() {
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-white h-full overflow-y-auto">
+      {/* Onboarding Tour */}
+      {user?.role === 'client' && (
+        <OnboardingTour
+          steps={tourSteps}
+          isOpen={showTour}
+          onComplete={handleTourComplete}
+          onSkip={handleTourSkip}
+        />
+      )}
+      
       <main className="container-modern section-padding pb-8 min-h-full">
         <div className="mb-8 animate-fadeIn">
           <h1 className="text-responsive-3xl font-bold text-gray-900 mb-2">
@@ -4515,7 +4616,7 @@ function DashboardContent() {
 
           {activeTab === "profile" && (
             <div className="space-y-6">
-              <div className="card-modern p-8">
+              <div className="card-modern p-8" data-tour="profile-section">
                 <div className="flex items-center space-x-6 mb-6">
                   {/* Use UserAvatar for profile picture */}
                   <UserAvatar user={user} size="lg" className="w-20 h-20 rounded-2xl shadow-lg" />
