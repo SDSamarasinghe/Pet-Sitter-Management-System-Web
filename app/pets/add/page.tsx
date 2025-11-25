@@ -283,25 +283,25 @@ export default function AddPetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pet Information</CardTitle>
-            <CardDescription>
+    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-8">
+      <main className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <Card className="shadow-sm">
+          <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+            <CardTitle className="text-xl sm:text-2xl">Pet Information</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Add your pet's details and a photo for our sitters to familiarize themselves.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-8">
+          <CardContent className="px-4 sm:px-6 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
               {/* BASIC INFORMATION SECTION */}
-              <div className="border-b pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+              <div className="border-b pb-4 sm:pb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Basic Information</h3>
                 
                 {/* Row 1: Name, Type, Breed */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Pet Name *</Label>
+                    <Label htmlFor="name">Pet Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="name"
                       name="name"
@@ -335,7 +335,7 @@ export default function AddPetPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="breed">Breed *</Label>
+                    <Label htmlFor="breed">Breed <span className="text-red-500">*</span></Label>
                     <Input
                       id="breed"
                       name="breed"
@@ -351,7 +351,7 @@ export default function AddPetPage() {
                 {/* Row 2: Colouring, Gender, Date of Birth */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="colouring">Colouring *</Label>
+                    <Label htmlFor="colouring">Colouring <span className="text-red-500">*</span></Label>
                     <Input
                       id="colouring"
                       name="colouring"
@@ -380,7 +380,7 @@ export default function AddPetPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                    <Label htmlFor="dateOfBirth">Date of Birth <span className="text-red-500">*</span></Label>
                     <Input
                       id="dateOfBirth"
                       name="dateOfBirth"
@@ -479,13 +479,13 @@ export default function AddPetPage() {
               </div>
 
               {/* MEDICAL INFORMATION SECTION */}
-              <div className="border-b pb-6">
-                <h3 className="text-lg font-semibold text-blue-700 mb-4">Medical Information</h3>
+              <div className="border-b pb-4 sm:pb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-blue-700 mb-3 sm:mb-4">Medical Information</h3>
                 
                 {/* Row 1: Vet Business Name, Vet Doctor Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="vetBusinessName">Vet Business Name *</Label>
+                    <Label htmlFor="vetBusinessName">Vet Business Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="vetBusinessName"
                       name="vetBusinessName"
@@ -512,7 +512,7 @@ export default function AddPetPage() {
 
                 {/* Row 2: Vet Address */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="vetAddress">Vet Address *</Label>
+                  <Label htmlFor="vetAddress">Vet Address <span className="text-red-500">*</span></Label>
                   <Textarea
                     id="vetAddress"
                     name="vetAddress"
@@ -527,7 +527,7 @@ export default function AddPetPage() {
                 {/* Row 3: Vet Phone Number, Current on Vaccines */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="vetPhoneNumber">Vet Phone Number *</Label>
+                    <Label htmlFor="vetPhoneNumber">Vet Phone Number <span className="text-red-500">*</span></Label>
                     <Input
                       id="vetPhoneNumber"
                       name="vetPhoneNumber"
@@ -611,12 +611,12 @@ export default function AddPetPage() {
               </div>
 
               {/* CARE INFORMATION SECTION */}
-              <div className="border-b pb-6">
-                <h3 className="text-lg font-semibold text-green-700 mb-4">Care Information</h3>
+              <div className="border-b pb-4 sm:pb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-green-700 mb-3 sm:mb-4">Care Information</h3>
                 
                 {/* Row 1: Personality, Phobias & Preferences */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="personalityPhobiasPreferences">Personality, Phobias & Preferences *</Label>
+                  <Label htmlFor="personalityPhobiasPreferences">Personality, Phobias & Preferences <span className="text-red-500">*</span></Label>
                   <Textarea
                     id="personalityPhobiasPreferences"
                     name="personalityPhobiasPreferences"
@@ -631,7 +631,7 @@ export default function AddPetPage() {
                 {/* Row 2: Type of Food, Any History of Biting */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="typeOfFood">Type of Food *</Label>
+                    <Label htmlFor="typeOfFood">Type of Food <span className="text-red-500">*</span></Label>
                     <Input
                       id="typeOfFood"
                       name="typeOfFood"
@@ -662,7 +662,7 @@ export default function AddPetPage() {
 
                 {/* Row 3: Diet, Food & Water Instructions */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="dietFoodWaterInstructions">Diet, Food & Water Instructions *</Label>
+                  <Label htmlFor="dietFoodWaterInstructions">Diet, Food & Water Instructions <span className="text-red-500">*</span></Label>
                   <Textarea
                     id="dietFoodWaterInstructions"
                     name="dietFoodWaterInstructions"
@@ -704,7 +704,7 @@ export default function AddPetPage() {
                 {/* Row 5: Location of Stored Pet Food, Litter Box Location, Pet Carrier Location */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="locationOfStoredPetFood">Location of Stored Pet Food *</Label>
+                    <Label htmlFor="locationOfStoredPetFood">Location of Stored Pet Food <span className="text-red-500">*</span></Label>
                     <Input
                       id="locationOfStoredPetFood"
                       name="locationOfStoredPetFood"
@@ -717,7 +717,7 @@ export default function AddPetPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="litterBoxLocation">Litter Box Location *</Label>
+                    <Label htmlFor="litterBoxLocation">Litter Box Location <span className="text-red-500">*</span></Label>
                     <Input
                       id="litterBoxLocation"
                       name="litterBoxLocation"
@@ -758,8 +758,8 @@ export default function AddPetPage() {
               </div>
 
               {/* OTHER INFORMATION SECTION */}
-              <div className="border-b pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Information</h3>
+              <div className="border-b pb-4 sm:pb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Other Information</h3>
                 
                 <div className="space-y-2 mb-4">
                   <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
@@ -810,7 +810,7 @@ export default function AddPetPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="info">General Info / Special Needs *</Label>
+                  <Label htmlFor="info">General Info / Special Needs <span className="text-red-500">*</span></Label>
                   <Textarea
                     id="info"
                     name="info"
@@ -824,16 +824,16 @@ export default function AddPetPage() {
               </div>
 
               {/* Pet Photo Upload Section */}
-              <div className="space-y-4">
-                <Label htmlFor="photo">Pet Photo</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+              <div className="space-y-3 sm:space-y-4">
+                <Label htmlFor="photo" className="text-sm sm:text-base">Pet Photo</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-gray-400 transition-colors">
                   {photoPreview ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       <div className="flex justify-center">
                         <img 
                           src={photoPreview} 
                           alt="Pet preview" 
-                          className="w-40 h-40 object-cover rounded-lg shadow-md"
+                          className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-lg shadow-md"
                         />
                       </div>
                       <div className="space-y-2">
@@ -851,18 +851,18 @@ export default function AddPetPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="mx-auto w-16 h-16 text-gray-400">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 text-gray-400">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <div>
                         <label htmlFor="photo" className="cursor-pointer">
-                          <span className="text-primary hover:text-primary/80 font-medium">Upload a photo</span>
-                          <span className="text-gray-600"> or drag and drop</span>
+                          <span className="text-sm sm:text-base text-primary hover:text-primary/80 font-medium">Upload a photo</span>
+                          <span className="text-sm sm:text-base text-gray-600"> or drag and drop</span>
                         </label>
-                        <p className="text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
                       </div>
                     </div>
                   )}
@@ -888,10 +888,10 @@ export default function AddPetPage() {
                 </Alert>
               )}
 
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
                 <Button 
                   type="submit" 
-                  className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full sm:flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-11 sm:h-10 text-base sm:text-sm"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -906,6 +906,7 @@ export default function AddPetPage() {
                 <Button 
                   type="button" 
                   variant="outline"
+                  className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm"
                   onClick={() => router.push('/pets')}
                   disabled={isLoading}
                 >
