@@ -1840,13 +1840,47 @@ function DashboardContent() {
       const response = await api.get(endpoint);
       let fetchedNotes = response.data.notes || response.data || [];
       
+      // Log all notes with their sender/recipient info
+      fetchedNotes.forEach((note: any, index: number) => {
+        console.log(`Note ${index + 1}:`, {
+          senderId: note.senderId?._id || note.senderId?.id || note.senderId,
+          senderName: note.senderId?.firstName + ' ' + note.senderId?.lastName,
+          recipientId: note.recipientId?._id || note.recipientId?.id || note.recipientId,
+          recipientName: note.recipientId?.firstName + ' ' + note.recipientId?.lastName,
+          text: note.text?.substring(0, 50)
+        });
+      });
+      
       // Client-side filtering if filterByUser is set
       if (filterByUser && fetchedNotes.length > 0) {
+        console.log('Applying filter...');
         fetchedNotes = fetchedNotes.filter((note: any) => {
-          const recipientId = note.recipientId?._id || note.recipientId?.id || note.recipientId;
-          return recipientId === filterByUser;
+          // For clients, filter by sender (who wrote the note to them)
+          // For sitters/admin, filter by recipient (who the note is about)
+          if (user?.role === 'client') {
+            const senderId = note.senderId?._id || note.senderId?.id || note.senderId;
+            const matches = senderId === filterByUser;
+            // if (!matches) {
+            //   console.log('Filtered out - senderId:', senderId, 'does not match filterByUser:', filterByUser);
+            // }
+            return matches;
+          } else {
+            const recipientId = note.recipientId?._id || note.recipientId?.id || note.recipientId;
+            const matches = recipientId === filterByUser;
+            // if (!matches) {
+            //   console.log('Filtered out - recipientId:', recipientId, 'does not match filterByUser:', filterByUser);
+            // }
+            return matches;
+          }
         });
       }
+          
+      // Sort notes by creation date (newest first)
+      fetchedNotes.sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || a.timestamp || 0).getTime();
+        const dateB = new Date(b.createdAt || b.timestamp || 0).getTime();
+        return dateB - dateA;
+      });
       
       setNotes(fetchedNotes);
     } catch (error) {
