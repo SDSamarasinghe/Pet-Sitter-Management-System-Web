@@ -18,7 +18,7 @@ export default function RabbitSittingPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
               We provide daily bunny visits to our loyal clients throughout the neighbourhoods of Toronto.
-              Choose from a range of services that would fit you and your Bunny's needs.
+              Choose from a range of services that would fit you and your Bunny&apos;s needs.
             </p>
           </div>
           {/* Hero Image */}
@@ -55,7 +55,7 @@ export default function RabbitSittingPage() {
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
           </h2>
-          <p className="text-center text-gray-600 mb-8">That meets your bunny rabbit's needs</p>
+          <p className="text-center text-gray-600 mb-8">That meets your bunny rabbit&apos;s needs</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
@@ -139,7 +139,7 @@ export default function RabbitSittingPage() {
           <div className="flex items-center gap-8">
             <div className="flex-1">
               <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
-                Rabbits have a different set of requirements & needs than cat's or dogs.<br />
+                Rabbits have a different set of requirements & needs than cat&apos;s or dogs.<br />
                 These beautiful and graceful animals are intelligent, social & playful & deserve the care & attention that we are happy to provide.
               </h3>
               <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
@@ -204,7 +204,7 @@ export default function RabbitSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Toronto's Most Trusted In Home Pet Sitting Service
+              Toronto&apos;s Most Trusted In Home Pet Sitting Service
             </h2>
             <p className="text-gray-600">Professional Service and Added Security for Your Peace of Mind</p>
           </div>

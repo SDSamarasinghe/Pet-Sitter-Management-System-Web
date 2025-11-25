@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
               className="h-7 w-auto"
             />
             <span className="text-xs text-gray-600 hidden sm:inline">
-              Toronto's most trusted in-home pet care service.
+              Toronto&apos;s most trusted in-home pet care service.
             </span>
           </div>
 

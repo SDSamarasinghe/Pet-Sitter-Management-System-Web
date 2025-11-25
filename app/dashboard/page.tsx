@@ -3690,7 +3690,7 @@ function DashboardContent() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
                             <p className="text-gray-600 font-medium">No pets registered</p>
-                            <p className="text-gray-500 text-sm mt-1">This client hasn't added any pets yet</p>
+                            <p className="text-gray-500 text-sm mt-1">This client hasn&apos;t added any pets yet</p>
                           </div>
                         )}
                       </div>
@@ -4405,7 +4405,7 @@ function DashboardContent() {
               </div>
               <div className="bg-white p-6 rounded-lg border">
                 <p className="text-gray-600 mb-4">
-                  Manage your schedule and availability here. Click "Open Full Schedule" for the complete calendar view.
+                  Manage your schedule and availability here. Click &quot;Open Full Schedule&quot; for the complete calendar view.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button 
@@ -5064,7 +5064,7 @@ function DashboardContent() {
                         placeholder="Enter lockbox code"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        If key is handed via concierge please enter 'Key will be with concierge in an envelope C/O Pet Sitter Management' along with sitter name.
+                        If key is handed via concierge please enter &apos;Key will be with concierge in an envelope C/O Pet Sitter Management&apos; along with sitter name.
                       </p>
                     </div>
                   </div>

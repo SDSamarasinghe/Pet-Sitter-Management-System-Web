@@ -872,7 +872,7 @@ export default function ProfilePage() {
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-gray-600 mt-2">
-                  Keys can be handled via "Concierge" with your keys with your Concierge in an envelope or the sitter to pick up. Keys can also be handled via "Lockbox" provided by us or yourself or you can. If you select the Lockbox option please ensure that your building allows for lockbox set up. Some buildings do not allow lockboxes. "Keycafe" you can rent one of your keys at your local Keycafe for the sitter to pick up (look up www.keycafe.com for more info).
+                  Keys can be handled via &quot;Concierge&quot; with your keys with your Concierge in an envelope or the sitter to pick up. Keys can also be handled via &quot;Lockbox&quot; provided by us or yourself or you can. If you select the Lockbox option please ensure that your building allows for lockbox set up. Some buildings do not allow lockboxes. &quot;Keycafe&quot; you can rent one of your keys at your local Keycafe for the sitter to pick up (look up www.keycafe.com for more info).
                 </p>
               </div>
 
@@ -1082,7 +1082,7 @@ export default function ProfilePage() {
                       placeholder="Enter lockbox code"
                       className="mt-1"
                     />
-                    <p className="text-xs text-gray-500 mt-1">If key is with concierge enter: "Key with concierge in envelope C/O Pet Sitter Management" plus sitter name.</p>
+                    <p className="text-xs text-gray-500 mt-1">If key is with concierge enter: &quot;Key with concierge in envelope C/O Pet Sitter Management&quot; plus sitter name.</p>
                   </div>
                 </div>
                 {/* Lockbox Location */}

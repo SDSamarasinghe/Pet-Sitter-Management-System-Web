@@ -813,7 +813,7 @@ export default function BookingDetailPage() {
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <Alert>
             <AlertDescription>
-              Booking not found or you don't have permission to view it.
+              Booking not found or you don&apos;t have permission to view it.
             </AlertDescription>
           </Alert>
         </main>

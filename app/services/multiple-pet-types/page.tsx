@@ -28,8 +28,8 @@ export default function MultiplePetTypesPage() {
             
             <div className="bg-primary/10 rounded-2xl p-6 mb-8">
               <p className="text-gray-700 italic text-lg leading-relaxed">
-                "Variety is the spice of life. So whether its two cats and a dog or the other way around or a Bunny, Turtle and Budgie Flying 
-                Duchess can sit them all."
+                &quot;Variety is the spice of life. So whether its two cats and a dog or the other way around or a Bunny, Turtle and Budgie Flying 
+                Duchess can sit them all.&quot;
               </p>
             </div>
             

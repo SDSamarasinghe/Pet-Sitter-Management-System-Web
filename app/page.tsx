@@ -34,7 +34,7 @@ export default function LandingPage() {
               Professional Pet Care You Can Trust
             </h1>
             <p className="text-responsive-lg text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
-              Toronto's most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.
+              Toronto&apos;s most trusted in-home pet care service. Professional, experienced, and insured pet sitters who will love your pets like their own.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -71,7 +71,7 @@ export default function LandingPage() {
               Complete Pet Care Services
             </h2>
             <p className="text-responsive-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              From daily walks to extended stays, we provide comprehensive care tailored to your pet's unique needs.
+              From daily walks to extended stays, we provide comprehensive care tailored to your pet&apos;s unique needs.
             </p>
           </div>
 

@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
               </svg>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-            <p className="text-gray-600">We've sent a password reset link to your email address</p>
+            <p className="text-gray-600">We&apos;ve sent a password reset link to your email address</p>
           </div>
 
           {/* Success Card */}
@@ -76,10 +76,10 @@ export default function ForgotPasswordPage() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Reset Link Sent</h2>
                 <p className="text-gray-600 mb-4">
-                  If an account with email <strong>{email}</strong> exists, you'll receive a password reset link shortly.
+                  If an account with email <strong>{email}</strong> exists, you&apos;ll receive a password reset link shortly.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Don't see the email? Check your spam folder or try again.
+                  Don&apos;t see the email? Check your spam folder or try again.
                 </p>
               </div>
 
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
-          <p className="text-gray-600">Enter your email address and we'll send you a reset link</p>
+          <p className="text-gray-600">Enter your email address and we&apos;ll send you a reset link</p>
         </div>
 
         {/* Forgot Password Form */}
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
                 autoFocus
               />
               <p className="text-xs text-gray-500 mt-1">
-                We'll send a password reset link to this email address
+                We&apos;ll send a password reset link to this email address
               </p>
             </div>
 

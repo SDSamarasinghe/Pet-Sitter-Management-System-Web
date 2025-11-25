@@ -36,7 +36,7 @@ export default function PocketPetSittingPage() {
       <div className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4 text-gray-900">Choose A Service Option</h2>
-          <p className="text-center text-gray-600 mb-12">That meets your pocket pet's needs</p>
+          <p className="text-center text-gray-600 mb-12">That meets your pocket pet&apos;s needs</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
@@ -98,7 +98,7 @@ export default function PocketPetSittingPage() {
             <div className="mb-6">
               <img src="/test-avatar.jpg" alt="Poetic Pocket Pet" className="w-32 h-32 object-cover rounded-full mx-auto mb-4" />
             </div>
-            <p className="text-gray-700 text-lg leading-relaxed mb-4 italic">"Those of us who have fallen under their spell of a pocket pet, can wax poetic for hours about the joy these little furry friends bring to our lives."</p>
+            <p className="text-gray-700 text-lg leading-relaxed mb-4 italic">&quot;Those of us who have fallen under their spell of a pocket pet, can wax poetic for hours about the joy these little furry friends bring to our lives.&quot;</p>
             <p className="text-gray-600 mb-6">With Whiskarz aside from the basic needs, the daily visits, interaction, affection will make your time away as stress free as possible for your little pals.</p>
             <div className="font-bold text-primary text-lg">Whiskarz ©</div>
           </div>
@@ -165,7 +165,7 @@ export default function PocketPetSittingPage() {
       <div className="bg-green-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Toronto's Most Trusted In Home Pet Sitting Service</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Toronto&apos;s Most Trusted In Home Pet Sitting Service</h2>
             <p className="text-lg text-gray-600">Professional Service and Added Security for Your Peace of Mind</p>
           </div>
           <div className="bg-white rounded-2xl p-8 shadow-lg">

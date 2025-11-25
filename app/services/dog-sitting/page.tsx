@@ -80,7 +80,7 @@ export default function DogSittingPage() {
           </div>
           
           <p className="text-center text-gray-500 italic mb-8 max-w-2xl mx-auto">
-            ~Your dog stays comfortable in their familiar home environment, reducing stress and anxiety while you're away~
+            ~Your dog stays comfortable in their familiar home environment, reducing stress and anxiety while you&apos;re away~
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function DogSittingPage() {
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
           </h2>
-          <p className="text-center text-gray-600 mb-8">That meets your dog's needs</p>
+          <p className="text-center text-gray-600 mb-8">That meets your dog&apos;s needs</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {dogSittingOptions.map((option) => (
@@ -179,7 +179,7 @@ export default function DogSittingPage() {
           <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
             <div className="flex-1">
               <h3 className="text-3xl font-bold text-primary leading-relaxed mb-4">
-                Your dog deserves the best care while you're away.
+                Your dog deserves the best care while you&apos;re away.
               </h3>
               <p className="text-gray-700 leading-relaxed">
                 Our experienced pet sitters provide loving, personalized care in the comfort of your own home. 
@@ -204,7 +204,7 @@ export default function DogSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Toronto's Most Trusted In Home Pet Sitting Service
+              Toronto&apos;s Most Trusted In Home Pet Sitting Service
             </h2>
             <p className="text-gray-600">Professional Service and Added Security for Your Peace of Mind</p>
           </div>

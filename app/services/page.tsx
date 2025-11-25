@@ -211,7 +211,7 @@ export default function ServicesPage() {
            Pet Services
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Toronto's most trusted in-home pet care service. Professional, insured, and experienced pet sitters who will love your pets like their own.
+            Toronto&apos;s most trusted in-home pet care service. Professional, insured, and experienced pet sitters who will love your pets like their own.
           </p>
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {features.map((feature, index) => (
@@ -381,7 +381,7 @@ export default function ServicesPage() {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold mb-3 text-foreground">24/7 Support</h3>
-              <p className="text-muted-foreground leading-relaxed">We're always available for questions, updates, and emergency support when you need us.</p>
+              <p className="text-muted-foreground leading-relaxed">We&apos;re always available for questions, updates, and emergency support when you need us.</p>
             </div>
           </div>
         </section>

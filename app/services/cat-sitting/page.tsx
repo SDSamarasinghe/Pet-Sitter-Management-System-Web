@@ -92,7 +92,7 @@ export default function CatSittingPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Daily Cat Visits</h1>
           <p className="text-lg text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             We provide daily cat visits to our loyal clients throughout the neighbourhoods of Toronto.<br />
-            Choose from a range of services that would fit you and your cat's needs.
+            Choose from a range of services that would fit you and your cat&apos;s needs.
           </p>
           
           {/* Main cat image */}
@@ -105,7 +105,7 @@ export default function CatSittingPage() {
           </div>
           
           <p className="italic text-gray-500 mb-8 text-lg">
-            "Our Cat Visits Are Legendary. We Have Won Over The Most Finickiest Of Felines"
+            &quot;Our Cat Visits Are Legendary. We Have Won Over The Most Finickiest Of Felines&quot;
           </p>
           
           {/* Three action buttons */}
@@ -129,7 +129,7 @@ export default function CatSittingPage() {
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
           </h2>
-          <p className="text-center text-gray-600 mb-12">That meets your cat's needs</p>
+          <p className="text-center text-gray-600 mb-12">That meets your cat&apos;s needs</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {catVisitOptions.map((option, idx) => (
@@ -190,7 +190,7 @@ export default function CatSittingPage() {
           <div className="flex items-center gap-8">
             <div className="flex-1">
               <h3 className="text-2xl md:text-3xl font-bold text-primary leading-relaxed">
-                We provide that much needed bright spot in your pet's day, while you are away ~ And being able to do that makes our day!
+                We provide that much needed bright spot in your pet&apos;s day, while you are away ~ And being able to do that makes our day!
               </h3>
               <div className="font-bold text-gray-800 mt-4 text-lg">Whiskarz ©</div>
             </div>
@@ -249,7 +249,7 @@ export default function CatSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Toronto's Most Trusted In Home Pet Sitting Service
+              Toronto&apos;s Most Trusted In Home Pet Sitting Service
             </h2>
             <p className="text-gray-600">Professional Service and Added Security for Your Peace of Mind</p>
           </div>

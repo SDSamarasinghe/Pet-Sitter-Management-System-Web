@@ -18,7 +18,7 @@ export default function BirdSittingPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
               We provide daily Bird Sitting to our loyal clients throughout the neighbourhoods of Toronto.
-              Choose from a range of services that would fit you and your Bird's needs.
+              Choose from a range of services that would fit you and your Bird&apos;s needs.
             </p>
           </div>
           {/* Hero Image */}
@@ -55,7 +55,7 @@ export default function BirdSittingPage() {
           <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">
             Choose A Service Option
           </h2>
-          <p className="text-center text-gray-600 mb-8">That meets your bird's needs</p>
+          <p className="text-center text-gray-600 mb-8">That meets your bird&apos;s needs</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
@@ -204,7 +204,7 @@ export default function BirdSittingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Toronto's Most Trusted In Home Pet Sitting Service
+              Toronto&apos;s Most Trusted In Home Pet Sitting Service
             </h2>
             <p className="text-gray-600">Professional Service and Added Security for Your Peace of Mind</p>
           </div>

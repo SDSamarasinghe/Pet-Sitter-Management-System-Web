@@ -23,7 +23,7 @@ export default function FindCarePage() {
             <CardHeader>
               <CardTitle>Pet Sitting</CardTitle>
               <CardDescription>
-                In-home pet sitting services while you're away
+                In-home pet sitting services while you&apos;re away
               </CardDescription>
             </CardHeader>
             <CardContent>

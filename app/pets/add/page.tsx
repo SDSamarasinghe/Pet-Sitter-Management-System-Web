@@ -289,7 +289,7 @@ export default function AddPetPage() {
           <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
             <CardTitle className="text-xl sm:text-2xl">Pet Information</CardTitle>
             <CardDescription className="text-sm sm:text-base">
-              Add your pet's details and a photo for our sitters to familiarize themselves.
+              Add your pet&apos;s details and a photo for our sitters to familiarize themselves.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 sm:px-6 pb-6">
