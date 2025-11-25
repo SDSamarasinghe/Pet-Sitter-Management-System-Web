@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAuthenticated, getUserFromToken } from "@/lib/auth";
 import { useToast } from '@/hooks/use-toast';
 import { Loading } from '@/components/ui/loading';
@@ -199,12 +200,114 @@ export default function ProfilePage() {
     // Clear any previous notifications handled via toast (no state)
 
     try {
-      // Validate lockbox code for client users before proceeding
-      if (user?.role === 'client' && !lockboxCode.trim()) {
-        toast({ variant: 'destructive', title: 'Lockbox code required', description: 'Please enter a lockbox code before saving.' });
+      // Comprehensive validation for all required fields
+      
+      // Basic Information validation
+      if (!formData.firstName.trim()) {
+        toast({ variant: 'destructive', title: 'First Name required', description: 'Please enter your first name.' });
         setIsSaving(false);
         return;
       }
+      if (!formData.lastName.trim()) {
+        toast({ variant: 'destructive', title: 'Last Name required', description: 'Please enter your last name.' });
+        setIsSaving(false);
+        return;
+      }
+      if (!formData.email.trim()) {
+        toast({ variant: 'destructive', title: 'Email required', description: 'Please enter your email address.' });
+        setIsSaving(false);
+        return;
+      }
+      if (!formData.cellPhoneNumber.trim()) {
+        toast({ variant: 'destructive', title: 'Cell Phone required', description: 'Please enter your cell phone number.' });
+        setIsSaving(false);
+        return;
+      }
+      if (!formData.homePhoneNumber.trim()) {
+        toast({ variant: 'destructive', title: 'Home Phone required', description: 'Please enter your home phone number.' });
+        setIsSaving(false);
+        return;
+      }
+      if (!formData.address.trim()) {
+        toast({ variant: 'destructive', title: 'Address required', description: 'Please enter your address.' });
+        setIsSaving(false);
+        return;
+      }
+      if (!formData.zipCode.trim()) {
+        toast({ variant: 'destructive', title: 'ZIP/Postal Code required', description: 'Please enter your ZIP or postal code.' });
+        setIsSaving(false);
+        return;
+      }
+
+      // Client-specific validation
+      if (user?.role === 'client') {
+        // Emergency Contact validation
+        if (!formData.emergencyContactFirstName.trim()) {
+          toast({ variant: 'destructive', title: 'Emergency Contact First Name required', description: 'Please enter emergency contact first name.' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.emergencyContactLastName.trim()) {
+          toast({ variant: 'destructive', title: 'Emergency Contact Last Name required', description: 'Please enter emergency contact last name.' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.emergencyContactCellPhone.trim()) {
+          toast({ variant: 'destructive', title: 'Emergency Contact Cell Phone required', description: 'Please enter emergency contact cell phone.' });
+          setIsSaving(false);
+          return;
+        }
+
+        // Key Handling validation
+        if (!formData.keyHandlingMethod || formData.keyHandlingMethod === '') {
+          toast({ variant: 'destructive', title: 'Key Handling Method required', description: 'Please select a key handling method.' });
+          setIsSaving(false);
+          return;
+        }
+
+        // Home Care Info validation
+        if (!formData.parkingForSitter.trim()) {
+          toast({ variant: 'destructive', title: 'Parking Information required', description: 'Please provide parking information for sitters.' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.videoSurveillance.trim()) {
+          toast({ variant: 'destructive', title: 'Video Surveillance required', description: 'Please provide video surveillance information.' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.outOfBoundAreas.trim()) {
+          toast({ variant: 'destructive', title: 'Out of Bound Areas required', description: 'Please specify out of bound areas (enter "None" if not applicable).' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.cleaningSupplyLocation.trim()) {
+          toast({ variant: 'destructive', title: 'Cleaning Supply Location required', description: 'Please specify cleaning supply location.' });
+          setIsSaving(false);
+          return;
+        }
+        if (!formData.broomDustpanLocation.trim()) {
+          toast({ variant: 'destructive', title: 'Broom/Dustpan Location required', description: 'Please specify broom and dustpan location.' });
+          setIsSaving(false);
+          return;
+        }
+
+        // Key Security validation
+        if (!lockboxCode.trim()) {
+          toast({ variant: 'destructive', title: 'Lockbox Code required', description: 'Please enter a lockbox code in the Key Security section.' });
+          setIsSaving(false);
+          return;
+        }
+        
+        // Validate at least one access permission is selected
+        const hasAccessPermission = Object.values(accessPermissions).some(val => val === true);
+        if (!hasAccessPermission) {
+          toast({ variant: 'destructive', title: 'Access Permission required', description: 'Please select who else has access to your home in Key Security section.' });
+          setIsSaving(false);
+          return;
+        }
+      }
+
       // Use the new /users/profile endpoint for updates
       const response = await api.put("/users/profile", formData);
       setUser(response.data);
@@ -383,22 +486,22 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-8">
       {/* Header/Nav */}
 
-      <main className="max-w-4xl mx-auto py-10 px-4">
+      <main className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
         
         {/* Heading + Edit Controls */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-            <p className="text-gray-600">Manage your account information and preferences</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Profile Settings</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage your account information and preferences</p>
           </div>
           {!isEditing ? (
             <Button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="w-full sm:w-auto shadow-sm"
+              className="w-full sm:w-auto shadow-sm h-11 sm:h-10 text-base sm:text-sm"
             >
               Edit Profile
             </Button>
@@ -408,7 +511,7 @@ export default function ProfilePage() {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm"
               >
                 Cancel
               </Button>
@@ -416,7 +519,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={() => handleSave()}
                 disabled={isSaving}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -427,21 +530,21 @@ export default function ProfilePage() {
         {/* Inline success/error message box removed; using Sonner toast notifications */}
 
         <form onSubmit={handleSave}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
+          <Card className="shadow-sm">
+            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+              <CardTitle className="text-xl sm:text-2xl">Personal Information</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Update your personal details and contact information
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6">
             {/* Profile Picture Section */}
-            <div className="border-b pb-6">
-              <Label className="text-base font-medium mb-4 block">Profile Picture</Label>
-              <div className="flex items-center space-x-6">
+            <div className="border-b pb-4 sm:pb-6">
+              <Label className="text-sm sm:text-base font-medium mb-3 sm:mb-4 block">Profile Picture</Label>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
                 {/* Current Profile Picture */}
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
                     {profilePicturePreview ? (
                       <img 
                         src={profilePicturePreview} 
@@ -463,23 +566,25 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Upload Controls */}
-                <div className="flex-1">
-                  <div className="space-y-3">
+                <div className="flex-1 w-full sm:w-auto">
+                  <div className="space-y-2 sm:space-y-3">
                     {profilePictureFile ? (
                       // Show upload/cancel options when file is selected
                       <div className="space-y-2">
-                        <p className="text-sm text-gray-600">Selected: {profilePictureFile.name}</p>
-                        <div className="flex space-x-2">
+                        <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">Selected: {profilePictureFile.name}</p>
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                           <Button 
                             size="sm"
                             onClick={handleProfilePictureUpload}
                             disabled={isUploadingImage}
+                            className="w-full sm:w-auto h-10 sm:h-9 text-sm"
                           >
                             {isUploadingImage ? "Uploading..." : "Upload Picture"}
                           </Button>
                           <Button 
                             size="sm" 
                             variant="outline"
+                            className="w-full sm:w-auto h-10 sm:h-9 text-sm"
                             onClick={() => {
                               setProfilePictureFile(null);
                               setProfilePicturePreview(null);
@@ -495,26 +600,29 @@ export default function ProfilePage() {
                     ) : (
                       // Show choose file option when no file is selected
                       <div className="space-y-2">
-                        <div className="flex space-x-2">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                           <Button 
+                            type="button"
                             size="sm" 
                             variant="outline"
                             onClick={() => fileInputRef.current?.click()}
+                            className="w-full sm:w-auto h-10 sm:h-9 text-sm"
                           >
                             Choose Picture
                           </Button>
                           {user?.profilePicture && (
                             <Button 
+                              type="button"
                               size="sm" 
                               variant="outline"
                               onClick={handleRemoveProfilePicture}
-                              className="text-red-600 hover:text-red-700"
+                              className="w-full sm:w-auto h-10 sm:h-9 text-sm text-red-600 hover:text-red-700"
                             >
                               Remove Picture
                             </Button>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 text-center sm:text-left">
                           JPG, PNG or GIF. Max size 5MB.
                         </p>
                       </div>
@@ -533,21 +641,21 @@ export default function ProfilePage() {
               />
               {/* Preview Modal shown when a file is selected */}
               <Modal open={showPreviewModal} onOpenChange={(open) => setShowPreviewModal(open)}>
-                <ModalContent>
-                  <ModalHeader>
-                    <ModalTitle>Preview Profile Picture</ModalTitle>
-                    <ModalDescription>Review the image before uploading. This modal is responsive on mobile and desktop.</ModalDescription>
+                <ModalContent className="max-w-[95vw] sm:max-w-lg">
+                  <ModalHeader className="px-4 sm:px-6">
+                    <ModalTitle className="text-lg sm:text-xl">Preview Profile Picture</ModalTitle>
+                    <ModalDescription className="text-sm">Review the image before uploading. This modal is responsive on mobile and desktop.</ModalDescription>
                   </ModalHeader>
-                  <div className="mt-4 flex justify-center">
+                  <div className="mt-4 flex justify-center px-4 sm:px-6">
                     {profilePicturePreview && (
-                      <img src={profilePicturePreview} alt="Profile preview" className="max-h-[48vh] w-auto rounded-lg object-contain" />
+                      <img src={profilePicturePreview} alt="Profile preview" className="max-h-[40vh] sm:max-h-[48vh] w-auto rounded-lg object-contain" />
                     )}
                   </div>
-                  <ModalFooter>
-                    <Button onClick={handleProfilePictureUpload} disabled={isUploadingImage}>
+                  <ModalFooter className="flex-col sm:flex-row gap-2 px-4 sm:px-6">
+                    <Button onClick={handleProfilePictureUpload} disabled={isUploadingImage} className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm">
                       {isUploadingImage ? 'Uploading...' : 'Upload Picture'}
                     </Button>
-                    <Button variant="outline" onClick={() => {
+                    <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm" onClick={() => {
                       setProfilePictureFile(null);
                       setProfilePicturePreview(null);
                       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -666,14 +774,14 @@ export default function ProfilePage() {
 
         {/* Emergency Contact Section - Only for Clients */}
         {user?.role === 'client' && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Emergency Contact Information</CardTitle>
-              <CardDescription>
+          <Card className="mt-4 sm:mt-6 shadow-sm">
+            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+              <CardTitle className="text-xl sm:text-2xl">Emergency Contact Information</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Provide emergency contact details in case we need to reach someone on your behalf
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="emergencyContactFirstName">First Name <span className="text-red-500">*</span></Label>
@@ -738,30 +846,31 @@ export default function ProfilePage() {
 
         {/* Key Handling Section - Only for Clients */}
         {user?.role === 'client' && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Key Handling</CardTitle>
-              <CardDescription>
+          <Card className="mt-4 sm:mt-6 shadow-sm">
+            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+              <CardTitle className="text-xl sm:text-2xl">Key Handling</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Please select how you would like us to handle your keys
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
               <div>
                 <Label htmlFor="keyHandlingMethod">Key Handling Method <span className="text-red-500">*</span></Label>
-                <select
-                  id="keyHandlingMethod"
-                  name="keyHandlingMethod"
+                <Select
                   value={formData.keyHandlingMethod}
-                  onChange={(e) => setFormData(prev => ({ ...prev, keyHandlingMethod: e.target.value }))}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, keyHandlingMethod: value }))}
                   disabled={!isEditing}
                   required
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 >
-                  <option value="">Select an option</option>
-                  <option value="Concierge">1. Concierge</option>
-                  <option value="Lockbox">2. Lockbox</option>
-                  <option value="Keycafe">3. Keycafe</option>
-                </select>
+                  <SelectTrigger className="mt-1 w-full bg-white">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="Concierge">1. Concierge</SelectItem>
+                    <SelectItem value="Lockbox">2. Lockbox</SelectItem>
+                    <SelectItem value="Keycafe">3. Keycafe</SelectItem>
+                  </SelectContent>
+                </Select>
                 <p className="text-sm text-gray-600 mt-2">
                   Keys can be handled via "Concierge" with your keys with your Concierge in an envelope or the sitter to pick up. Keys can also be handled via "Lockbox" provided by us or yourself or you can. If you select the Lockbox option please ensure that your building allows for lockbox set up. Some buildings do not allow lockboxes. "Keycafe" you can rent one of your keys at your local Keycafe for the sitter to pick up (look up www.keycafe.com for more info).
                 </p>
@@ -800,14 +909,14 @@ export default function ProfilePage() {
 
         {/* Home Care Information Section - Only for Clients */}
         {user?.role === 'client' && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>My Home Care Info</CardTitle>
-              <CardDescription>
+          <Card className="mt-4 sm:mt-6 shadow-sm">
+            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+              <CardTitle className="text-xl sm:text-2xl">My Home Care Info</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Provide detailed information about your home for pet sitters
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="parkingForSitter">Parking for Sitter <span className="text-red-500">*</span></Label>
@@ -954,12 +1063,12 @@ export default function ProfilePage() {
 
         {/* Key Security Section - Only for Clients */}
         {user?.role === 'client' && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Key Security</CardTitle>
-              <CardDescription>Manage access and security information for your home</CardDescription>
+          <Card className="mt-4 sm:mt-6 shadow-sm">
+            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+              <CardTitle className="text-xl sm:text-2xl">Key Security</CardTitle>
+              <CardDescription className="text-sm sm:text-base">Manage access and security information for your home</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6">
               <div className="space-y-4">
                 {/* Lockbox Code */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
@@ -1105,14 +1214,14 @@ export default function ProfilePage() {
         )}
 
         {/* Account Information */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>
+        <Card className="mt-4 sm:mt-6 mb-6 shadow-sm">
+          <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+            <CardTitle className="text-xl sm:text-2xl">Account Information</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Read-only account details
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Account Type</Label>
