@@ -3767,11 +3767,11 @@ function DashboardContent() {
                                     <span className="font-medium">Sitter:</span> {typeof booking.sitterId === 'object' ? `${booking.sitterId.firstName} ${booking.sitterId.lastName}` : 'Assigned'}
                                   </p>
                                 )}
-                                {booking.totalAmount && (
+                                {/* {booking.totalAmount && (
                                   <p className="text-sm text-gray-600">
                                     <span className="font-medium">Total:</span> ${booking.totalAmount}
                                   </p>
-                                )}
+                                )} */}
                               </div>
                             ))}
                           </div>
