@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
+import { formatInTimeZone } from 'date-fns-tz';
+import { APP_TIMEZONE } from '@/lib/utils';
 
 interface Booking {
   _id: string;
@@ -291,12 +293,12 @@ export default function BookingsPage() {
                           const start = booking.startDate ? new Date(booking.startDate) : null;
                           const end = booking.endDate ? new Date(booking.endDate) : null;
                           if (start && end) {
-                            const dateStr = start.toLocaleDateString();
-                            const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            const endTime = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const dateStr = formatInTimeZone(start, APP_TIMEZONE, 'dd/MM/yyyy');
+                            const startTime = formatInTimeZone(start, APP_TIMEZONE, 'HH:mm');
+                            const endTime = formatInTimeZone(end, APP_TIMEZONE, 'HH:mm');
                             return `${dateStr} • ${startTime} - ${endTime}`;
                           } else if (start) {
-                            return start.toLocaleString();
+                            return formatInTimeZone(start, APP_TIMEZONE, 'dd/MM/yyyy HH:mm');
                           } else {
                             return 'Invalid Date';
                           }
