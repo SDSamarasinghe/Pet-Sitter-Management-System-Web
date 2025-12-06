@@ -1273,6 +1273,13 @@ function DashboardContent() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   
+  // Other Payments state
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDescription, setPaymentDescription] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
+  const [showPaymentCancelledModal, setShowPaymentCancelledModal] = useState(false);
+  
   // Onboarding Tour state
   const [showTour, setShowTour] = useState(false);
   
@@ -1286,6 +1293,31 @@ function DashboardContent() {
       }
     }
   }, [user, isLoading]);
+  
+  // Check for payment status in URL
+  useEffect(() => {
+    if (searchParams) {
+      const paymentStatus = searchParams.get('payment');
+      if (paymentStatus === 'success') {
+        setShowPaymentSuccessModal(true);
+        // Clear the payment fields
+        setPaymentAmount('');
+        setPaymentDescription('');
+        // Remove the payment param from URL
+        const timer = setTimeout(() => {
+          router.replace('/dashboard?tab=profile');
+        }, 100);
+        return () => clearTimeout(timer);
+      } else if (paymentStatus === 'cancelled') {
+        setShowPaymentCancelledModal(true);
+        // Remove the payment param from URL
+        const timer = setTimeout(() => {
+          router.replace('/dashboard?tab=profile');
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [searchParams, router]);
   
   const handleTourComplete = async () => {
     setShowTour(false);
@@ -1321,6 +1353,41 @@ function DashboardContent() {
       }
     } catch (error) {
       console.error('Error updating firstTimeLogin status:', error);
+    }
+  };
+  
+  // Handle payment checkout
+  const handlePaymentCheckout = async () => {
+    if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+      toast({
+        title: 'Invalid amount',
+        description: 'Please enter a valid payment amount greater than 0',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    try {
+      const response = await api.post('/payments/create-checkout-session', {
+        amount: parseFloat(paymentAmount),
+        description: paymentDescription || 'Other payment for pet sitting services'
+      });
+
+      // Redirect to Stripe checkout
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: 'Payment failed',
+        description: error.response?.data?.message || 'Failed to initiate payment. Please try again.',
+        variant: 'destructive'
+      });
+      setIsProcessingPayment(false);
     }
   };
   
@@ -5408,21 +5475,34 @@ function DashboardContent() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
                     <input
                       type="number"
+                      step="0.01"
+                      min="0"
                       placeholder="0.00"
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
                       className="input-modern w-full"
+                      disabled={isProcessingPayment}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                     <textarea
                       rows={3}
+                      placeholder="Late booking fee, service changes, etc."
+                      value={paymentDescription}
+                      onChange={(e) => setPaymentDescription(e.target.value)}
                       className="input-modern w-full resize-none"
+                      disabled={isProcessingPayment}
                     />
                   </div>
                 </div>
 
-                <Button className="button-modern">
-                  Other Payments
+                <Button 
+                  className="button-modern"
+                  onClick={handlePaymentCheckout}
+                  disabled={isProcessingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
+                >
+                  {isProcessingPayment ? 'Processing...' : 'Proceed to Payment'}
                 </Button>
                 </CardContent>
               </Card>
@@ -5974,6 +6054,83 @@ function DashboardContent() {
         {/* Overview */}
        
       </main>
+
+      {/* Payment Success Modal */}
+      {showPaymentSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 animate-slideUp">
+            <div className="text-center">
+              {/* Success Icon */}
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              {/* Title */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h3>
+              
+              {/* Message */}
+              <p className="text-gray-600 mb-6">
+                Your payment has been processed successfully. Thank you for your payment!
+              </p>
+              
+              {/* Amount Info */}
+              <div className="bg-green-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-600 mb-1">Transaction completed</p>
+                <p className="text-lg font-semibold text-green-700">Payment confirmed</p>
+              </div>
+              
+              {/* Close Button */}
+              <Button
+                onClick={() => setShowPaymentSuccessModal(false)}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Cancelled Modal */}
+      {showPaymentCancelledModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 animate-slideUp">
+            <div className="text-center">
+              {/* Cancel Icon */}
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <svg className="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              
+              {/* Title */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Cancelled</h3>
+              
+              {/* Message */}
+              <p className="text-gray-600 mb-6">
+                Your payment was cancelled. You can try again anytime you&apos;re ready.
+              </p>
+              
+              {/* Info Box */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-600">
+                  No charges have been made to your account.
+                </p>
+              </div>
+              
+              {/* Close Button */}
+              <Button
+                onClick={() => setShowPaymentCancelledModal(false)}
+                className="w-full bg-gray-600 hover:bg-gray-700"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
