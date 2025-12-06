@@ -110,6 +110,10 @@ export default function AdminPage() {
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Bookings selection state
+  const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set());
+  const [isDeletingBookings, setIsDeletingBookings] = useState(false);
+  
   // Communication tab state
   const [selectedClient, setSelectedClient] = useState("");
   const [noteText, setNoteText] = useState("");
@@ -323,6 +327,59 @@ export default function AdminPage() {
       fetchData(); // Refresh data
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to unassign sitter');
+    }
+  };
+
+  // Handle booking selection checkbox
+  const handleBookingSelection = (bookingId: string) => {
+    const newSelected = new Set(selectedBookingIds);
+    if (newSelected.has(bookingId)) {
+      newSelected.delete(bookingId);
+    } else {
+      newSelected.add(bookingId);
+    }
+    setSelectedBookingIds(newSelected);
+  };
+
+  // Handle select all bookings
+  const handleSelectAllBookings = () => {
+    if (selectedBookingIds.size === bookings.length && bookings.length > 0) {
+      setSelectedBookingIds(new Set());
+    } else {
+      setSelectedBookingIds(new Set(bookings.map(b => b._id)));
+    }
+  };
+
+  // Delete selected bookings
+  const deleteSelectedBookings = async () => {
+    if (selectedBookingIds.size === 0) {
+      setError('Please select at least one booking to delete');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedBookingIds.size} booking(s)? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      setIsDeletingBookings(true);
+      
+      // Delete each selected booking
+      const deletePromises = Array.from(selectedBookingIds).map(bookingId =>
+        api.delete(`/bookings/${bookingId}`)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      setSuccess(`Successfully deleted ${selectedBookingIds.size} booking(s)`);
+      setSelectedBookingIds(new Set());
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to delete bookings');
+    } finally {
+      setIsDeletingBookings(false);
     }
   };
 
@@ -902,14 +959,59 @@ export default function AdminPage() {
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Booking Management</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Booking Management</h2>
+              {selectedBookingIds.size > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={deleteSelectedBookings}
+                  disabled={isDeletingBookings}
+                  className="flex items-center gap-2"
+                >
+                  {isDeletingBookings ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>🗑️ Delete Selected ({selectedBookingIds.size})</>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {/* Select All Checkbox */}
+            {bookings.length > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <input
+                  type="checkbox"
+                  id="select-all-bookings"
+                  checked={selectedBookingIds.size === bookings.length && bookings.length > 0}
+                  onChange={handleSelectAllBookings}
+                  className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                />
+                <label htmlFor="select-all-bookings" className="cursor-pointer text-sm font-medium">
+                  Select All ({bookings.length} bookings)
+                </label>
+              </div>
+            )}
+
             <div className="grid gap-4">
               {bookings.map((booking) => (
-                <Card key={booking._id}>
+                <Card key={booking._id} className={selectedBookingIds.has(booking._id) ? 'border-primary border-2' : ''}>
                   <CardContent className="pt-6">
                     <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedBookingIds.has(booking._id)}
+                          onChange={() => handleBookingSelection(booking._id)}
+                          className="h-5 w-5 rounded border-gray-300 cursor-pointer mt-1"
+                        />
+                        <div className="flex-1 space-y-2">
                           <h3 className="text-lg font-semibold">{booking.serviceType}</h3>
                           <p className="text-gray-600">Client: {booking.clientName}</p>
                           <p className="text-sm text-gray-500">
@@ -938,7 +1040,7 @@ export default function AdminPage() {
                             </p>
                           )}
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                           booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                           booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                           booking.status === 'completed' ? 'bg-primary/10 text-primary' :

@@ -1180,6 +1180,68 @@ function DashboardContent() {
     setIsDeleteBookingDialogOpen(true);
   };
 
+  // Handle booking checkbox selection
+  const handleBookingCheckboxChange = (bookingId: string) => {
+    const newSelected = new Set(selectedBookingIds);
+    if (newSelected.has(bookingId)) {
+      newSelected.delete(bookingId);
+    } else {
+      newSelected.add(bookingId);
+    }
+    setSelectedBookingIds(newSelected);
+  };
+
+  // Handle select all bookings checkbox
+  const handleSelectAllBookings = () => {
+    if (selectedBookingIds.size === adminBookings.length && adminBookings.length > 0) {
+      setSelectedBookingIds(new Set());
+    } else {
+      setSelectedBookingIds(new Set(adminBookings.map(b => b._id)));
+    }
+  };
+
+  // Delete selected bookings
+  const deleteSelectedBookings = async () => {
+    if (selectedBookingIds.size === 0) {
+      toast({ title: 'Error', description: 'Please select at least one booking to delete.' });
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedBookingIds.size} booking(s)? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      setIsDeletingSelectedBookings(true);
+
+      // Delete each selected booking
+      const deletePromises = Array.from(selectedBookingIds).map(bookingId =>
+        api.delete(`/bookings/${bookingId}`)
+      );
+
+      await Promise.all(deletePromises);
+
+      toast({
+        title: 'Success',
+        description: `Successfully deleted ${selectedBookingIds.size} booking(s)`,
+      });
+
+      setSelectedBookingIds(new Set());
+      // Refresh bookings
+      const res = await api.get('/bookings');
+      setAdminBookings(res.data ?? []);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete bookings',
+      });
+    } finally {
+      setIsDeletingSelectedBookings(false);
+    }
+  };
+
   const handleConfirmDeleteBooking = async () => {
     if (!bookingToDelete?._id) return;
     setIsDeletingBooking(true);
@@ -1249,6 +1311,8 @@ function DashboardContent() {
   const [adminUsers, setAdminUsers] = useState<User[]>([]);
   const [adminSitters, setAdminSitters] = useState<any[]>([]);
   const [adminBookings, setAdminBookings] = useState<any[]>([]);
+  const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set());
+  const [isDeletingSelectedBookings, setIsDeletingSelectedBookings] = useState(false);
   const [adminPets, setAdminPets] = useState<any[]>([]);
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
   
@@ -4079,12 +4143,52 @@ function DashboardContent() {
           {user?.role === "admin" && activeTab === "bookings" && (
             <Card>
               <CardHeader>
-                <CardTitle>All Bookings ({adminBookings.length})</CardTitle>
-                <CardDescription>
-                  View all bookings in the system. All times displayed in Toronto timezone (EST/EDT).
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>All Bookings ({adminBookings.length})</CardTitle>
+                    <CardDescription>
+                      View all bookings in the system. All times displayed in Toronto timezone (EST/EDT).
+                    </CardDescription>
+                  </div>
+                  {selectedBookingIds.size > 0 && (
+                    <Button
+                      variant="destructive"
+                      onClick={deleteSelectedBookings}
+                      disabled={isDeletingSelectedBookings}
+                      className="flex items-center gap-2"
+                    >
+                      {isDeletingSelectedBookings ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Deleting...
+                        </>
+                      ) : (
+                        <>🗑️ Delete Selected ({selectedBookingIds.size})</>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
+                {/* Select All Checkbox */}
+                {adminBookings.length > 0 && (
+                  <div className="mb-4 flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <input
+                      type="checkbox"
+                      id="select-all-bookings"
+                      checked={selectedBookingIds.size === adminBookings.length && adminBookings.length > 0}
+                      onChange={handleSelectAllBookings}
+                      className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                    />
+                    <label htmlFor="select-all-bookings" className="cursor-pointer text-sm font-medium">
+                      Select All ({adminBookings.length} bookings)
+                    </label>
+                  </div>
+                )}
+
                 {/* Search Input */}
                 <div className="mb-6">
                   <input
@@ -4099,6 +4203,14 @@ function DashboardContent() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base w-12">
+                            <input
+                              type="checkbox"
+                              checked={selectedBookingIds.size === adminBookings.length && adminBookings.length > 0}
+                              onChange={handleSelectAllBookings}
+                              className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                            />
+                          </TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Client</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Sitter</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Service Type</TableHead>
@@ -4132,7 +4244,15 @@ function DashboardContent() {
                             return bDate - aDate;
                           })
                           .map((booking, index) => (
-                          <TableRow key={booking._id || booking.id || `booking-${index}`}>
+                          <TableRow key={booking._id || booking.id || `booking-${index}`} className={selectedBookingIds.has(booking._id) ? 'bg-blue-50' : ''}>
+                            <TableCell className="w-12">
+                              <input
+                                type="checkbox"
+                                checked={selectedBookingIds.has(booking._id)}
+                                onChange={() => handleBookingCheckboxChange(booking._id)}
+                                className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                              />
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">{booking.userId?.firstName} {booking.userId?.lastName}</TableCell>
                             <TableCell className="whitespace-nowrap">{booking.sitterId?.firstName} {booking.sitterId?.lastName}</TableCell>
                             <TableCell>{booking.serviceType || 'N/A'}</TableCell>
