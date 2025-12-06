@@ -802,9 +802,6 @@ function DashboardContent() {
   
   // Helper to check if sitter is actually assigned (not just showing in UI)
   const isSitterAssigned = (booking: any) => {
-    // Don't show unassign if booking is still pending
-    if (booking.status === 'pending') return false;
-    
     const s = booking?.sitterId;
     if (!s) return false;
     if (typeof s === 'string') return s.trim() !== '';
@@ -1268,6 +1265,7 @@ function DashboardContent() {
     endTime: '09:30'
   });
   
+  const [timeDurationError, setTimeDurationError] = useState<string>('');
   const [isAddonModalOpen, setIsAddonModalOpen] = useState(false);
   const [selectedAddonSitter, setSelectedAddonSitter] = useState('');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -1888,6 +1886,77 @@ function DashboardContent() {
     }
   };
 
+  // Extract service duration in minutes from service string
+  const getServiceDurationInMinutes = (serviceString: string): number => {
+    if (serviceString.includes('30min')) return 30;
+    if (serviceString.includes('45min')) return 45;
+    if (serviceString.includes('1hr')) return 60;
+    return 30; // default
+  };
+
+  // Validate time duration matches service duration
+  const validateTimeDuration = (startTime: string, endTime: string, service: string): string => {
+    if (!startTime || !endTime) return '';
+    
+    const expectedDuration = getServiceDurationInMinutes(service);
+    
+    // Parse times
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    // Calculate actual duration in minutes
+    const startInMinutes = startHour * 60 + startMin;
+    const endInMinutes = endHour * 60 + endMin;
+    const actualDuration = endInMinutes - startInMinutes;
+    
+    if (actualDuration !== expectedDuration) {
+      return `Time duration must be exactly ${expectedDuration} minutes to match the selected service (${service.includes('30min') ? '30min' : service.includes('45min') ? '45min' : '1hr'})`;
+    }
+    
+    return '';
+  };
+
+  // Handle time change with validation
+  const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
+    const newFormData = { ...bookingFormData, [field]: value };
+    setBookingFormData(newFormData);
+    
+    // Validate time duration
+    const error = validateTimeDuration(
+      field === 'startTime' ? value : bookingFormData.startTime,
+      field === 'endTime' ? value : bookingFormData.endTime,
+      bookingFormData.service
+    );
+    setTimeDurationError(error);
+  };
+
+  // Handle service change and auto-adjust end time
+  const handleServiceChange = (newService: string) => {
+    const duration = getServiceDurationInMinutes(newService);
+    
+    // Auto-adjust end time based on current start time and new service duration
+    if (bookingFormData.startTime) {
+      const [startHour, startMin] = bookingFormData.startTime.split(':').map(Number);
+      const startInMinutes = startHour * 60 + startMin;
+      const endInMinutes = startInMinutes + duration;
+      
+      const endHour = Math.floor(endInMinutes / 60);
+      const endMin = endInMinutes % 60;
+      const newEndTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+      
+      setBookingFormData(prev => ({
+        ...prev,
+        service: newService,
+        endTime: newEndTime
+      }));
+      
+      // Clear any previous error since we auto-adjusted
+      setTimeDurationError('');
+    } else {
+      setBookingFormData(prev => ({ ...prev, service: newService }));
+    }
+  };
+
   // Booking confirmation function
   const confirmBooking = (sitterData: any) => {
     if (window.confirm(
@@ -1916,6 +1985,21 @@ function DashboardContent() {
           variant: "destructive",
           title: "Missing Information",
           description: "Please fill in all required booking fields.",
+        });
+        return;
+      }
+
+      // Validate time duration matches service duration
+      const durationError = validateTimeDuration(
+        bookingFormData.startTime,
+        bookingFormData.endTime,
+        bookingFormData.service
+      );
+      if (durationError) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Time Duration",
+          description: durationError,
         });
         return;
       }
@@ -1990,9 +2074,24 @@ function DashboardContent() {
       
       console.log('Booking creation response:', response.data);
       
+      // Assign the sitter to the booking immediately after creation
+      const bookingId = response.data._id || response.data.id;
+      const sitterId = sitterData._id || sitterData.id;
+      
+      if (bookingId && sitterId) {
+        try {
+          await api.put(`/bookings/${bookingId}/assign-sitter`, { sitterId });
+          console.log('Sitter assigned to booking successfully');
+        } catch (assignError) {
+          console.error('Error assigning sitter to booking:', assignError);
+          // Don't fail the entire booking process if sitter assignment fails
+          // The booking is already created, just log the error
+        }
+      }
+      
       toast({
         title: "Booking Created Successfully! 🎉",
-        description: `Your booking with ${sitterData.firstName} ${sitterData.lastName} has been created with status "pending". An admin will review and approve your booking soon.`,
+        description: `Your booking with ${sitterData.firstName} ${sitterData.lastName} has been created with status "pending" and the sitter has been assigned. An admin will review and approve your booking soon.`,
       });
       
       setShowAvailabilityModal(false);
@@ -4094,7 +4193,7 @@ function DashboardContent() {
                                       <select 
                                         onChange={e => assignSitter(booking._id, e.target.value)} 
                                         className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 min-w-[140px]" 
-                                        defaultValue=""
+                                        value={isSitterAssigned(booking) ? (booking.sitterId?._id || booking.sitterId) : ""}
                                       >
                                         <option value="" className="text-gray-500">Select Sitter</option>
                                         {adminSitters.map((sitter) => (
@@ -5295,7 +5394,7 @@ function DashboardContent() {
                     <div className="relative">
                       <select 
                         value={bookingFormData.service}
-                        onChange={(e) => setBookingFormData(prev => ({ ...prev, service: e.target.value }))}
+                        onChange={(e) => handleServiceChange(e.target.value)}
                         className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300"
                       >
                         <option>Pet Sitting 30min - CAD 28</option>
@@ -5353,7 +5452,7 @@ function DashboardContent() {
                     <input
                       type="time"
                       value={bookingFormData.startTime}
-                      onChange={(e) => setBookingFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                      onChange={(e) => handleTimeChange('startTime', e.target.value)}
                       className="input-modern w-full"
                     />
                   </div>
@@ -5362,16 +5461,23 @@ function DashboardContent() {
                     <input
                       type="time"
                       value={bookingFormData.endTime}
-                      onChange={(e) => setBookingFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                      onChange={(e) => handleTimeChange('endTime', e.target.value)}
                       className="input-modern w-full"
                     />
                   </div>
                 </div>
 
+                {/* Time Duration Error Message */}
+                {timeDurationError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600 font-medium">⚠️ {timeDurationError}</p>
+                  </div>
+                )}
+
                 <Button 
                   className="button-modern"
                   onClick={checkSitterAvailability}
-                  disabled={isCheckingAvailability || !bookingFormData.startDate || !bookingFormData.endDate}
+                  disabled={isCheckingAvailability || !bookingFormData.startDate || !bookingFormData.endDate || !!timeDurationError}
                 >
                   {isCheckingAvailability ? (
                     <>
