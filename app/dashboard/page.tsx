@@ -656,6 +656,7 @@ const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
 };
 
 interface User {
+    formStatus?: string;
   id: string;
   _id?: string; // MongoDB ID
   email: string;
@@ -1123,6 +1124,17 @@ function DashboardContent() {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getFormStatusBadge = (formStatus: string) => {
+    if (formStatus === 'form complete') {
+      return (
+        <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5">Form Complete</span>
+      );
+    }
+    return (
+      <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2 py-0.5">Not Complete</span>
+    );
   };
 
 
@@ -2779,6 +2791,7 @@ function DashboardContent() {
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Phone</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Role</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base" style={{ minWidth: '120px' }}>Form Status</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Address</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Emergency Contact</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
@@ -2812,6 +2825,7 @@ function DashboardContent() {
                             <TableCell className="whitespace-nowrap">{user.cellPhone || user.cellPhoneNumber || user.phone || user.homePhone || user.homePhoneNumber || 'N/A'}</TableCell>
                             <TableCell className="capitalize">{user.role}</TableCell>
                             <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
+                            <TableCell>{getFormStatusBadge(user.formStatus || 'not complete')}</TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
                             <TableCell className="whitespace-nowrap">
