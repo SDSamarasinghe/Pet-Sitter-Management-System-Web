@@ -694,6 +694,7 @@ interface User {
   createdAt?: string;
   profilePicture?: string;
   firstTimeLogin?: boolean; // Track if user is logging in for the first time
+  assignedSitterId?: string; // Default sitter assigned to this client by admin
 }
 
 interface Pet {
@@ -1275,6 +1276,56 @@ function DashboardContent() {
     setIsDeleteBookingDialogOpen(false);
     setBookingToDelete(null);
   };
+
+  // Assign sitter to client and all their bookings
+  const handleAssignSitterToClient = async (clientId: string, sitterId: string) => {
+    if (!clientId || !sitterId) return;
+    
+    setAssigningSitterForUser(clientId);
+    try {
+      // Update client's assigned sitter
+      await api.put(`/users/${clientId}/assign-sitter`, { sitterId });
+      
+      // Get all bookings for this client (bookings use userId to reference the client)
+      const clientBookings = adminBookings.filter(
+        b => {
+          const bookingUserId = b.userId?._id || b.userId?.id || b.userId;
+          return bookingUserId === clientId;
+        }
+      );
+      
+      console.log(`Found ${clientBookings.length} bookings for client ${clientId}`);
+      
+      // Assign the sitter to all unassigned bookings
+      const unassignedBookings = clientBookings.filter(booking => !isSitterAssigned(booking));
+      console.log(`${unassignedBookings.length} bookings need sitter assignment`);
+      
+      const assignmentPromises = unassignedBookings
+        .map(booking => api.put(`/bookings/${booking._id}/assign-sitter`, { sitterId }));
+      
+      await Promise.all(assignmentPromises);
+      
+      toast({
+        title: 'Sitter Assigned Successfully',
+        description: `Default sitter assigned to client and ${assignmentPromises.length} booking(s) updated.`,
+      });
+      
+      // Refresh data
+      const usersRes = await api.get('/users/admin/clients');
+      setAdminUsers(usersRes.data ?? []);
+      
+      const bookingsRes = await api.get('/bookings');
+      setAdminBookings(bookingsRes.data ?? []);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to assign sitter to client.',
+        variant: 'destructive',
+      });
+    } finally {
+      setAssigningSitterForUser(null);
+    }
+  };
   
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -1327,6 +1378,7 @@ function DashboardContent() {
   const [isDeletingSelectedBookings, setIsDeletingSelectedBookings] = useState(false);
   const [adminPets, setAdminPets] = useState<any[]>([]);
   const [addressChanges, setAddressChanges] = useState<any[]>([]);
+  const [assigningSitterForUser, setAssigningSitterForUser] = useState<string | null>(null);
   
   const [assignedSitters, setAssignedSitters] = useState<any[]>([]);
   
@@ -2814,6 +2866,7 @@ function DashboardContent() {
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Role</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Status</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base" style={{ minWidth: '120px' }}>Form Status</TableHead>
+                          <TableHead className="bg-primary/10 text-primary font-bold text-base" style={{ minWidth: '180px' }}>Assigned Sitter</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Address</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Emergency Contact</TableHead>
                           <TableHead className="bg-primary/10 text-primary font-bold text-base">Created At</TableHead>
@@ -2848,6 +2901,42 @@ function DashboardContent() {
                             <TableCell className="capitalize">{user.role}</TableCell>
                             <TableCell>{getStatusBadge(user.status || 'pending')}</TableCell>
                             <TableCell>{getFormStatusBadge(user.formStatus || 'not complete')}</TableCell>
+                            <TableCell>
+                              <div className="relative">
+                                <select
+                                  value={(user as any).assignedSitterId || ''}
+                                  onChange={(e) => {
+                                    const sitterId = e.target.value;
+                                    if (sitterId) {
+                                      handleAssignSitterToClient(user._id || user.id, sitterId);
+                                    }
+                                  }}
+                                  disabled={assigningSitterForUser === (user._id || user.id)}
+                                  className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 cursor-pointer hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                                >
+                                  <option value="">Select Sitter</option>
+                                  {adminSitters
+                                    .filter(s => s.status === 'active')
+                                    .map(sitter => (
+                                      <option key={sitter._id || sitter.id} value={sitter._id || sitter.id}>
+                                        {sitter.firstName} {sitter.lastName}
+                                      </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                  {assigningSitterForUser === (user._id || user.id) ? (
+                                    <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
                             <TableCell>{user.address || 'N/A'}</TableCell>
                             <TableCell>{user.emergencyContact || 'N/A'}</TableCell>
                             <TableCell className="whitespace-nowrap">
@@ -2876,7 +2965,7 @@ function DashboardContent() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -5502,7 +5591,7 @@ function DashboardContent() {
               </div>
 
               {/* Profile Incomplete Warning Banner */}
-              {user && user.formStatus && user.formStatus !== 'form complete' && (
+              {user && user.formStatus !== 'form complete' && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg animate-fadeIn">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
