@@ -1533,31 +1533,115 @@ function DashboardContent() {
       const profileResponse = await api.get("/users/profile");
       const userId = profileResponse.data._id;
 
-      // Fetch user's pets with care and medical information
-      const petsResponse = await api.get(`/pets/user/${userId}/with-details`);
-      const petsWithDetails = petsResponse?.data ?? [];
+      // Fetch basic pet information first (same as /pets page)
+      const response = await api.get(`/pets/user/${userId}`);
       
-      // Transform to match the expected format for dashboard
-      const transformedPets = petsWithDetails.map((item: any) => ({
-        id: item.pet._id,
-        _id: item.pet._id,
-        name: item.pet.name,
-        species: item.pet.type || item.pet.species,
-        breed: item.pet.breed,
-        age: item.pet.age,
-        weight: item.pet.weight,
-        photo: item.pet.photo,
-        photoUrl: item.pet.photo,
-        careInstructions: item.care?.careInstructions || '',
-        feedingSchedule: item.care?.feedingSchedule || '',
-        exerciseRequirements: item.care?.exerciseRequirements || '',
-        vetName: item.medical?.vetBusinessName || '',
-        vetAddress: item.medical?.vetAddress || '',
-        vetPhone: item.medical?.vetPhoneNumber || '',
-        vaccines: item.medical?.currentOnVaccines || ''
-      }));
-      
-      setPets(transformedPets);
+      if (response.data && Array.isArray(response.data)) {
+        // Fetch care and medical data for each pet
+        const petsWithDetails = await Promise.all(
+          response.data.map(async (pet: any) => {
+            let careData = null;
+            let medicalData = null;
+            
+            // Fetch care data
+            try {
+              const careResponse = await api.get(`/pets/${pet._id}/care`);
+              careData = careResponse.data;
+            } catch (error: any) {
+              // No care data yet, ignore
+            }
+            
+            // Fetch medical data
+            try {
+              const medicalResponse = await api.get(`/pets/${pet._id}/medical`);
+              medicalData = medicalResponse.data;
+            } catch (error: any) {
+              // No medical data yet, ignore
+            }
+            
+            return {
+              pet: {
+                _id: pet._id,
+                name: pet.name,
+                type: pet.type,
+                breed: pet.breed,
+                age: pet.age,
+                weight: pet.weight,
+                photo: pet.photo,
+                species: pet.type || pet.species,
+                id: pet._id,
+                photoUrl: pet.photo,
+                colouring: pet.colouring,
+                gender: pet.gender,
+                dateOfBirth: pet.dateOfBirth,
+                spayedNeutered: pet.spayedNeutered,
+                microchipNumber: pet.microchipNumber,
+                rabiesTagNumber: pet.rabiesTagNumber,
+                vaccinations: pet.vaccinations,
+                medications: pet.medications,
+                allergies: pet.allergies,
+                dietaryRestrictions: pet.dietaryRestrictions,
+                behaviorNotes: pet.behaviorNotes,
+                emergencyContact: pet.emergencyContact,
+                info: pet.info,
+                insuranceDetails: pet.insuranceDetails
+              },
+              care: careData,
+              medical: medicalData
+            };
+          })
+        );
+        
+        // Transform to dashboard format with careData and medicalData
+        const transformedPets = petsWithDetails.map((item: any) => ({
+          id: item.pet._id,
+          _id: item.pet._id,
+          name: item.pet.name,
+          species: item.pet.type || item.pet.species,
+          breed: item.pet.breed,
+          age: item.pet.age,
+          weight: item.pet.weight,
+          photo: item.pet.photo,
+          photoUrl: item.pet.photo,
+          colouring: item.pet.colouring,
+          gender: item.pet.gender,
+          dateOfBirth: item.pet.dateOfBirth,
+          spayedNeutered: item.pet.spayedNeutered,
+          microchipNumber: item.pet.microchipNumber,
+          rabiesTagNumber: item.pet.rabiesTagNumber,
+          vaccinations: item.pet.vaccinations,
+          medications: item.pet.medications,
+          allergies: item.pet.allergies,
+          dietaryRestrictions: item.pet.dietaryRestrictions,
+          behaviorNotes: item.pet.behaviorNotes,
+          emergencyContact: item.pet.emergencyContact,
+          info: item.pet.info,
+          insuranceDetails: item.pet.insuranceDetails,
+          careData: item.care ? {
+            personalityPhobiasPreferences: item.care.personalityPhobiasPreferences || '',
+            typeOfFood: item.care.typeOfFood || '',
+            dietFoodWaterInstructions: item.care.dietFoodWaterInstructions || '',
+            anyHistoryOfBiting: item.care.anyHistoryOfBiting || '',
+            locationOfStoredPetFood: item.care.locationOfStoredPetFood || '',
+            litterBoxLocation: item.care.litterBoxLocation || '',
+            locationOfPetCarrier: item.care.locationOfPetCarrier || '',
+            feedingSchedule: item.care.feedingSchedule || '',
+            exerciseRequirements: item.care.exerciseRequirements || '',
+            anyAdditionalInfo: item.care.anyAdditionalInfo || '',
+            careInstructions: item.care.careInstructions || ''
+          } : null,
+          medicalData: item.medical ? {
+            vetBusinessName: item.medical.vetBusinessName || '',
+            vetDoctorName: item.medical.vetDoctorName || '',
+            vetAddress: item.medical.vetAddress || '',
+            vetPhoneNumber: item.medical.vetPhoneNumber || '',
+            currentOnVaccines: item.medical.currentOnVaccines || '',
+            onAnyMedication: item.medical.onAnyMedication || ''
+          } : null
+        }));
+        
+        setPets(transformedPets);
+      }
     } catch (error) {
       console.error('Error refreshing pets data:', error);
     }
@@ -1581,31 +1665,115 @@ function DashboardContent() {
         const userId = profileResponse.data._id;
         const userRole = profileResponse.data.role;
 
-        // Fetch user's pets with care and medical information
-        const petsResponse = await api.get(`/pets/user/${userId}/with-details`);
-        const petsWithDetails = petsResponse?.data ?? [];
+        // Fetch user's pets with care and medical information (same as /pets page)
+        const petsResponse = await api.get(`/pets/user/${userId}`);
         
-        // Transform to match the expected format for dashboard
-        const transformedPets = petsWithDetails.map((item: any) => ({
-          id: item.pet._id,
-          _id: item.pet._id,
-          name: item.pet.name,
-          species: item.pet.type || item.pet.species,
-          breed: item.pet.breed,
-          age: item.pet.age,
-          weight: item.pet.weight,
-          photo: item.pet.photo,
-          photoUrl: item.pet.photo,
-          careInstructions: item.care?.careInstructions || '',
-          feedingSchedule: item.care?.feedingSchedule || '',
-          exerciseRequirements: item.care?.exerciseRequirements || '',
-          vetName: item.medical?.vetBusinessName || '',
-          vetAddress: item.medical?.vetAddress || '',
-          vetPhone: item.medical?.vetPhoneNumber || '',
-          vaccines: item.medical?.currentOnVaccines || ''
-        }));
-        
-        setPets(transformedPets);
+        if (petsResponse.data && Array.isArray(petsResponse.data)) {
+          // Fetch care and medical data for each pet
+          const petsWithDetails = await Promise.all(
+            petsResponse.data.map(async (pet: any) => {
+              let careData = null;
+              let medicalData = null;
+              
+              // Fetch care data
+              try {
+                const careResponse = await api.get(`/pets/${pet._id}/care`);
+                careData = careResponse.data;
+              } catch (error: any) {
+                // No care data yet, ignore
+              }
+              
+              // Fetch medical data
+              try {
+                const medicalResponse = await api.get(`/pets/${pet._id}/medical`);
+                medicalData = medicalResponse.data;
+              } catch (error: any) {
+                // No medical data yet, ignore
+              }
+              
+              return {
+                pet: {
+                  _id: pet._id,
+                  name: pet.name,
+                  type: pet.type,
+                  breed: pet.breed,
+                  age: pet.age,
+                  weight: pet.weight,
+                  photo: pet.photo,
+                  species: pet.type || pet.species,
+                  id: pet._id,
+                  photoUrl: pet.photo,
+                  colouring: pet.colouring,
+                  gender: pet.gender,
+                  dateOfBirth: pet.dateOfBirth,
+                  spayedNeutered: pet.spayedNeutered,
+                  microchipNumber: pet.microchipNumber,
+                  rabiesTagNumber: pet.rabiesTagNumber,
+                  vaccinations: pet.vaccinations,
+                  medications: pet.medications,
+                  allergies: pet.allergies,
+                  dietaryRestrictions: pet.dietaryRestrictions,
+                  behaviorNotes: pet.behaviorNotes,
+                  emergencyContact: pet.emergencyContact,
+                  info: pet.info,
+                  insuranceDetails: pet.insuranceDetails
+                },
+                care: careData,
+                medical: medicalData
+              };
+            })
+          );
+          
+          // Transform to dashboard format
+          const transformedPets = petsWithDetails.map((item: any) => ({
+            id: item.pet._id,
+            _id: item.pet._id,
+            name: item.pet.name,
+            species: item.pet.type || item.pet.species,
+            breed: item.pet.breed,
+            age: item.pet.age,
+            weight: item.pet.weight,
+            photo: item.pet.photo,
+            photoUrl: item.pet.photo,
+            colouring: item.pet.colouring,
+            gender: item.pet.gender,
+            dateOfBirth: item.pet.dateOfBirth,
+            spayedNeutered: item.pet.spayedNeutered,
+            microchipNumber: item.pet.microchipNumber,
+            rabiesTagNumber: item.pet.rabiesTagNumber,
+            vaccinations: item.pet.vaccinations,
+            medications: item.pet.medications,
+            allergies: item.pet.allergies,
+            dietaryRestrictions: item.pet.dietaryRestrictions,
+            behaviorNotes: item.pet.behaviorNotes,
+            emergencyContact: item.pet.emergencyContact,
+            info: item.pet.info,
+            insuranceDetails: item.pet.insuranceDetails,
+            careData: item.care ? {
+              personalityPhobiasPreferences: item.care.personalityPhobiasPreferences || '',
+              typeOfFood: item.care.typeOfFood || '',
+              dietFoodWaterInstructions: item.care.dietFoodWaterInstructions || '',
+              anyHistoryOfBiting: item.care.anyHistoryOfBiting || '',
+              locationOfStoredPetFood: item.care.locationOfStoredPetFood || '',
+              litterBoxLocation: item.care.litterBoxLocation || '',
+              locationOfPetCarrier: item.care.locationOfPetCarrier || '',
+              feedingSchedule: item.care.feedingSchedule || '',
+              exerciseRequirements: item.care.exerciseRequirements || '',
+              anyAdditionalInfo: item.care.anyAdditionalInfo || '',
+              careInstructions: item.care.careInstructions || ''
+            } : null,
+            medicalData: item.medical ? {
+              vetBusinessName: item.medical.vetBusinessName || '',
+              vetDoctorName: item.medical.vetDoctorName || '',
+              vetAddress: item.medical.vetAddress || '',
+              vetPhoneNumber: item.medical.vetPhoneNumber || '',
+              currentOnVaccines: item.medical.currentOnVaccines || '',
+              onAnyMedication: item.medical.onAnyMedication || ''
+            } : null
+          }));
+          
+          setPets(transformedPets);
+        }
 
         // Fetch bookings based on user role
         let bookingsResponse;
@@ -5166,12 +5334,26 @@ function DashboardContent() {
                           >
                             Medical
                           </button>
+                          <button
+                            onClick={() => setPetTabs((prev) => ({ ...prev, [petKey]: "insurance" }))}
+                            className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                              tab === "insurance"
+                                ? "border-primary text-primary"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            }`}
+                          >
+                            Insurance
+                          </button>
                         </nav>
                       </div>
                       <div className="bg-white rounded-lg border shadow-sm">
                         {tab === "basic" && (
                           <div className="p-6">
                             <div className="grid grid-cols-2 gap-6">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <div className="text-gray-900">{pet.name || 'N/A'}</div>
+                              </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                                 <div className="text-gray-900">{pet.species || 'N/A'}</div>
@@ -5181,71 +5363,180 @@ function DashboardContent() {
                                 <div className="text-gray-900">{pet.breed || 'N/A'}</div>
                               </div>
                               <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Colouring</label>
+                                <div className="text-gray-900">{(pet as any)?.colouring || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                <div className="text-gray-900">{(pet as any)?.gender || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                                <div className="text-gray-900">{(pet as any)?.dateOfBirth ? new Date((pet as any).dateOfBirth).toLocaleDateString() : 'N/A'}</div>
+                              </div>
+                              <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                                <div className="text-gray-900">{pet.age ? `${pet.age} years old` : 'N/A'}</div>
+                                <div className="text-gray-900">{pet.age || 'N/A'}</div>
                               </div>
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Weight</label>
                                 <div className="text-gray-900">{(pet as any)?.weight || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Spayed/Neutered</label>
+                                <div className="text-gray-900">{(pet as any)?.spayedNeutered || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Microchip</label>
+                                <div className="text-gray-900">{(pet as any)?.microchipNumber || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Rabies Tag Number</label>
+                                <div className="text-gray-900">{(pet as any)?.rabiesTagNumber || 'N/A'}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vaccinations</label>
+                                <div className="text-gray-900">{(pet as any)?.vaccinations || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Medications</label>
+                                <div className="text-gray-900">{(pet as any)?.medications || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Allergies</label>
+                                <div className="text-gray-900">{(pet as any)?.allergies || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Dietary Restrictions</label>
+                                <div className="text-gray-900">{(pet as any)?.dietaryRestrictions || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Behavior Notes</label>
+                                <div className="text-gray-900">{(pet as any)?.behaviorNotes || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                                <div className="text-gray-900">{(pet as any)?.emergencyContact || 'N/A'}</div>
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">General Info / Special Needs</label>
+                                <div className="text-gray-900">{(pet as any)?.info || 'N/A'}</div>
                               </div>
                             </div>
                           </div>
                         )}
                         {tab === "care" && (
                           <div className="p-6">
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Care Instructions</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Personality, Phobias & Preferences</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.careData?.careInstructions || pet.careInstructions || 'No care instructions available.'}
+                                  {(pet as any)?.careData?.personalityPhobiasPreferences || 'N/A'}
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Type of Food</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.typeOfFood || 'N/A'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Any History of Biting</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.anyHistoryOfBiting || 'N/A'}
+                                  </div>
                                 </div>
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Feeding Schedule</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Diet, Food & Water Instructions</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.careData?.feedingSchedule || 'No feeding schedule available.'}
+                                  {(pet as any)?.careData?.dietFoodWaterInstructions || 'N/A'}
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Feeding Schedule</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.feedingSchedule || 'N/A'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Exercise Requirements</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.exerciseRequirements || 'N/A'}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Pet Food Location</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.locationOfStoredPetFood || 'N/A'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Litter Box Location</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.litterBoxLocation || 'N/A'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Pet Carrier Location</label>
+                                  <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                                    {(pet as any)?.careData?.locationOfPetCarrier || 'N/A'}
+                                  </div>
                                 </div>
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Exercise Requirements</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Additional Care Info</label>
                                 <div className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                                  {(pet as any)?.careData?.exerciseRequirements || 'No exercise requirements specified.'}
+                                  {(pet as any)?.careData?.anyAdditionalInfo || (pet as any)?.careData?.careInstructions || 'N/A'}
                                 </div>
                               </div>
                             </div>
                           </div>
                         )}
                         {tab === "medical" && (
-                          <div className="p-0">
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full text-left">
-                                <tbody className="divide-y divide-gray-200">
-                                  <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Business Name</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetBusinessName || "Not specified"}</td>
-                                  </tr>
-                                  <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Doctor Name</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetDoctorName || "Not specified"}</td>
-                                  </tr>
-                                  <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Address</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetAddress || "Not specified"}</td>
-                                  </tr>
-                                  <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Vet Phone Number</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">{(pet as any)?.medicalData?.vetPhoneNumber || "Not specified"}</td>
-                                  </tr>
-                                  <tr className="hover:bg-gray-50">
-                                    <td className="py-4 px-6 text-sm font-medium text-gray-700">Current on Vaccines</td>
-                                    <td className="py-4 px-6 text-sm text-gray-900">
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        {(pet as any)?.medicalData?.currentOnVaccines || "Not specified"}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
+                          <div className="p-6">
+                            <div className="grid grid-cols-2 gap-6">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vet Business Name</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.vetBusinessName || "N/A"}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vet Doctor Name</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.vetDoctorName || "N/A"}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vet Address</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.vetAddress || "N/A"}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vet Phone Number</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.vetPhoneNumber || "N/A"}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vaccination Status</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.currentOnVaccines || "N/A"}</div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">On Any Medication</label>
+                                <div className="text-gray-900">{(pet as any)?.medicalData?.onAnyMedication || "N/A"}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {tab === "insurance" && (
+                          <div className="p-6">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Insurance Details</label>
+                              <div className="text-gray-900 bg-gray-50 p-4 rounded-md min-h-[100px]">
+                                {(pet as any)?.insuranceDetails || 'N/A'}
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                Pet insurance provider, policy number, coverage details
+                              </p>
                             </div>
                           </div>
                         )}
