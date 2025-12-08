@@ -1347,6 +1347,10 @@ function DashboardContent() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   
+  // Booking confirmation modal state
+  const [showBookingConfirmModal, setShowBookingConfirmModal] = useState(false);
+  const [selectedSitterForBooking, setSelectedSitterForBooking] = useState<any>(null);
+  
   // Onboarding Tour state
   const [showTour, setShowTour] = useState(false);
   
@@ -2035,21 +2039,23 @@ function DashboardContent() {
 
   // Booking confirmation function
   const confirmBooking = (sitterData: any) => {
-    if (window.confirm(
-      `🏠 CREATE NEW BOOKING 🏠\n\n` +
-      `Are you sure you want to create a booking with ${sitterData.firstName} ${sitterData.lastName}?\n\n` +
-      `📋 BOOKING DETAILS:\n` +
-      `• Service: ${bookingFormData.service}\n` +
-      `• Date: ${bookingFormData.startDate} to ${bookingFormData.endDate}\n` +
-      `• Time: ${bookingFormData.startTime} - ${bookingFormData.endTime}\n\n` +
-      `✅ This will create a NEW BOOKING with "PENDING" status.\n` +
-      `✅ The booking will appear in the admin dashboard for approval.\n` +
-      `✅ The system will check for conflicts with existing bookings.\n` +
-      `✅ You will be notified once the booking is approved.\n\n` +
-      `Click OK to proceed with booking creation.`
-    )) {
-      createBooking(sitterData);
+    setSelectedSitterForBooking(sitterData);
+    setShowBookingConfirmModal(true);
+    // Close the availability modal when opening booking confirmation
+    setShowAvailabilityModal(false);
+  };
+
+  const handleConfirmBookingSubmit = () => {
+    if (selectedSitterForBooking) {
+      createBooking(selectedSitterForBooking);
+      setShowBookingConfirmModal(false);
+      setSelectedSitterForBooking(null);
     }
+  };
+
+  const handleCancelBookingConfirm = () => {
+    setShowBookingConfirmModal(false);
+    setSelectedSitterForBooking(null);
   };
 
   // Create actual booking function
@@ -6146,6 +6152,162 @@ function DashboardContent() {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Booking Confirmation Modal */}
+              {showBookingConfirmModal && selectedSitterForBooking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+                    {/* Modal Header */}
+                    <div className="bg-white border-b border-gray-200 px-6 py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 10V9m6 8V9m0 0a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h2 className="text-xl font-semibold text-gray-900">Confirm Booking</h2>
+                            <p className="text-sm text-gray-500">Review your booking details</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleCancelBookingConfirm}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Modal Content */}
+                    <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
+                      {/* Sitter Information */}
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-3">Pet Sitter</h3>
+                        <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <UserAvatar user={selectedSitterForBooking} size="lg" />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {selectedSitterForBooking.firstName} {selectedSitterForBooking.lastName}
+                            </p>
+                            <p className="text-sm text-gray-500">{selectedSitterForBooking.email}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Booking Details */}
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-3">Booking Details</h3>
+                        <div className="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
+                          <div className="px-4 py-3 flex justify-between">
+                            <span className="text-sm text-gray-600">Service</span>
+                            <span className="text-sm font-medium text-gray-900">{bookingFormData.service}</span>
+                          </div>
+                          <div className="px-4 py-3 flex justify-between">
+                            <span className="text-sm text-gray-600">Date</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formatDateTime(bookingFormData.startDate)} to {formatDateTime(bookingFormData.endDate)}
+                            </span>
+                          </div>
+                          <div className="px-4 py-3 flex justify-between">
+                            <span className="text-sm text-gray-600">Time</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {bookingFormData.startTime} - {bookingFormData.endTime}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Payment Information */}
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-3">Payment Information</h3>
+                        <div className="bg-green-50 rounded-lg border border-green-200 p-4">
+                          <p className="text-sm text-gray-700 mb-3">
+                            Please send your e-transfer payment to:
+                          </p>
+                          <div className="bg-white rounded-lg border-2 border-green-500 p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">E-transfer Email</p>
+                                  <p className="text-base font-semibold text-green-700">pets@whiskarz.com</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText('pets@whiskarz.com');
+                                  toast({
+                                    title: 'Copied!',
+                                    description: 'Email address copied to clipboard'
+                                  });
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-3">
+                            Payment is required to confirm your booking. Your booking will be pending until payment is received and approved.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Important Notes */}
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-700 mb-3">Important Information</h3>
+                        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            <li className="flex items-start">
+                              <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span>This will create a new booking with &quot;PENDING&quot; status</span>
+                            </li>
+                            <li className="flex items-start">
+                              <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span>The booking will appear in the admin dashboard for approval</span>
+                            </li>
+                            <li className="flex items-start">
+                              <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span>You will be notified once the booking is approved</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelBookingConfirm}
+                        className="px-6"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleConfirmBookingSubmit}
+                        className="bg-primary hover:bg-primary/90 text-white px-6"
+                      >
+                        Confirm Booking
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
