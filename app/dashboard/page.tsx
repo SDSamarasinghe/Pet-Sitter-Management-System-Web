@@ -5528,7 +5528,7 @@ function DashboardContent() {
               )}
               
               {/* Addon Booking Section */}
-              <Card className="card-modern">
+              <Card className="card-modern relative">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -5547,10 +5547,26 @@ function DashboardContent() {
                   <Button 
                     className="button-modern"
                     onClick={() => setIsAddonModalOpen(true)}
+                    disabled
                   >
                     Book Add-on Only
                   </Button>
                 </CardContent>
+
+                {/* Coming Soon Overlay */}
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon</h3>
+                    <p className="text-sm text-gray-600 max-w-md mx-auto">
+                      This feature is currently under development and will be available shortly.
+                    </p>
+                  </div>
+                </div>
               </Card>
 
               {/* Main Booking Section */}
@@ -5677,7 +5693,7 @@ function DashboardContent() {
               </Card>
 
               {/* Other Payments Section */}
-              <Card className="card-modern">
+              <Card className="card-modern relative">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -5698,6 +5714,7 @@ function DashboardContent() {
                       type="number"
                       placeholder="0.00"
                       className="input-modern w-full"
+                      disabled
                     />
                   </div>
                   <div>
@@ -5705,14 +5722,30 @@ function DashboardContent() {
                     <textarea
                       rows={3}
                       className="input-modern w-full resize-none"
+                      disabled
                     />
                   </div>
                 </div>
 
-                <Button className="button-modern">
+                <Button className="button-modern" disabled>
                   Other Payments
                 </Button>
                 </CardContent>
+
+                {/* Coming Soon Overlay */}
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon</h3>
+                    <p className="text-sm text-gray-600 max-w-md mx-auto">
+                      This feature is currently under development and will be available shortly.
+                    </p>
+                  </div>
+                </div>
               </Card>
 
               {/* Assigned Sitters Section */}
