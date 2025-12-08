@@ -2220,6 +2220,16 @@ function DashboardContent() {
 
   // Check availability for assigned sitters
   const checkSitterAvailability = async () => {
+    // Check if user has completed their profile forms
+    if (user && user.formStatus && user.formStatus !== 'form complete') {
+      toast({
+        title: "Profile Incomplete",
+        description: "Please complete your profile information before booking. Go to 'My Profile' tab to fill in all required details.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!bookingFormData.startDate || !bookingFormData.endDate) {
       toast({
         title: "Missing Information",
@@ -5478,6 +5488,38 @@ function DashboardContent() {
                   Schedule your pet care services quickly and easily
                 </p>
               </div>
+
+              {/* Profile Incomplete Warning Banner */}
+              {user && user.formStatus && user.formStatus !== 'form complete' && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg animate-fadeIn">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-yellow-800">
+                        Profile Incomplete
+                      </h3>
+                      <div className="mt-2 text-sm text-yellow-700">
+                        <p>
+                          Your profile is not complete. Please fill in all required information in the &quot;My Profile&quot; tab before making a booking.
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <Button
+                          size="sm"
+                          className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                          onClick={() => router.push('/dashboard?tab=profile')}
+                        >
+                          Complete Profile Now
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Addon Booking Section */}
               <Card className="card-modern">
