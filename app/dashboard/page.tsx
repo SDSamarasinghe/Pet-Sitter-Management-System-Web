@@ -1039,8 +1039,7 @@ function DashboardContent() {
       if (sitterActionType === 'approve') {
         await api.put(`/users/${selectedSitter._id}/approve`, {
           password: sitterForm.password,
-          confirmPassword: sitterForm.confirmPassword,
-          notes: sitterForm.notes
+          confirmPassword: sitterForm.confirmPassword
         });
         toast({ title: 'Sitter approved', description: `${selectedSitter.firstName} ${selectedSitter.lastName} approved.` });
       } else {
