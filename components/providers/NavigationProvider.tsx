@@ -46,12 +46,6 @@ const getNavigationItems = (userRole: string | null, isLoggedIn: boolean): Navig
     //     { name: 'My Clients', href: '/dashboard?tab=users', show: 'sitter' }
     //   );
     // }
-
-    if (userRole === 'client') {
-      items.push(
-        { name: 'My Pets', href: '/pets', show: 'client' }
-      );
-    }
   }
 
   return items;
