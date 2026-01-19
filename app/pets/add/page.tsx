@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { Spinner } from '@/components/ui/spinner';
 import { isAuthenticated } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AddPetPage() {
   const [formData, setFormData] = useState({
@@ -64,6 +65,7 @@ export default function AddPetPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   // Check authentication on component mount
   useEffect(() => {
@@ -227,7 +229,10 @@ export default function AddPetPage() {
         console.log('Care data added successfully:', careResponse.data);
       }
 
-      setSuccess('Pet added successfully with all details!');
+      toast({
+        title: "Success",
+        description: "Pet added successfully with all details!",
+      });
       
       // Reset form
       setFormData({
@@ -272,8 +277,8 @@ export default function AddPetPage() {
       setPhotoPreview('');
       
       setTimeout(() => {
-        router.push('/pets');
-      }, 2000);
+        router.push('/dashboard?tab=pets');
+      }, 1500);
       
     } catch (error: any) {
       setError(error.message || 'Failed to add pet');
@@ -907,7 +912,7 @@ export default function AddPetPage() {
                   type="button" 
                   variant="outline"
                   className="w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm"
-                  onClick={() => router.push('/pets')}
+                  onClick={() => router.push('/dashboard?tab=pets')}
                   disabled={isLoading}
                 >
                   Cancel
