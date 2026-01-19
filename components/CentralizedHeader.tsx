@@ -219,17 +219,7 @@ const CentralizedHeader: React.FC = () => {
                         Profile
                       </button>
                       
-                      {user.role === 'client' && (
-                        <button
-                          onClick={() => { setDropdownOpen(false); handleNavigation('/pets'); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors duration-150"
-                        >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          My Pets
-                        </button>
-                      )}
+
                     </div>
 
                     <div className="border-t border-gray-100 pt-2">
