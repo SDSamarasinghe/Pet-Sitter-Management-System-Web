@@ -18,6 +18,7 @@ import { CalendarIcon, ChevronDownIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { formatDateTimeTZ, formatTimeRangeTZ, getUserTimeZone, APP_TIMEZONE } from "@/lib/utils";
 import { OnboardingTour } from "@/components/ui/onboarding-tour";
+import MyPetsContent from "@/components/pets/MyPetsContent";
 
 const ClientWithPetsRow: React.FC<{ client: User }> = ({ client }) => {
   const [expanded, setExpanded] = useState(false);
@@ -5269,7 +5270,13 @@ function DashboardContent() {
             </div>
           )}
 
-          {activeTab === "pets" && (
+          {/* Client: My Pets Tab - Uses dedicated MyPetsContent component */}
+          {user?.role === "client" && activeTab === "pets" && (
+            <MyPetsContent />
+          )}
+
+          {/* Non-client users: Pets Tab (legacy view) */}
+          {user?.role !== "client" && user?.role !== "admin" && activeTab === "pets" && (
             <div className="space-y-8">
                 {/* Search Input for Pets */}
                 {/* <div className="mb-4">
