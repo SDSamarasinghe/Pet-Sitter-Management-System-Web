@@ -234,6 +234,17 @@ export default function AddPetPage() {
         description: "Pet added successfully with all details!",
       });
       
+      // Notify other components (like dashboard) that pet data has been updated
+      // This will also trigger a refresh of user profile (for formStatus update)
+      window.dispatchEvent(new CustomEvent('petDataUpdated', {
+        detail: {
+          action: 'create',
+          petId: petId,
+          petName: formData.name,
+          timestamp: new Date().toISOString()
+        }
+      }));
+      
       // Reset form
       setFormData({
         name: '',

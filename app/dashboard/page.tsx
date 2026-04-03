@@ -1880,17 +1880,36 @@ function DashboardContent() {
       }
     };
 
-    // Add event listener for pet data updates
-    const handlePetDataUpdated = () => {
+    // Add event listener for pet data updates (also refreshes user profile for formStatus)
+    const handlePetDataUpdated = async () => {
       refreshPetsData();
+      // Also refresh user profile since formStatus depends on having at least one pet
+      try {
+        const profileResponse = await api.get("/users/profile");
+        setUser(profileResponse.data);
+      } catch (error) {
+        console.error("Error refreshing user profile after pet update:", error);
+      }
+    };
+
+    // Add event listener for profile updates (refreshes user data including formStatus)
+    const handleProfileUpdated = async () => {
+      try {
+        const profileResponse = await api.get("/users/profile");
+        setUser(profileResponse.data);
+      } catch (error) {
+        console.error("Error refreshing user profile:", error);
+      }
     };
 
     window.addEventListener('focus', handleFocus);
     window.addEventListener('petDataUpdated', handlePetDataUpdated);
+    window.addEventListener('profileUpdated', handleProfileUpdated);
     
     return () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('petDataUpdated', handlePetDataUpdated);
+      window.removeEventListener('profileUpdated', handleProfileUpdated);
     };
   }, [router]);
 
