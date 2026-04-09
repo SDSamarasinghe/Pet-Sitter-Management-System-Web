@@ -6399,8 +6399,19 @@ function DashboardContent() {
                       <div>
                         <h2 className="text-2xl font-bold text-gray-900">Sitter Availability Results</h2>
                         <p className="text-gray-600 mt-1">
-                          Availability for {bookingFormData.service} on {formatDateTime(bookingFormData.startDate)}
-                          {bookingFormData.startDate !== bookingFormData.endDate && ` to ${formatDateTime(bookingFormData.endDate)}`}
+                          Availability for {bookingFormData.service} on {(() => {
+                            // Format date without timezone conversion
+                            if (!bookingFormData.startDate) return '--';
+                            const startDateObj = new Date(`${bookingFormData.startDate}T12:00:00`);
+                            const startDateFormatted = format(startDateObj, 'MMM dd, yyyy');
+                            
+                            if (bookingFormData.startDate !== bookingFormData.endDate && bookingFormData.endDate) {
+                              const endDateObj = new Date(`${bookingFormData.endDate}T12:00:00`);
+                              const endDateFormatted = format(endDateObj, 'MMM dd, yyyy');
+                              return `${startDateFormatted} to ${endDateFormatted}`;
+                            }
+                            return startDateFormatted;
+                          })()}
                         </p>
                         <p className="text-sm text-gray-500">
                           Time: {bookingFormData.startTime} - {bookingFormData.endTime}
@@ -6656,7 +6667,19 @@ function DashboardContent() {
                           <div className="px-4 py-3 flex justify-between">
                             <span className="text-sm text-gray-600">Date</span>
                             <span className="text-sm font-medium text-gray-900">
-                              {formatDateTime(bookingFormData.startDate)} to {formatDateTime(bookingFormData.endDate)}
+                              {(() => {
+                                // Format date without timezone conversion issues
+                                const formatDisplayDate = (dateStr: string, timeStr: string) => {
+                                  if (!dateStr) return '--';
+                                  const dateObj = new Date(`${dateStr}T${timeStr}:00`);
+                                  return format(dateObj, 'MMM dd, yyyy, hh:mm a');
+                                };
+                                
+                                const startDisplay = formatDisplayDate(bookingFormData.startDate, bookingFormData.startTime);
+                                const endDisplay = formatDisplayDate(bookingFormData.endDate, bookingFormData.endTime);
+                                
+                                return `${startDisplay} to ${endDisplay}`;
+                              })()}
                             </span>
                           </div>
                           <div className="px-4 py-3 flex justify-between">
