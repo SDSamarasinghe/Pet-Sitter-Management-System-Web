@@ -1386,7 +1386,7 @@ function DashboardContent() {
   const [availabilityResults, setAvailabilityResults] = useState<any[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [bookingFormData, setBookingFormData] = useState({
-    service: 'Once A Day Pet Sitting 30min - C$28',
+    service: 'Pet Sitting 30min - CAD 28',
     startDate: '',
     endDate: '',
     startTime: '09:00',
@@ -2354,8 +2354,8 @@ function DashboardContent() {
           'Dog Walking 1hr Holiday - CAD 46': 'dog-walking'
       };
       
-      // Extract price from service string
-      const priceMatch = bookingFormData.service.match(/C\$(\d+)/);
+      // Extract price from service string (supports both CAD and C$ formats)
+      const priceMatch = bookingFormData.service.match(/(?:CAD|C\$)\s*(\d+)/);
       const totalAmount = priceMatch ? parseInt(priceMatch[1]) : 28;
       
       // Map pet species to the enum values expected by the backend
@@ -2426,11 +2426,11 @@ function DashboardContent() {
       
       // Reset form
       setBookingFormData({
-        service: 'Once A Day Pet Sitting 30min - C$28',
+        service: 'Pet Sitting 30min - CAD 28',
         startDate: '',
         endDate: '',
         startTime: '09:00',
-        endTime: '09:45'
+        endTime: '09:30'
       });
       
       // Refresh dashboard data to show the new booking
