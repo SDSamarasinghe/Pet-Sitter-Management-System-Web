@@ -29,16 +29,6 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
 
-    - name: Write .env file
-      env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-      run: |
-        printf "NODE_ENV=production\n" > /tmp/web.env
-        printf "NEXT_PUBLIC_API_URL=%s\n" "$NEXT_PUBLIC_API_URL" >> /tmp/web.env
-        printf "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj\n" >> /tmp/web.env
-        printf "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload\n" >> /tmp/web.env
-        scp -i ~/.ssh/id_rsa /tmp/web.env azureuser@${{ secrets.HOST_IP }}:/var/www/Pet-Sitter-Management-System-Web/.env
-
     - name: Pull code and deploy
       env:
         NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -47,7 +37,8 @@ jobs:
         cd /var/www/Pet-Sitter-Management-System-Web
         git fetch origin
         git reset --hard origin/master || git reset --hard origin/main
-        printf "services:\n  web:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - 3000:3000\n    environment:\n      - NODE_ENV=production\n    restart: unless-stopped\n    logging:\n      driver: json-file\n      options:\n        max-size: 10m\n        max-file: \"3\"\n" > docker-compose.yml
+        printf "NODE_ENV=production\nNEXT_PUBLIC_API_URL=%s\nNEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj\nNEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload\n" "$NEXT_PUBLIC_API_URL" > .env
+        printf "services:\n  web:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - 3000:3000\n    environment:\n      - NODE_ENV=production\n      - NEXT_PUBLIC_API_URL=%s\n    restart: unless-stopped\n    logging:\n      driver: json-file\n      options:\n        max-size: 10m\n        max-file: \"3\"\n" "$NEXT_PUBLIC_API_URL" > docker-compose.yml
         docker image prune -f 2>/dev/null || true
         docker compose build --no-cache
         docker compose up -d --remove-orphans'
