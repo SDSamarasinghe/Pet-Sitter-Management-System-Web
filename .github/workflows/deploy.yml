@@ -57,12 +57,12 @@ jobs:
         EOF
 
         # Write .env locally on runner, then scp to VM
-        cat > /tmp/web.env << 'ENV_FILE'
-NODE_ENV=production
-NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload
-ENV_FILE
+        cat > /tmp/web.env <<- 'ENV_FILE'
+        NODE_ENV=production
+        NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload
+        ENV_FILE
         scp -i ~/.ssh/id_rsa /tmp/web.env azureuser@${{ secrets.HOST_IP }}:/var/www/Pet-Sitter-Management-System-Web/.env
 
         # Deploy with docker compose
