@@ -23,31 +23,36 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup SSH
+      env:
+        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
+        printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' > ~/.ssh/config
+        chmod 600 ~/.ssh/config
 
-    - name: Write .env file
-      env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-      run: |
-        printf "NODE_ENV=production\n" > /tmp/web.env
-        printf "NEXT_PUBLIC_API_URL=%s\n" "$NEXT_PUBLIC_API_URL" >> /tmp/web.env
-        printf "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj\n" >> /tmp/web.env
-        printf "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload\n" >> /tmp/web.env
-        scp -i ~/.ssh/id_rsa /tmp/web.env azureuser@${{ secrets.HOST_IP }}:/var/www/Pet-Sitter-Management-System-Web/.env
-
-    - name: Pull code and deploy
-      env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+    - name: Pull code
       run: |
         ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} 'set -e
         cd /var/www/Pet-Sitter-Management-System-Web
         git fetch origin
-        git reset --hard origin/master || git reset --hard origin/main
-        printf "services:\n  web:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - 3000:3000\n    environment:\n      - NODE_ENV=production\n    restart: unless-stopped\n    logging:\n      driver: json-file\n      options:\n        max-size: 10m\n        max-file: \"3\"\n" > docker-compose.yml
+        git reset --hard origin/master || git reset --hard origin/main'
+
+    - name: Write .env file
+      run: |
+        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} 'cat > /var/www/Pet-Sitter-Management-System-Web/.env' << 'ENVEOF'
+        NODE_ENV=production
+        NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload
+        ENVEOF
+
+    - name: Deploy containers
+      run: |
+        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} 'set -e
+        cd /var/www/Pet-Sitter-Management-System-Web
+        printf "services:\n  web:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - 3000:3000\n    environment:\n      - NODE_ENV=production\n      - NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}\n    restart: unless-stopped\n    logging:\n      driver: json-file\n      options:\n        max-size: 10m\n        max-file: \"3\"\n" > docker-compose.yml
         docker image prune -f 2>/dev/null || true
         docker compose build --no-cache
         docker compose up -d --remove-orphans'
