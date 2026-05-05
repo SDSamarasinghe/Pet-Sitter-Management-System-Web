@@ -12,145 +12,64 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-env:
-  DEPLOYMENT_ENVIRONMENT: production
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
-        
-    - name: Deploy Web to Azure VM
+
+    - name: Write .env file
       env:
         NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       run: |
-        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} << 'EOF'
-          set -e
-          
-          echo "========================================="
-          echo "🚀 Starting Web Auto-Deployment..."
-          echo "========================================="
-          
-          # ─── Update repository ───────────────────────────────────────
-          echo "📥 Pulling latest Web code..."
-          if [ -d "/var/www/Pet-Sitter-Management-System-Web" ]; then
-            cd /var/www/Pet-Sitter-Management-System-Web
-            git fetch origin
-            git reset --hard origin/main || git reset --hard origin/master
-          else
-            cd /var/www
-            git clone https://github.com/SDSamarasinghe/Pet-Sitter-Management-System-Web.git
-            cd Pet-Sitter-Management-System-Web
-          fi
-        EOF
-
-        # Write .env locally on runner, then scp to VM
-        cat > /tmp/web.env <<- 'ENV_FILE'
-        NODE_ENV=production
-        NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj
-        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload
-        ENV_FILE
+        printf "NODE_ENV=production\n" > /tmp/web.env
+        printf "NEXT_PUBLIC_API_URL=%s\n" "$NEXT_PUBLIC_API_URL" >> /tmp/web.env
+        printf "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnutx6czj\n" >> /tmp/web.env
+        printf "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=test_upload\n" >> /tmp/web.env
         scp -i ~/.ssh/id_rsa /tmp/web.env azureuser@${{ secrets.HOST_IP }}:/var/www/Pet-Sitter-Management-System-Web/.env
 
-        # Deploy with docker compose
-        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} << 'EOF'
-          set -e
-          cd /var/www/Pet-Sitter-Management-System-Web
+    - name: Write docker-compose.yml
+      env:
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      run: |
+        printf 'services:\n  web:\n    build:\n      context: .\n      dockerfile: Dockerfile\n      args:\n        - NEXT_PUBLIC_API_URL=%s\n    ports:\n      - "3000:3000"\n    environment:\n      - NODE_ENV=production\n      - NEXT_PUBLIC_API_URL=%s\n    restart: unless-stopped\n    logging:\n      driver: json-file\n      options:\n        max-size: 10m\n        max-file: "3"\n' "$NEXT_PUBLIC_API_URL" "$NEXT_PUBLIC_API_URL" > /tmp/web-compose.yml
+        scp -i ~/.ssh/id_rsa /tmp/web-compose.yml azureuser@${{ secrets.HOST_IP }}:/var/www/Pet-Sitter-Management-System-Web/docker-compose.yml
 
-          # ─── Create docker-compose.yml ────────────────────────────────
-          echo "📝 Writing docker-compose.yml..."
-          cat > docker-compose.yml << 'COMPOSE'
-services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-COMPOSE
+    - name: Pull code and deploy
+      run: |
+        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} 'set -e
+        cd /var/www/Pet-Sitter-Management-System-Web
+        git fetch origin
+        git reset --hard origin/master || git reset --hard origin/main
+        docker image prune -f 2>/dev/null || true
+        docker compose build --no-cache
+        docker compose up -d --remove-orphans'
 
-          # ─── Deploy with Docker Compose ──────────────────────────────
-          echo "🧹 Cleaning up unused Docker resources..."
-          docker image prune -f 2>/dev/null || true
-
-          echo "🔨 Building Web container (this may take several minutes)..."
-          docker compose build --no-cache
-
-          echo "🚀 Starting Web container..."
-          docker compose up -d --remove-orphans
-
-          # ─── Health check ────────────────────────────────────────────
-          echo "⏳ Waiting for Web app to become healthy..."
-          MAX_RETRIES=15
-          RETRY_COUNT=0
-          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200\|304"; then
-              echo "✅ Web app is healthy!"
-              break
-            fi
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            echo "   Attempt $RETRY_COUNT/$MAX_RETRIES - waiting..."
-            sleep 10
-          done
-
-          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-            echo "⚠️ Web health check failed after $MAX_RETRIES attempts"
-            echo "📋 Container logs:"
-            docker compose logs --tail=30
-            echo ""
-            echo "🔄 Initiating automatic rollback..."
-            git log --oneline -5
-            PREVIOUS_COMMIT=$(git log --oneline -2 | tail -n1 | awk '{print $1}')
-            echo "Rolling back to commit: $PREVIOUS_COMMIT"
-            git reset --hard "$PREVIOUS_COMMIT"
-            docker compose down --remove-orphans 2>/dev/null || true
+    - name: Health check
+      run: |
+        ssh -i ~/.ssh/id_rsa azureuser@${{ secrets.HOST_IP }} 'MAX=15; COUNT=0
+        until curl -sf http://localhost:3000; do
+          COUNT=$((COUNT+1))
+          if [ $COUNT -ge $MAX ]; then
+            cd /var/www/Pet-Sitter-Management-System-Web
+            PREV=$(git log --oneline -2 | tail -n1 | awk "{print \$1}")
+            git reset --hard "$PREV"
             docker compose build --no-cache
-            docker compose up -d
-            sleep 10
-            docker compose ps
+            docker compose up -d --remove-orphans
             exit 1
           fi
-
-          # ─── Verify deployment ───────────────────────────────────────
-          echo ""
-          echo "========================================="
-          echo "📊 Deployment Status:"
-          echo "========================================="
-          docker compose ps
-          echo ""
-          echo "📋 Recent logs:"
-          docker compose logs --tail=10
-          echo ""
-          echo "✅ Web deployment completed successfully!"
-          echo "========================================="
-        EOF
+          sleep 10
+        done
+        echo "Web is healthy!"
+        docker compose ps'
