@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken, removeToken } from '@/lib/auth';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -10,11 +11,9 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -25,10 +24,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        // Only remove token and redirect if we're not already on login page
         const isLoginPage = window.location.pathname === '/login';
         if (!isLoginPage) {
-          localStorage.removeItem('token');
+          removeToken();
           window.location.href = '/login';
         }
       }

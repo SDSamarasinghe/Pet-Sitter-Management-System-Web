@@ -1,344 +1,278 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { 
-  Home, 
-  MessageSquare, 
-  Users, 
-  Calendar, 
-  PawPrint, 
-  FileText, 
-  Settings,
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  Calendar,
+  PawPrint,
+  FileText,
+  MessageSquare,
+  User,
+  LogOut,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  UserCircle,
+  ClipboardList,
+  Receipt,
   Shield,
-  BookOpen,
-  CreditCard,
-  MapPin
-} from 'lucide-react';
+  CalendarPlus,
+  type LucideIcon,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
+  Sheet,
+  SheetContent,
+} from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
 
-interface SidebarProps {
-  userRole?: 'admin' | 'sitter' | 'client';
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
+type NavItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+  badge?: number
 }
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-  roles: string[];
-  badge?: number;
-  tab?: string;
+export type SidebarUser = {
+  firstName: string
+  lastName: string
+  role: string
+  avatarUrl?: string
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  userRole = 'client',
-  isCollapsed = false,
-  onToggleCollapse
-}) => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams?.get('tab');
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+type SidebarProps = {
+  user: SidebarUser
+  onLogout: () => void
+  mobileOpen?: boolean
+  onMobileOpenChange?: (open: boolean) => void
+}
 
-  // Listen for tour events to control mobile sidebar
-  useEffect(() => {
-    const handleOpenSidebar = () => setIsMobileOpen(true);
-    const handleCloseSidebar = () => setIsMobileOpen(false);
-    
-    window.addEventListener('tour:openSidebar', handleOpenSidebar);
-    window.addEventListener('tour:closeSidebar', handleCloseSidebar);
-    
-    return () => {
-      window.removeEventListener('tour:openSidebar', handleOpenSidebar);
-      window.removeEventListener('tour:closeSidebar', handleCloseSidebar);
-    };
-  }, []);
+const navItemsByRole: Record<string, NavItem[]> = {
+  admin: [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Admin Panel', href: '/admin', icon: Shield },
+    { label: 'Bookings', href: '/bookings', icon: Calendar },
+    { label: 'Reports', href: '/reports', icon: FileText },
+  ],
+  sitter: [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Schedule', href: '/scheduling', icon: Calendar },
+    { label: 'My Clients', href: '/dashboard?tab=clients', icon: Users },
+    { label: 'Reports', href: '/reports', icon: ClipboardList },
+    { label: 'Messages', href: '/messages', icon: MessageSquare },
+    { label: 'Profile', href: '/profile', icon: User },
+  ],
+  client: [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Book Now', href: '/book-now', icon: CalendarPlus },
+    { label: 'My Pets', href: '/pets', icon: PawPrint },
+    { label: 'Bookings', href: '/bookings', icon: Calendar },
+    { label: 'Invoices', href: '/invoices', icon: Receipt },
+    { label: 'Messages', href: '/messages', icon: MessageSquare },
+    { label: 'Profile', href: '/profile', icon: User },
+  ],
+}
 
-  // Define navigation items based on user roles
-  // Define navigation items based on user roles
-  const navItems: NavItem[] = [
-    // Sitter specific items - Dashboard first for sitters
-    {
-      label: 'Dashboard',
-      href: '/dashboard?tab=dashboard',
-      tab: 'dashboard',
-      icon: <Home className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'Communication',
-      href: '/dashboard?tab=communication',
-      tab: 'communication',
-      icon: <MessageSquare className="w-5 h-5" />,
-      roles: ['admin', 'sitter', 'client'],
-    },
-    {
-      label: 'My Clients',
-      href: '/dashboard?tab=users',
-      tab: 'users',
-      icon: <Users className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'Scheduling',
-      href: '/dashboard?tab=scheduling',
-      tab: 'scheduling',
-      icon: <Calendar className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    {
-      label: 'My Profile',
-      href: '/dashboard?tab=profile',
-      tab: 'profile',
-      icon: <UserCircle className="w-5 h-5" />,
-      roles: ['sitter'],
-    },
-    // Admin specific items
-    {
-      label: 'Users',
-      href: '/dashboard?tab=users',
-      tab: 'users',
-      icon: <Users className="w-5 h-5" />,
-      roles: ['admin'],
-    },
-    {
-      label: 'Sitters',
-      href: '/dashboard?tab=sitters',
-      tab: 'sitters',
-      icon: <Users className="w-5 h-5" />,
-      roles: ['admin'],
-    },
-    {
-      label: 'Bookings',
-      href: '/dashboard?tab=bookings',
-      tab: 'bookings',
-      icon: <Calendar className="w-5 h-5" />,
-      roles: ['admin'],
-    },
-    {
-      label: 'Pets',
-      href: '/dashboard?tab=pets',
-      tab: 'pets',
-      icon: <PawPrint className="w-5 h-5" />,
-      roles: ['admin'],
-    },
-    // Client specific items - My Profile first for clients
-    {
-      label: 'My Profile',
-      href: '/dashboard?tab=profile',
-      tab: 'profile',
-      icon: <UserCircle className="w-5 h-5" />,
-      roles: ['client'],
-    },
-    {
-      label: 'My Pets',
-      href: '/dashboard?tab=pets',
-      tab: 'pets',
-      icon: <PawPrint className="w-5 h-5" />,
-      roles: ['client'],
-    },
-    {
-      label: 'Key Security',
-      href: '/dashboard?tab=security',
-      tab: 'security',
-      icon: <Shield className="w-5 h-5" />,
-      roles: ['client'],
-    },
-    {
-      label: 'Book Now',
-      href: '/dashboard?tab=booking',
-      tab: 'booking',
-      icon: <Calendar className="w-5 h-5" />,
-      roles: ['client'],
-    },
-    {
-      label: 'Invoices',
-      href: '/dashboard?tab=invoices',
-      tab: 'invoices',
-      icon: <CreditCard className="w-5 h-5" />,
-      roles: ['client'],
-    },
-  ];
-
-  // Filter items based on user role
-  let filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
-  // Move My Profile to top for clients
-  if (userRole === 'client') {
-    const profileIdx = filteredNavItems.findIndex(item => item.tab === 'profile');
-    if (profileIdx > 0) {
-      const [profileItem] = filteredNavItems.splice(profileIdx, 1);
-      filteredNavItems = [profileItem, ...filteredNavItems];
-    }
-  }
-  // Move Users to top for admins
-  if (userRole === 'admin') {
-    const usersIdx = filteredNavItems.findIndex(item => item.tab === 'users');
-    if (usersIdx > 0) {
-      const [usersItem] = filteredNavItems.splice(usersIdx, 1);
-      filteredNavItems = [usersItem, ...filteredNavItems];
-    }
-  }
-
-  const isActive = (item: NavItem) => {
-    if (pathname !== '/dashboard') return false;
-    
-    // If no tab param, determine default based on user role
-    if (!currentTab) {
-      if (userRole === 'sitter') {
-        return item.tab === 'dashboard';
-      } else if (userRole === 'client') {
-        return item.tab === 'profile';
-      } else if (userRole === 'admin') {
-        return item.tab === 'users';
-      } else {
-        return item.tab === 'communication';
-      }
-    }
-    
-    return currentTab === item.tab;
-  };
-
-  const handleNavigation = (href: string) => {
-    router.push(href);
-    setIsMobileOpen(false); // Close mobile menu after navigation
-  };
+function SidebarNav({
+  items,
+  collapsed,
+  onNavigate,
+}: {
+  items: NavItem[]
+  collapsed: boolean
+  onNavigate?: () => void
+}) {
+  const pathname = usePathname()
 
   return (
-    <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        data-tour="mobile-menu-trigger"
-        className="lg:hidden fixed left-4 top-24 z-50 p-3 rounded-xl bg-primary text-white shadow-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105"
-        aria-label="Toggle menu"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {isMobileOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
+    <TooltipProvider delayDuration={0}>
+      <nav className="flex flex-col gap-1 px-2">
+        {items.map((item) => {
+          const basePath = item.href.split('?')[0]
+          const isActive = pathname === basePath || pathname.startsWith(basePath + '/')
 
-      {/* Overlay for mobile */}
-      {isMobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 top-16 backdrop-blur-sm"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
+          const Icon = item.icon
 
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed left-0 top-16 lg:top-20 bottom-0 z-40
-          bg-white border-r border-gray-200/50
-          transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
-          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          w-64
-          flex flex-col
-          shadow-2xl lg:shadow-none
-        `}
-      >
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!isCollapsed && (
-          <h2 className="text-lg font-semibold text-gray-900">
-            {(() => {
-              // Find the active item and show its label
-              const activeItem = filteredNavItems.find(isActive);
-              return activeItem ? activeItem.label : 'Menu';
-            })()}
-          </h2>
+          const linkEl = (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.badge !== undefined && item.badge > 0 && (
+                <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-xs">
+                  {item.badge}
+                </Badge>
+              )}
+            </Link>
+          )
+
+          if (collapsed) {
+            return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            )
+          }
+
+          return <div key={item.href}>{linkEl}</div>
+        })}
+      </nav>
+    </TooltipProvider>
+  )
+}
+
+function SidebarContent({
+  user,
+  collapsed,
+  onCollapse,
+  onLogout,
+  onNavigate,
+}: {
+  user: SidebarUser
+  collapsed: boolean
+  onCollapse?: () => void
+  onLogout: () => void
+  onNavigate?: () => void
+}) {
+  const items = navItemsByRole[user.role] || navItemsByRole.client
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex h-14 items-center justify-between border-b px-3">
+        {!collapsed && (
+          <Link href="/dashboard" className="text-lg font-bold text-primary">
+            Whiskarz
+          </Link>
         )}
-        {onToggleCollapse && (
+        {onCollapse && (
           <Button
             variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onCollapse}
           >
-            {isCollapsed ? (
-              <ChevronRight className="w-5 h-5" />
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
             ) : (
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="h-4 w-4" />
             )}
           </Button>
         )}
       </div>
 
-      {/* Navigation Items */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-3 space-y-1 min-h-0">
-        {filteredNavItems.map((item) => {
-          // Determine data-tour attribute for client navigation items
-          let dataTour = '';
-          if (userRole === 'client') {
-            if (item.tab === 'profile') dataTour = 'my-profile-nav';
-            else if (item.tab === 'pets') dataTour = 'my-pets-nav';
-            else if (item.tab === 'communication') dataTour = 'communication-nav';
-            else if (item.tab === 'security') dataTour = 'key-security-nav';
-            else if (item.tab === 'booking') dataTour = 'book-now-nav';
-            else if (item.tab === 'invoices') dataTour = 'invoices-nav';
-          }
-          
-          return (
-            <button
-              key={item.href}
-              onClick={() => handleNavigation(item.href)}
-              data-tour={dataTour || undefined}
-              className={`
-                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                text-sm font-medium transition-all duration-200
-                ${isActive(item)
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-                }
-                ${isCollapsed ? 'justify-center' : ''}
-              `}
-              title={isCollapsed ? item.label : undefined}
-            >
-              {item.icon}
-              {!isCollapsed && (
-                <span className="flex-1 text-left">{item.label}</span>
-              )}
-              {!isCollapsed && item.badge && (
-                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full bg-red-100 text-red-600">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          className={`
-            w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-            text-sm font-medium text-gray-700
-            hover:bg-red-50 hover:text-red-600
-            transition-all duration-200
-            ${isCollapsed ? 'justify-center' : ''}
-          `}
-          title={isCollapsed ? 'Settings' : undefined}
-        >
-          <Settings className="w-5 h-5" />
-          {!isCollapsed && <span>Settings</span>}
-        </Button>
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto py-4">
+        <SidebarNav items={items} collapsed={collapsed} onNavigate={onNavigate} />
       </div>
-    </aside>
+
+      {/* User Card */}
+      <Separator />
+      <div className="p-3">
+        <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
+          <Avatar className="h-8 w-8">
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} />}
+            <AvatarFallback className="text-xs">
+              {user.firstName?.[0]}
+              {user.lastName?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium">
+                {user.firstName} {user.lastName}
+              </p>
+              <Badge variant="outline" className="mt-0.5 text-xs capitalize">
+                {user.role}
+              </Badge>
+            </div>
+          )}
+          {!collapsed && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={onLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Log out</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function Sidebar({ user, onLogout, mobileOpen, onMobileOpenChange }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('sidebar-collapsed')
+    if (stored !== null) setCollapsed(stored === 'true')
+  }, [])
+
+  const toggleCollapse = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('sidebar-collapsed', String(next))
+  }
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden border-r bg-background transition-all duration-200 lg:block',
+          collapsed ? 'w-16' : 'w-64'
+        )}
+      >
+        <SidebarContent
+          user={user}
+          collapsed={collapsed}
+          onCollapse={toggleCollapse}
+          onLogout={onLogout}
+        />
+      </aside>
+
+      {/* Mobile sidebar (Sheet) */}
+      <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
+        <SheetContent side="left" className="w-64 p-0">
+          <SidebarContent
+            user={user}
+            collapsed={false}
+            onLogout={onLogout}
+            onNavigate={() => onMobileOpenChange?.(false)}
+          />
+        </SheetContent>
+      </Sheet>
     </>
-  );
-};
+  )
+}
