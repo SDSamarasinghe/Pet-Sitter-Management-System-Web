@@ -18,10 +18,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Spinner } from '@/components/ui/spinner'
 import { Calendar, Clock } from 'lucide-react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getUserFromToken } from '@/lib/auth'
 import { useProfile, useClients, useSitters, useAvailableSitters } from '@/hooks/useData'
 import api from '@/lib/api'
 import Link from 'next/link'
+import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns'
 
 const SERVICES = [
   { label: 'Pet Sitting 30min - CAD 28', value: 'Pet Sitting 30min', amount: 28 },
@@ -33,6 +35,38 @@ const SERVICES = [
 ]
 
 const PET_TYPES = ['Cat(s)', 'Dog(s)', 'Rabbit(s)', 'Bird(s)', 'Guinea pig(s)', 'Ferret(s)', 'Other']
+
+const HOLIDAY_MONTH_DAYS = new Set(['01-01', '07-01', '12-25', '12-26'])
+
+function isSameDayBooking(startDate: string, endDate: string) {
+  return Boolean(startDate && endDate && startDate === endDate)
+}
+
+function isValidTimeRange(startDate: string, endDate: string, startTime: string, endTime: string) {
+  if (!isSameDayBooking(startDate, endDate)) return true
+  return startTime < endTime
+}
+
+function getBookingDateWarnings(startDate: string, endDate: string) {
+  if (!startDate || !endDate) return []
+
+  try {
+    const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) })
+    const warnings: string[] = []
+
+    if (days.some((day) => isWeekend(day))) {
+      warnings.push('Weekend dates are included. Weekend rates may apply.')
+    }
+
+    if (days.some((day) => HOLIDAY_MONTH_DAYS.has(format(day, 'MM-dd')))) {
+      warnings.push('Holiday dates are included. Holiday rates may apply.')
+    }
+
+    return warnings
+  } catch {
+    return []
+  }
+}
 
 type AuthUser = { userId: string; role: string; firstName: string }
 
@@ -85,6 +119,7 @@ function ClientBookingForm({ userId }: { userId: string }) {
 
   const assignedSitterId: string | undefined = profile?.assignedSitterId
   const selectedService = SERVICES.find((s) => s.value === service)
+  const dateWarnings = getBookingDateWarnings(startDate, endDate)
 
   const togglePetType = (type: string) => {
     setPetTypes((prev) =>
@@ -122,6 +157,14 @@ function ClientBookingForm({ userId }: { userId: string }) {
       toast.error('End date must be after start date.')
       return
     }
+    if (!isValidTimeRange(startDate, endDate, startTime, endTime)) {
+      toast.error('For same-day bookings, the end time must be after the start time.')
+      return
+    }
+    if (service === 'Overnight Stay' && startDate === endDate) {
+      toast.error('Overnight stay bookings must span at least one night.')
+      return
+    }
     setSubmitting(true)
     try {
       const startDateTime = `${startDate}T${startTime}:00.000Z`
@@ -156,9 +199,9 @@ function ClientBookingForm({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-8 space-y-8">
+        <div className="p-6 sm:p-8 space-y-10">
           {/* Service Information */}
           <div className="space-y-6">
             <div className="border-b pb-4">
@@ -230,6 +273,20 @@ function ClientBookingForm({ userId }: { userId: string }) {
                 <Input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
               </div>
             </div>
+
+            <p className={`text-xs ${isValidTimeRange(startDate, endDate, startTime, endTime) ? 'text-gray-500' : 'text-destructive'}`}>
+              For same-day bookings, the end time must be later than the start time.
+            </p>
+
+            {dateWarnings.length > 0 && (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                <AlertDescription className="space-y-1 text-sm">
+                  {dateWarnings.map((warning) => (
+                    <p key={warning}>{warning}</p>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {startDate && endDate && (
               <Button
@@ -411,6 +468,7 @@ function AdminBookingForm() {
   const [submitting, setSubmitting] = useState(false)
 
   const selectedService = SERVICES.find((s) => s.value === service)
+  const dateWarnings = getBookingDateWarnings(startDate, endDate)
 
   const togglePetType = (type: string) => {
     setPetTypes((prev) =>
@@ -421,6 +479,18 @@ function AdminBookingForm() {
   const handleSubmit = async () => {
     if (!clientId || !service || !startDate || !endDate || petTypes.length === 0) {
       toast.error('Please fill in all required fields.')
+      return
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+      toast.error('End date must be after start date.')
+      return
+    }
+    if (!isValidTimeRange(startDate, endDate, startTime, endTime)) {
+      toast.error('For same-day bookings, the end time must be after the start time.')
+      return
+    }
+    if (service === 'Overnight Stay' && startDate === endDate) {
+      toast.error('Overnight stay bookings must span at least one night.')
       return
     }
     setSubmitting(true)
@@ -458,9 +528,9 @@ function AdminBookingForm() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-8 space-y-8">
+        <div className="p-6 sm:p-8 space-y-10">
           {/* Client & Sitter Selection */}
           <div className="space-y-6">
             <div className="border-b pb-4">
@@ -476,7 +546,7 @@ function AdminBookingForm() {
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map((c: any) => (
+                    {clients.map((c: { _id: string; firstName?: string; lastName?: string; email?: string }) => (
                       <SelectItem key={c._id} value={c._id}>
                         {c.firstName} {c.lastName}
                       </SelectItem>
@@ -485,7 +555,7 @@ function AdminBookingForm() {
                 </Select>
                 {clientId && (
                   <p className="text-xs text-gray-500">
-                    {clients.find((c: any) => c._id === clientId)?.email}
+                    {clients.find((c: { _id: string; email?: string }) => c._id === clientId)?.email}
                   </p>
                 )}
               </div>
@@ -498,7 +568,7 @@ function AdminBookingForm() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">No sitter assigned</SelectItem>
-                    {sitters.map((s: any) => (
+                    {sitters.map((s: { _id: string; firstName?: string; lastName?: string }) => (
                       <SelectItem key={s._id} value={s._id}>
                         {s.firstName} {s.lastName}
                       </SelectItem>
@@ -549,6 +619,7 @@ function AdminBookingForm() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div className="space-y-2">
@@ -558,7 +629,7 @@ function AdminBookingForm() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate}
+                  min={startDate || new Date().toISOString().split('T')[0]}
                 />
               </div>
             </div>
@@ -579,6 +650,20 @@ function AdminBookingForm() {
                 <Input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
               </div>
             </div>
+
+            <p className={`text-xs ${isValidTimeRange(startDate, endDate, startTime, endTime) ? 'text-gray-500' : 'text-destructive'}`}>
+              For same-day bookings, the end time must be later than the start time.
+            </p>
+
+            {dateWarnings.length > 0 && (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                <AlertDescription className="space-y-1 text-sm">
+                  {dateWarnings.map((warning) => (
+                    <p key={warning}>{warning}</p>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Pet Information */}

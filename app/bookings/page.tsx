@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Calendar, MoreHorizontal } from 'lucide-react'
+import { Calendar, MoreHorizontal, ChevronUp, ChevronDown, X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PageShell } from '@/components/layout/PageShell'
 import { DataTable } from '@/components/ui/DataTable'
@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useBookings } from '@/hooks/useData'
 import { getUserFromToken } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -29,6 +30,7 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import api from '@/lib/api'
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 
 type PopulatedUser = { _id: string; firstName?: string; lastName?: string; email?: string }
 
@@ -63,6 +65,9 @@ function calcDuration(start?: string, end?: string) {
 export default function BookingsPage() {
   const [user, setUser] = useState<{ userId: string; role: string } | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -75,9 +80,43 @@ export default function BookingsPage() {
   const bookingList: Booking[] = Array.isArray(bookings) ? bookings : []
 
   const filtered = useMemo(() => {
-    if (statusFilter === 'all') return bookingList
-    return bookingList.filter((b) => b.status === statusFilter)
-  }, [bookingList, statusFilter])
+    let result = bookingList
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      result = result.filter((b) => b.status === statusFilter)
+    }
+
+    // Apply date range filter
+    if (fromDate || toDate) {
+      result = result.filter((b) => {
+        const bookingDate = b.startDate ? parseISO(b.startDate) : null
+        if (!bookingDate) return false
+
+        if (fromDate && toDate) {
+          const from = startOfDay(parseISO(fromDate))
+          const to = endOfDay(parseISO(toDate))
+          return isWithinInterval(bookingDate, { start: from, end: to })
+        } else if (fromDate) {
+          const from = startOfDay(parseISO(fromDate))
+          return bookingDate >= from
+        } else if (toDate) {
+          const to = endOfDay(parseISO(toDate))
+          return bookingDate <= to
+        }
+        return true
+      })
+    }
+
+    // Apply sorting
+    const sorted = [...result].sort((a, b) => {
+      const dateA = a.startDate ? parseISO(a.startDate).getTime() : 0
+      const dateB = b.startDate ? parseISO(b.startDate).getTime() : 0
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB
+    })
+
+    return sorted
+  }, [bookingList, statusFilter, fromDate, toDate, sortOrder])
 
   const handleUnassign = async (id: string) => {
     try {
@@ -139,7 +178,11 @@ export default function BookingsPage() {
       cols.push({
         id: 'sitter',
         header: 'Sitter',
-        cell: ({ row }) => displayName(row.original.sitterId) || 'Unassigned',
+        cell: ({ row }) => {
+          const sitterData = row.original.sitterId
+          if (!sitterData) return <span className="text-muted-foreground">Unassigned</span>
+          return displayName(sitterData)
+        },
       })
     }
 
@@ -279,21 +322,81 @@ export default function BookingsPage() {
     <AppLayout>
       <PageShell title="Bookings">
         {/* Filter bar */}
-        <div className="flex flex-wrap gap-3">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="assigned">Assigned</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-4">
+          {/* Status filter */}
+          <div className="flex flex-wrap gap-3">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="assigned">Assigned</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Date filter controls */}
+          <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+            <div className="text-sm font-medium">Filter by Date</div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">From Date</label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">To Date</label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button
+                  size="sm"
+                  variant={sortOrder === 'desc' ? 'default' : 'outline'}
+                  onClick={() => setSortOrder('desc')}
+                  className="h-9 gap-1 flex-1"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  Newest
+                </Button>
+              </div>
+              <div className="flex items-end gap-2">
+                <Button
+                  size="sm"
+                  variant={sortOrder === 'asc' ? 'default' : 'outline'}
+                  onClick={() => setSortOrder('asc')}
+                  className="h-9 gap-1 flex-1"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                  Oldest
+                </Button>
+                {(fromDate || toDate) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => { setFromDate(''); setToDate('') }}
+                    className="h-9"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {!isLoading && filtered.length === 0 ? (

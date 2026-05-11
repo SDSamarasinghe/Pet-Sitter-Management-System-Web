@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { PageShell } from '@/components/layout/PageShell'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { PetForm } from '@/components/pets/PetForm'
+import { PetForm, type ExistingPet } from '@/components/pets/PetForm'
 import { usePets } from '@/hooks/useData'
 import { getUserFromToken } from '@/lib/auth'
 import { Card, CardContent } from '@/components/ui/card'
@@ -25,8 +25,7 @@ import api from '@/lib/api'
 export default function PetsPage() {
   const [userId, setUserId] = useState('')
   const [sheetOpen, setSheetOpen] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [editingPet, setEditingPet] = useState<any>(null)
+  const [editingPet, setEditingPet] = useState<ExistingPet | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -53,7 +52,7 @@ export default function PetsPage() {
     }
   }
 
-  const openEdit = (pet: unknown) => {
+  const openEdit = (pet: ExistingPet) => {
     setEditingPet(pet)
     setSheetOpen(true)
   }
@@ -130,7 +129,7 @@ export default function PetsPage() {
 
         {/* Add / Edit Sheet */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent className="w-full sm:max-w-lg">
+          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
             <SheetHeader>
               <SheetTitle>{editingPet ? 'Edit Pet' : 'Add Pet'}</SheetTitle>
             </SheetHeader>

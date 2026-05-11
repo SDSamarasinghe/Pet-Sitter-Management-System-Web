@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const PUBLIC_PATHS = [
   '/',
-  '/login',
   '/signup',
   '/forgot-password',
   '/reset-password',
@@ -35,14 +34,14 @@ export function middleware(req: NextRequest) {
 
   // Unauthenticated user trying to access protected route
   if (!isPublic && !token) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   if (token) {
     const payload = decodeJwtPayload(token)
 
-    // Redirect logged-in users away from login/signup
-    if (pathname === '/login' || pathname === '/signup') {
+    // Redirect logged-in users away from login page
+    if (pathname === '/') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 

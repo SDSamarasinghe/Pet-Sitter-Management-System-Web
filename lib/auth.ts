@@ -39,6 +39,7 @@ export const getUserFromToken = (): {
   role: string
   firstName: string
   lastName: string
+  avatarUrl?: string
   exp: number
 } | null => {
   const token = getToken()

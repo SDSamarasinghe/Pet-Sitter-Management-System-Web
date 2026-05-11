@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import NextImage from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -16,6 +17,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal'
 import {
   Select,
   SelectContent,
@@ -42,6 +51,10 @@ export default function ProfilePage() {
   const [role, setRole] = useState('')
   const [saving, setSaving] = useState(false)
   const [savingKey, setSavingKey] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null)
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const { data: profile, isLoading, mutate } = useProfile()
@@ -103,6 +116,14 @@ export default function ProfilePage() {
         waterIndoorPlants: profile.waterIndoorPlants || '',
         additionalHomeCareInfo: profile.additionalHomeCareInfo || '',
       })
+
+      if (profile.profilePicture) {
+        window.dispatchEvent(
+          new CustomEvent('profile-picture-updated', {
+            detail: { avatarUrl: profile.profilePicture },
+          })
+        )
+      }
     }
   }, [profile])
 
@@ -126,9 +147,31 @@ export default function ProfilePage() {
   }, [keySecurity])
 
   const handleProfileSave = async () => {
+    // Validate required fields
+    const requiredFields = [
+      'firstName', 'lastName', 'cellPhoneNumber', 'homePhoneNumber',
+      'address', 'zipCode', 'emergencyContactFirstName', 'emergencyContactLastName',
+      'emergencyContactCellPhone', 'keyHandlingMethod', 'parkingForSitter',
+      'videoSurveillance', 'outOfBoundAreas', 'cleaningSupplyLocation', 'broomDustpanLocation'
+    ]
+
+    const missingFields = requiredFields.filter(field => !profileForm[field as keyof typeof profileForm]?.toString().trim())
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`)
+      return
+    }
+
     setSaving(true)
     try {
-      await api.put('/users/profile', profileForm)
+      // Construct required backend fields
+      const dataToSend = {
+        ...profileForm,
+        phoneNumber: profileForm.cellPhoneNumber, // Use cell phone as primary phone number
+        emergencyContact: `${profileForm.emergencyContactFirstName} ${profileForm.emergencyContactLastName}`, // Combine names
+      }
+      
+      await api.put('/users/profile', dataToSend)
       toast.success('Profile updated')
       mutate()
     } catch {
@@ -148,6 +191,75 @@ export default function ProfilePage() {
       toast.error('Failed to update key security')
     } finally {
       setSavingKey(false)
+    }
+  }
+
+  const handleProfilePictureSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB.')
+      return
+    }
+
+    setProfilePictureFile(file)
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setProfilePicturePreview(e.target?.result as string)
+      setShowPreviewModal(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleProfilePictureUpload = async () => {
+    if (!profilePictureFile) return
+
+    setIsUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('profilePicture', profilePictureFile)
+
+      const response = await api.post('/users/profile/picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+
+      const avatarUrl = response.data.profilePicture as string | undefined
+      window.dispatchEvent(
+        new CustomEvent('profile-picture-updated', { detail: { avatarUrl } })
+      )
+      await mutate()
+      setProfilePicturePreview(null)
+      setProfilePictureFile(null)
+      setShowPreviewModal(false)
+      if (fileRef.current) fileRef.current.value = ''
+      toast.success('Profile picture updated successfully.')
+    } catch {
+      toast.error('Failed to upload profile picture.')
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  const handleRemoveProfilePicture = async () => {
+    try {
+      await api.delete('/users/profile/picture')
+      window.dispatchEvent(
+        new CustomEvent('profile-picture-updated', { detail: { avatarUrl: undefined } })
+      )
+      await mutate()
+      setProfilePicturePreview(null)
+      setProfilePictureFile(null)
+      if (fileRef.current) fileRef.current.value = ''
+      toast.success('Profile picture removed successfully.')
+    } catch {
+      toast.error('Failed to remove profile picture.')
     }
   }
 
@@ -203,24 +315,76 @@ export default function ProfilePage() {
               {/* Profile Picture */}
               <div className="space-y-2">
                 <Label>Profile Picture</Label>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={profile?.profilePicture} />
+                    <AvatarImage src={profilePicturePreview || profile?.profilePicture} />
                     <AvatarFallback className="text-lg bg-primary/10 text-primary">
                       {profileForm.firstName?.[0]}{profileForm.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-                      Choose Picture
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-destructive border-destructive/30">
-                      Remove Picture
-                    </Button>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" />
+                  <div className="space-y-2">
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                        Choose Picture
+                      </Button>
+                      {profile?.profilePicture && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive border-destructive/30"
+                          onClick={handleRemoveProfilePicture}
+                        >
+                          Remove Picture
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max size 5MB.</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max size 5MB.</p>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfilePictureSelect}
+                  />
                 </div>
+
+                <Modal open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+                  <ModalContent className="max-w-lg">
+                    <ModalHeader>
+                      <ModalTitle>Preview Profile Picture</ModalTitle>
+                      <ModalDescription>Review the image before uploading.</ModalDescription>
+                    </ModalHeader>
+                    <div className="flex justify-center px-2">
+                      {profilePicturePreview && (
+                        <NextImage
+                          src={profilePicturePreview}
+                          alt="Profile preview"
+                          width={480}
+                          height={480}
+                          className="h-auto max-h-80 w-auto rounded-xl object-contain"
+                        />
+                      )}
+                    </div>
+                    <ModalFooter>
+                      <Button onClick={handleProfilePictureUpload} disabled={isUploadingImage}>
+                        {isUploadingImage ? 'Uploading...' : 'Upload Picture'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setProfilePictureFile(null)
+                          setProfilePicturePreview(null)
+                          setShowPreviewModal(false)
+                          if (fileRef.current) fileRef.current.value = ''
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -307,7 +471,7 @@ export default function ProfilePage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Keys can be handled via "Concierge" with your keys with your Concierge in an envelope or the sitter to pick up. Keys can also be handled via "Lockbox" provided by us or yourself or you can. If you select the Lockbox option please ensure that your building allows for lockbox set up. Some buildings do not allow lockboxes. "Keycafe" you can rent one of your keys at your local Keycafe for the sitter to pick up (look up www.keycafe.com for more info).
+                  Keys can be handled via &quot;Concierge&quot; with your keys with your Concierge in an envelope or the sitter to pick up. Keys can also be handled via &quot;Lockbox&quot; provided by us or yourself or you can. If you select the Lockbox option please ensure that your building allows for lockbox set up. Some buildings do not allow lockboxes. &quot;Keycafe&quot; you can rent one of your keys at your local Keycafe for the sitter to pick up (look up www.keycafe.com for more info).
                 </p>
               </div>
               <div className="space-y-1">
@@ -389,7 +553,7 @@ export default function ProfilePage() {
                   <Label>Lockbox Code <span className="text-destructive">*</span></Label>
                   <Input {...keyField('lockboxCode')} />
                   <p className="text-xs text-muted-foreground">
-                    If key is with concierge enter: "Key with concierge in envelope C/O Pet Sitter Management" plus sitter name.
+                    If key is with concierge enter: &quot;Key with concierge in envelope C/O Pet Sitter Management&quot; plus sitter name.
                   </p>
                 </div>
                 <div className="space-y-1">

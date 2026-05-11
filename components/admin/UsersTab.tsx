@@ -60,7 +60,7 @@ function FormStatusBadge({ status }: { status?: string }) {
 }
 
 export function UsersTab() {
-  const { data: clientsData, mutate: mutateClients } = useClients()
+  const { data: clientsData, isLoading: loadingClients, mutate: mutateClients } = useClients()
   const { data: sittersData } = useSitters()
 
   const clients: User[] = Array.isArray(clientsData) ? clientsData : []
@@ -180,7 +180,7 @@ export function UsersTab() {
 
   return (
     <>
-      <DataTable columns={columns} data={clients} searchPlaceholder="Search users..." searchKey="email" />
+      <DataTable columns={columns} data={clients} isLoading={loadingClients} searchPlaceholder="Search users..." searchKey="email" />
 
       <Dialog open={!!approveId} onOpenChange={(o) => !o && setApproveId(null)}>
         <DialogContent>

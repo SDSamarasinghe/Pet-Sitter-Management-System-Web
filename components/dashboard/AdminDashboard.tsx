@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { Users, UserCheck, Calendar, AlertTriangle, Loader2 } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Users, UserCheck, Calendar, AlertTriangle, Loader2, ChevronUp, ChevronDown, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard } from '@/components/ui/StatCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { useBookings, usePendingUsers, useSitters } from '@/hooks/useData'
+import { useBookings, usePendingUsers, useSitters, useClients } from '@/hooks/useData'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,16 +28,20 @@ import {
 } from '@/components/ui/table'
 import { toast } from 'sonner'
 import api from '@/lib/api'
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 
 export function AdminDashboard() {
   const { data: pendingUsers, isLoading: loadingPending, mutate: mutatePending } = usePendingUsers()
   const { data: sitters, isLoading: loadingSitters } = useSitters()
+  const { data: clients, isLoading: loadingClients } = useClients()
   const { data: bookings, isLoading: loadingBookings } = useBookings('admin', '')
 
   const pendingList = Array.isArray(pendingUsers) ? pendingUsers : []
   const sitterList = Array.isArray(sitters) ? sitters : []
+  const clientList = Array.isArray(clients) ? clients : []
   const bookingList = Array.isArray(bookings) ? bookings : []
   const activeSitters = sitterList.filter((s: { status: string }) => s.status === 'active')
+  const totalUsers = sitterList.length + clientList.length
 
   // Approve dialog state
   const [approveUser, setApproveUser] = useState<{ _id: string; firstName: string; lastName: string } | null>(null)
@@ -47,6 +51,46 @@ export function AdminDashboard() {
   // Reject dialog state
   const [rejectUser, setRejectUser] = useState<{ _id: string; firstName: string; lastName: string } | null>(null)
   const [rejecting, setRejecting] = useState(false)
+
+  // Date filter state for bookings
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  // Filter and sort bookings by date
+  const filteredAndSortedBookings = useMemo(() => {
+    let filtered = bookingList
+
+    // Apply date range filter if dates are set
+    if (fromDate || toDate) {
+      filtered = filtered.filter((b: any) => {
+        const bookingDate = b.startDate ? parseISO(b.startDate) : null
+        if (!bookingDate) return false
+
+        if (fromDate && toDate) {
+          const from = startOfDay(parseISO(fromDate))
+          const to = endOfDay(parseISO(toDate))
+          return isWithinInterval(bookingDate, { start: from, end: to })
+        } else if (fromDate) {
+          const from = startOfDay(parseISO(fromDate))
+          return bookingDate >= from
+        } else if (toDate) {
+          const to = endOfDay(parseISO(toDate))
+          return bookingDate <= to
+        }
+        return true
+      })
+    }
+
+    // Sort by booking date
+    const sorted = [...filtered].sort((a: any, b: any) => {
+      const dateA = a.startDate ? parseISO(a.startDate).getTime() : 0
+      const dateB = b.startDate ? parseISO(b.startDate).getTime() : 0
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB
+    })
+
+    return sorted
+  }, [bookingList, fromDate, toDate, sortOrder])
 
   const handleApprove = async () => {
     if (!approveUser || !approvePassword) return
@@ -86,13 +130,13 @@ export function AdminDashboard() {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {loadingPending || loadingSitters || loadingBookings ? (
+        {loadingPending || loadingSitters || loadingClients || loadingBookings ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-lg" />
           ))
         ) : (
           <>
-            <StatCard label="Total Users" value={sitterList.length + pendingList.length} icon={Users} />
+            <StatCard label="Total Users" value={totalUsers} icon={Users} />
             <StatCard label="Active Sitters" value={activeSitters.length} icon={UserCheck} variant="success" />
             <StatCard label="Bookings This Month" value={bookingList.length} icon={Calendar} />
             <StatCard label="Pending Approvals" value={pendingList.length} icon={AlertTriangle} variant="warning" />
@@ -145,37 +189,113 @@ export function AdminDashboard() {
 
         {/* Recent Bookings */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Recent Bookings</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Date Filter Controls */}
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">From Date</label>
+                  <Input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">To Date</label>
+                  <Input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Sort and Reset Controls */}
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={sortOrder === 'desc' ? 'default' : 'outline'}
+                  onClick={() => setSortOrder('desc')}
+                  className="flex-1 h-8 text-xs gap-1"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                  Newest First
+                </Button>
+                <Button
+                  size="sm"
+                  variant={sortOrder === 'asc' ? 'default' : 'outline'}
+                  onClick={() => setSortOrder('asc')}
+                  className="flex-1 h-8 text-xs gap-1"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                  Oldest First
+                </Button>
+                {(fromDate || toDate) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => { setFromDate(''); setToDate('') }}
+                    className="h-8 text-xs gap-1"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Bookings Table */}
             {loadingBookings ? (
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} className="h-10" />
                 ))}
               </div>
+            ) : filteredAndSortedBookings.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                {fromDate || toDate ? 'No bookings found for the selected dates' : 'No bookings available'}
+              </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bookingList.slice(0, 5).map((b: { _id: string; clientName?: string; serviceType?: string; status: string }) => (
-                    <TableRow key={b._id}>
-                      <TableCell className="text-sm">{b.clientName || '—'}</TableCell>
-                      <TableCell className="text-sm">{b.serviceType || 'Pet Sitting'}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={b.status} />
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table className="text-xs">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs">Client</TableHead>
+                      <TableHead className="text-xs">Service</TableHead>
+                      <TableHead className="text-xs">Start Date</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAndSortedBookings.slice(0, 8).map((b: any) => (
+                      <TableRow key={b._id} className="text-xs">
+                        <TableCell className="text-xs">
+                          {b.clientName || `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`.trim() || '—'}
+                        </TableCell>
+                        <TableCell className="text-xs">{b.serviceType || 'Pet Sitting'}</TableCell>
+                        <TableCell className="text-xs">
+                          {b.startDate ? format(parseISO(b.startDate), 'MMM dd, yyyy') : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={b.status} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {/* Summary */}
+            {!loadingBookings && filteredAndSortedBookings.length > 0 && (
+              <p className="text-xs text-muted-foreground text-center pt-2">
+                Showing {Math.min(8, filteredAndSortedBookings.length)} of {filteredAndSortedBookings.length} bookings
+              </p>
             )}
           </CardContent>
         </Card>

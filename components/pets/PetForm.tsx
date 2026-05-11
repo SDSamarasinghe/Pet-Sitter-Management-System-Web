@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -56,9 +56,34 @@ const petSchema = z.object({
 
 type PetFormData = z.infer<typeof petSchema>
 
+export type ExistingPet = {
+  _id: string
+  name?: string
+  type?: string
+  breed?: string
+  gender?: string
+  dateOfBirth?: string
+  colouring?: string
+  weight?: string
+  microchipNumber?: string
+  rabiesTagNumber?: string
+  spayedNeutered?: string
+  vaccinations?: string
+  medications?: string
+  allergies?: string
+  dietaryRestrictions?: string
+  vetName?: string
+  vetPhone?: string
+  vetAddress?: string
+  currentOnVaccines?: boolean
+  careInstructions?: string
+  behaviorNotes?: string
+  feedingSchedule?: string
+  exerciseRequirements?: string
+}
+
 type PetFormProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pet?: any
+  pet?: ExistingPet | null
   userId: string
   onSuccess: () => void
 }
@@ -67,6 +92,9 @@ const PET_TYPES = ['Cat', 'Dog', 'Rabbit', 'Bird', 'Guinea pig', 'Ferret', 'Othe
 
 export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
   const isEdit = !!pet
+  const [petImageFile, setPetImageFile] = useState<File | null>(null)
+  const [petImagePreview, setPetImagePreview] = useState<string>('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const form = useForm<PetFormData>({
     resolver: zodResolver(petSchema),
@@ -128,22 +156,116 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
   const onSubmit = async (data: PetFormData) => {
     try {
       if (isEdit) {
-        await api.put(`/pets/${pet._id}`, data)
+        await api.put(`/pets/${pet?._id}`, data)
+        // Upload image if selected
+        if (petImageFile) {
+          const formData = new FormData()
+          formData.append('petImage', petImageFile)
+          await api.post(`/pets/${pet?._id}/image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        }
         toast.success('Pet updated')
       } else {
-        await api.post('/pets', { ...data, userId })
+        const formData = new FormData()
+        Object.entries(data).forEach(([key, value]) => {
+          if (value != null) formData.append(key, value.toString())
+        })
+        if (userId) formData.append('userId', userId)
+        if (petImageFile) formData.append('petImage', petImageFile)
+        
+        await api.post('/pets', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
         toast.success('Pet added')
       }
+      setPetImageFile(null)
+      setPetImagePreview('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
       onSuccess()
     } catch {
       toast.error(isEdit ? 'Failed to update pet' : 'Failed to add pet')
     }
   }
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB.')
+      return
+    }
+
+    setPetImageFile(file)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setPetImagePreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
-    <ScrollArea className="h-[calc(100vh-8rem)] pr-4">
+    <ScrollArea className="h-[calc(100vh-8rem)] w-full pr-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-8 min-w-full">
+          {/* Pet Image Upload */}
+          <div>
+            <h3 className="text-sm font-semibold">Pet Photo</h3>
+            <Separator className="my-2" />
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+              {petImagePreview ? (
+                <div className="space-y-3">
+                  <div className="flex justify-center">
+                    <img 
+                      src={petImagePreview} 
+                      alt="Pet preview" 
+                      className="w-24 h-24 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-600 text-center">Photo selected</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPetImageFile(null)
+                        setPetImagePreview('')
+                        if (fileInputRef.current) fileInputRef.current.value = ''
+                      }}
+                      className="text-xs text-red-600 hover:text-red-800 underline block mx-auto"
+                    >
+                      Remove photo
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 text-center">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                  <div>
+                    <label htmlFor="petImage" className="cursor-pointer">
+                      <span className="text-sm text-primary hover:text-primary/80 font-medium">Upload photo</span>
+                      <span className="text-xs text-gray-600"> or drag and drop</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                id="petImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+            </div>
+          </div>
+
           {/* Basic Info */}
           <div>
             <h3 className="text-sm font-semibold">Basic Info</h3>

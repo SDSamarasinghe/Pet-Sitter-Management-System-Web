@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useForm, type SubmitHandler } from 'react-hook-form'
+import { useForm, type Resolver, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2 } from 'lucide-react'
@@ -39,7 +39,7 @@ const fullSchema = z.object({
   experience: z.string().optional(),
   hourlyRate: z.coerce.number().optional(),
   petTypesServiced: z.array(z.string()).optional(),
-  areasCovered: z.string().optional(),
+  areasCovered: z.array(z.string()).optional(),
   // Client fields
   cellPhoneNumber: z.string().optional(),
   address: z.string().optional(),
@@ -59,8 +59,7 @@ export default function SignupPage() {
   const [error, setError] = useState('')
 
   const form = useForm<FullForm>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(fullSchema) as any,
+    resolver: zodResolver(fullSchema) as Resolver<FullForm>,
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -71,7 +70,7 @@ export default function SignupPage() {
       experience: '',
       hourlyRate: undefined,
       petTypesServiced: [],
-      areasCovered: '',
+      areasCovered: [],
       cellPhoneNumber: '',
       address: '',
       zipCode: '',
@@ -107,7 +106,31 @@ export default function SignupPage() {
   const onSubmit = async (data: FullForm) => {
     setError('')
     try {
-      await api.post('/users', data)
+      // Clean up data based on role to avoid schema validation errors
+      const cleanedData: any = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      }
+
+      if (data.role === 'sitter') {
+        cleanedData.about = data.about || ''
+        cleanedData.experience = data.experience || ''
+        cleanedData.hourlyRate = data.hourlyRate || 0
+        cleanedData.petTypesServiced = data.petTypesServiced || []
+        cleanedData.areasCovered = data.areasCovered || []
+      } else if (data.role === 'client') {
+        cleanedData.cellPhoneNumber = data.cellPhoneNumber || ''
+        cleanedData.address = data.address || ''
+        cleanedData.zipCode = data.zipCode || ''
+        cleanedData.emergencyContactFirstName = data.emergencyContactFirstName || ''
+        cleanedData.emergencyContactLastName = data.emergencyContactLastName || ''
+        cleanedData.emergencyContactCellPhone = data.emergencyContactCellPhone || ''
+      }
+
+      await api.post('/users', cleanedData)
       toast.success('Account created! Please wait for admin approval.')
       router.push('/login')
     } catch (err: unknown) {
@@ -218,7 +241,6 @@ export default function SignupPage() {
                               }`}
                             >
                               <RadioGroupItem value="client" className="sr-only" />
-                              <span className="text-2xl">🐾</span>
                               <span className="mt-2 font-medium">Pet Owner</span>
                             </label>
                             <label
@@ -229,7 +251,6 @@ export default function SignupPage() {
                               }`}
                             >
                               <RadioGroupItem value="sitter" className="sr-only" />
-                              <span className="text-2xl">🏠</span>
                               <span className="mt-2 font-medium">Pet Sitter</span>
                             </label>
                           </RadioGroup>
@@ -319,7 +340,15 @@ export default function SignupPage() {
                       <FormItem>
                         <FormLabel>Areas covered (zip codes, comma-separated)</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input 
+                            value={field.value?.join(', ') || ''}
+                            onChange={(e) => {
+                              const input = e.target.value
+                              const areas = input.split(',').map(s => s.trim()).filter(s => s)
+                              field.onChange(areas)
+                            }}
+                            placeholder="e.g., 10001, 10002, 10003"
+                          />
                         </FormControl>
                       </FormItem>
                     )}
