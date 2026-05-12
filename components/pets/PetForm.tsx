@@ -161,7 +161,7 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
         if (petImageFile) {
           const formData = new FormData()
           formData.append('petImage', petImageFile)
-          await api.post(`/pets/${pet?._id}/image`, formData, {
+          await api.post(`/pets/${pet?._id}/photo`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
         }
