@@ -1,50 +1,67 @@
-// Authentication utilities
-export const getToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('token');
-  }
-  return null;
-};
+// Authentication utilities — cookie-based token storage
 
 export const setToken = (token: string): void => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('token', token);
+    document.cookie = `auth_token=${token}; path=/; SameSite=Strict; max-age=86400`
+    // Keep localStorage for backward compatibility during migration
+    localStorage.setItem('token', token)
   }
-};
+}
+
+export const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null
+
+  // Read from cookie first
+  const match = document.cookie.match(/(?:^|; )auth_token=([^;]*)/)
+  if (match) return match[1]
+
+  // Fallback to localStorage for migration period
+  const lsToken = localStorage.getItem('token')
+  if (lsToken) {
+    // Migrate to cookie
+    setToken(lsToken)
+    return lsToken
+  }
+
+  return null
+}
 
 export const removeToken = (): void => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('token');
+    document.cookie = 'auth_token=; path=/; max-age=0'
+    localStorage.removeItem('token')
   }
-};
+}
 
-export const getUserFromToken = (): any | null => {
-  const token = getToken();
-  if (!token) return null;
-  
+export const getUserFromToken = (): {
+  userId: string
+  email: string
+  role: string
+  firstName: string
+  lastName: string
+  avatarUrl?: string
+  exp: number
+} | null => {
+  const token = getToken()
+  if (!token) return null
+
   try {
-    // Parse JWT token (basic implementation)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload;
-  } catch (error) {
-    console.error('Error parsing token:', error);
-    return null;
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = JSON.parse(atob(parts[1]))
+    return payload
+  } catch {
+    return null
   }
-};
+}
 
 export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  if (!token) return false;
-  
-  try {
-    const user = getUserFromToken();
-    return user && user.exp > Date.now() / 1000;
-  } catch {
-    return false;
-  }
-};
+  const user = getUserFromToken()
+  if (!user) return false
+  return user.exp > Date.now() / 1000
+}
 
 export const getUserRole = (): string | null => {
-  const user = getUserFromToken();
-  return user?.role || null;
-};
+  const user = getUserFromToken()
+  return user?.role || null
+}
