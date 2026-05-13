@@ -199,7 +199,7 @@ function ClientBookingForm({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="w-full">
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 sm:p-8 space-y-10">
           {/* Service Information */}
