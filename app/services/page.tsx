@@ -40,7 +40,7 @@ const serviceCategories: ServiceCategories = {
         description: "Daily visits for your feline friends. 30, 45, or 60-minute visits available.",
         image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80",
         duration: "30-60 min",
-        price: "Starting at $28"
+        price: "Starting at $30"
       },
       {
         id: 2,
@@ -48,7 +48,7 @@ const serviceCategories: ServiceCategories = {
         description: "Premium in-home dog sitting service offering comfort and care in familiar surroundings.",
         image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80",
         duration: "Full day",
-        price: "Starting at $28"
+        price: "Starting at $30"
       },
       {
         id: 3,
@@ -56,7 +56,7 @@ const serviceCategories: ServiceCategories = {
         description: "Specialized care for bunnies of all breeds, from Holland Lops to English Spots.",
         image: "https://images.unsplash.com/photo-1535241749838-299277b6305f?w=400&q=80",
         duration: "30-45 min",
-        price: "Starting at $28"
+        price: "Starting at $30"
       },
       {
         id: 4,
@@ -64,7 +64,7 @@ const serviceCategories: ServiceCategories = {
         description: "Professional care for your feathered companions with specialized knowledge.",
         image: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400&q=80",
         duration: "30-45 min",
-        price: "Starting at $28"
+        price: "Starting at $30"
       },
       {
         id: 5,
@@ -72,7 +72,7 @@ const serviceCategories: ServiceCategories = {
         description: "Expert care for small pets including hamsters, guinea pigs, chinchillas, and sugar gliders.",
         image: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80",
         duration: "30 min",
-        price: "Starting at $28"
+        price: "Starting at $30"
       },
       {
         id: 6,

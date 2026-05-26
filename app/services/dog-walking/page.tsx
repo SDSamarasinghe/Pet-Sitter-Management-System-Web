@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 const dogWalkOptions = [
   {
     title: "Quick Stride",
-    price: "$28",
+    price: "$30",
     duration: "30min",
     description: [
       "Mid Day Weekly Ongoing",
