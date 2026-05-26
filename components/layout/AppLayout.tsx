@@ -4,14 +4,43 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar, type SidebarUser } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
+import { NotificationPanel } from '@/components/layout/NotificationPanel'
 import { getUserFromToken, removeToken } from '@/lib/auth'
 import { useProfile } from '@/hooks/useData'
+import api from '@/lib/api'
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const [user, setUser] = useState<SidebarUser | null>(null)
   const { data: profileData } = useProfile()
+
+  useEffect(() => {
+    let mounted = true
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await api.get('/activity-log/unread-count')
+        if (mounted) {
+          setUnreadCount(data.count || 0)
+        }
+      } catch {
+        if (mounted) {
+          setUnreadCount(0)
+        }
+      }
+    }
+
+    fetchUnreadCount()
+    const timer = setInterval(fetchUnreadCount, 30000)
+
+    return () => {
+      mounted = false
+      clearInterval(timer)
+    }
+  }, [])
 
   useEffect(() => {
     const decoded = getUserFromToken()
@@ -71,14 +100,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           user={user}
+          unreadCount={unreadCount}
           onLogout={handleLogout}
           onMenuClick={() => setMobileOpen(true)}
+          onNotificationsClick={() => setNotificationsOpen(true)}
         />
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
         </main>
       </div>
+
+      <NotificationPanel
+        open={notificationsOpen}
+        onOpenChange={setNotificationsOpen}
+        onCountUpdate={setUnreadCount}
+      />
     </div>
   )
 }

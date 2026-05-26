@@ -19,6 +19,7 @@ import {
   Receipt,
   Shield,
   CalendarPlus,
+  Activity,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -63,12 +64,14 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Admin Panel', href: '/admin', icon: Shield },
     { label: 'Bookings', href: '/bookings', icon: Calendar },
+    { label: 'Activity Log', href: '/activity-log', icon: Activity },
     { label: 'Reports', href: '/reports', icon: FileText },
   ],
   sitter: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Schedule', href: '/scheduling', icon: Calendar },
     { label: 'My Clients', href: '/dashboard?tab=clients', icon: Users },
+    { label: 'Activity Log', href: '/activity-log', icon: Activity },
     { label: 'Reports', href: '/reports', icon: ClipboardList },
     { label: 'Messages', href: '/messages', icon: MessageSquare },
     { label: 'Profile', href: '/profile', icon: User },
@@ -79,6 +82,7 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { label: 'My Pets', href: '/pets', icon: PawPrint },
     { label: 'Bookings', href: '/bookings', icon: Calendar },
     { label: 'Invoices', href: '/invoices', icon: Receipt },
+    { label: 'Activity Log', href: '/activity-log', icon: Activity },
     { label: 'Messages', href: '/messages', icon: MessageSquare },
     { label: 'Profile', href: '/profile', icon: User },
   ],

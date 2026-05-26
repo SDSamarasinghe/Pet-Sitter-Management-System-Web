@@ -35,6 +35,7 @@ type TopBarProps = {
   unreadCount?: number
   onLogout: () => void
   onMenuClick: () => void
+  onNotificationsClick: () => void
 }
 
 const segmentLabels: Record<string, string> = {
@@ -50,11 +51,12 @@ const segmentLabels: Record<string, string> = {
   'service-inquiry': 'Service Inquiry',
   'find-care': 'Find Care',
   messages: 'Messages',
+  'activity-log': 'Activity Log',
   add: 'Add',
   enhanced: 'Enhanced',
 }
 
-export function TopBar({ user, unreadCount = 0, onLogout, onMenuClick }: TopBarProps) {
+export function TopBar({ user, unreadCount = 0, onLogout, onMenuClick, onNotificationsClick }: TopBarProps) {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
 
@@ -103,7 +105,13 @@ export function TopBar({ user, unreadCount = 0, onLogout, onMenuClick }: TopBarP
 
       <div className="ml-auto flex items-center gap-2">
         {/* Notification bell */}
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={onNotificationsClick}
+          aria-label="Open notifications"
+        >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px]">
