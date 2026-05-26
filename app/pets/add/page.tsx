@@ -9,9 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
-import { Spinner } from '@/components/ui/spinner';
+import { Loader2 } from 'lucide-react';
 import { isAuthenticated } from '@/lib/auth';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export default function AddPetPage() {
   const [formData, setFormData] = useState({
@@ -65,7 +65,6 @@ export default function AddPetPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
-  const { toast } = useToast();
 
   // Check authentication on component mount
   useEffect(() => {
@@ -229,9 +228,8 @@ export default function AddPetPage() {
         console.log('Care data added successfully:', careResponse.data);
       }
 
-      toast({
-        title: "Success",
-        description: "Pet added successfully with all details!",
+      toast.success('Success', {
+        description: 'Pet added successfully with all details!',
       });
       
       // Notify other components (like dashboard) that pet data has been updated
@@ -912,7 +910,7 @@ export default function AddPetPage() {
                 >
                   {isLoading ? (
                     <>
-                      <Spinner size="sm" className="mr-2" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Adding Pet...
                     </>
                   ) : (

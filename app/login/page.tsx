@@ -67,13 +67,13 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-50 px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="items-center space-y-2 text-center">
+        <CardHeader className="items-center space-y-3 text-center">
           <Image
             src="/Petsitter-logo.png"
             alt="Whiskarz"
-            width={120}
-            height={120}
-            className="mx-auto"
+            width={200}
+            height={200}
+            className="mx-auto h-32 w-32 object-contain"
             priority
           />
           <h1 className="text-2xl font-semibold">Welcome back</h1>

@@ -22,11 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-        <head>
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+        <head suppressHydrationWarning>
           <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         </head>
-        <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <body className="min-h-screen bg-background font-sans text-foreground antialiased" suppressHydrationWarning>
           {children}
           <Toaster richColors position="top-right" />
         </body>

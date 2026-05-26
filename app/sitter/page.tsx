@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { isAuthenticated, getUserRole } from '@/lib/auth';
-import { Spinner } from '@/components/ui/spinner';
+import { Loader2 } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -294,7 +294,7 @@ export default function SitterPage() {
                   <Button type="submit" disabled={isLoading} className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
                     {isLoading ? (
                       <>
-                        <Spinner size="sm" className="mr-2" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Submitting...
                       </>
                     ) : (

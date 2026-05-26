@@ -15,8 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Spinner } from '@/components/ui/spinner'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar, Clock, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getUserFromToken } from '@/lib/auth'
@@ -297,7 +296,7 @@ function ClientBookingForm({ userId }: { userId: string }) {
               >
                 {checkingAvailability ? (
                   <>
-                    <Spinner className="h-4 w-4 mr-2" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Checking Availability...
                   </>
                 ) : (
@@ -432,7 +431,7 @@ function ClientBookingForm({ userId }: { userId: string }) {
             >
               {submitting ? (
                 <>
-                  <Spinner className="h-4 w-4 mr-2" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Submitting...
                 </>
               ) : (
@@ -758,7 +757,7 @@ function AdminBookingForm() {
             >
               {submitting ? (
                 <>
-                  <Spinner className="h-4 w-4 mr-2" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Creating...
                 </>
               ) : (

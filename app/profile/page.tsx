@@ -18,13 +18,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
-  Modal,
-  ModalContent,
-  ModalDescription,
-  ModalFooter,
-  ModalHeader,
-  ModalTitle,
-} from '@/components/ui/modal'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -350,12 +350,12 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <Modal open={showPreviewModal} onOpenChange={setShowPreviewModal}>
-                  <ModalContent className="max-w-lg">
-                    <ModalHeader>
-                      <ModalTitle>Preview Profile Picture</ModalTitle>
-                      <ModalDescription>Review the image before uploading.</ModalDescription>
-                    </ModalHeader>
+                <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Preview Profile Picture</DialogTitle>
+                      <DialogDescription>Review the image before uploading.</DialogDescription>
+                    </DialogHeader>
                     <div className="flex justify-center px-2">
                       {profilePicturePreview && (
                         <NextImage
@@ -367,7 +367,7 @@ export default function ProfilePage() {
                         />
                       )}
                     </div>
-                    <ModalFooter>
+                    <DialogFooter>
                       <Button onClick={handleProfilePictureUpload} disabled={isUploadingImage}>
                         {isUploadingImage ? 'Uploading...' : 'Upload Picture'}
                       </Button>
@@ -382,9 +382,9 @@ export default function ProfilePage() {
                       >
                         Cancel
                       </Button>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

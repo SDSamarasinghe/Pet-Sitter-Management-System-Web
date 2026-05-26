@@ -26,12 +26,14 @@ export function useSitters() {
 
 // ── Bookings ────────────────────────────────────────────
 export function useBookings(role: string, userId: string) {
-  const endpoint =
-    role === 'admin'
-      ? '/bookings'
-      : role === 'sitter'
-        ? `/bookings/sitter/${userId}`
-        : `/bookings/user/${userId}`
+  let endpoint: string | null = null
+  if (role === 'admin') {
+    endpoint = '/bookings'
+  } else if (role === 'sitter' && userId) {
+    endpoint = `/bookings/sitter/${userId}`
+  } else if (role && userId) {
+    endpoint = `/bookings/user/${userId}`
+  }
   return useSWR(endpoint, fetcher)
 }
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 
 interface User {
@@ -60,7 +60,6 @@ const UserAvatar: React.FC<{ user: any; size?: 'sm' | 'md' | 'lg' }> = ({ user, 
 };
 
 export function CommunicationTab({ user }: CommunicationTabProps) {
-  const { toast } = useToast();
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState("");
@@ -113,15 +112,10 @@ export function CommunicationTab({ user }: CommunicationTabProps) {
       setSelectedClient("");
       await fetchNotes();
       
-      toast({
-        title: "Note added successfully",
-      });
+      toast.success("Note added successfully");
     } catch (error) {
       console.error("Error creating note:", error);
-      toast({
-        title: "Error creating note",
-        variant: "destructive"
-      });
+      toast.error("Error creating note");
     } finally {
       setIsSubmittingNote(false);
     }
@@ -140,15 +134,10 @@ export function CommunicationTab({ user }: CommunicationTabProps) {
       setReplyingNoteId(null);
       await fetchNotes();
       
-      toast({
-        title: "Reply added successfully",
-      });
+      toast.success("Reply added successfully");
     } catch (error) {
       console.error("Error adding reply:", error);
-      toast({
-        title: "Error adding reply",
-        variant: "destructive"
-      });
+      toast.error("Error adding reply");
     } finally {
       setIsSubmittingReply(false);
     }

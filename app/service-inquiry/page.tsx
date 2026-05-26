@@ -9,13 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import api from '@/lib/api';
-import { Spinner } from '@/components/ui/spinner';
+import { Loader2 } from 'lucide-react';
 import { APP_TIMEZONE } from '@/lib/utils';
 
 export default function ServiceInquiryPage() {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     customerType: '',
     firstName: '',
@@ -67,9 +66,7 @@ export default function ServiceInquiryPage() {
       if (!formData.customerType || !formData.firstName || !formData.lastName || 
           !formData.address || !formData.numberOfPets || formData.petTypes.length === 0 ||
           !formData.startDate || !formData.endDate || !formData.phoneNumber || !formData.email) {
-        toast({
-          variant: 'destructive',
-          title: 'Validation Error',
+        toast.error('Validation Error', {
           description: 'Please fill in all required fields',
         });
         setIsLoading(false);
@@ -86,8 +83,7 @@ export default function ServiceInquiryPage() {
 
       const response = await api.post('/bookings/service-inquiry', payload);
 
-      toast({
-        title: 'Service inquiry submitted successfully!',
+      toast.success('Service inquiry submitted successfully!', {
         description: 'We will contact you soon to discuss details and availability.',
       });
       
@@ -108,9 +104,7 @@ export default function ServiceInquiryPage() {
 
     } catch (error: any) {
       console.error('Service inquiry error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Service inquiry failed',
+      toast.error('Service inquiry failed', {
         description: error.response?.data?.message || error.message || 'Failed to submit service inquiry',
       });
     } finally {
@@ -316,7 +310,7 @@ export default function ServiceInquiryPage() {
               >
                 {isLoading ? (
                   <>
-                    <Spinner size="sm" className="mr-2" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Submitting...
                   </>
                 ) : (

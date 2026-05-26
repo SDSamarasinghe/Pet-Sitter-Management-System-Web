@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserFromToken } from "@/lib/auth";
@@ -22,13 +22,13 @@ import {
   Eye, 
   Heart, 
   Calendar, 
-  MapPin, 
-  Phone, 
+  MapPin,
+  Phone,
   User,
   FileText,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 
 interface Pet {
   _id: string;
@@ -109,7 +109,6 @@ export default function MyPetsContent() {
     medical: {}
   });
 
-  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -234,10 +233,8 @@ export default function MyPetsContent() {
         statusText: error.response?.statusText,
         data: error.response?.data
       });
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to load pets: ${error.response?.data?.message || error.message}`,
-        variant: "destructive",
       });
       setPets([]);
     } finally {
@@ -306,10 +303,8 @@ export default function MyPetsContent() {
     // Validate required fields mirroring Add Pet form
     const missing = validateRequiredFields();
     if (missing.length > 0) {
-      toast({
-        title: 'Missing required fields',
+      toast.error('Missing required fields', {
         description: `Please fill: ${missing.join(', ')}`,
-        variant: 'destructive'
       });
       return;
     }
@@ -366,8 +361,7 @@ export default function MyPetsContent() {
         }
       }
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Pet information updated successfully",
       });
 
@@ -387,10 +381,8 @@ export default function MyPetsContent() {
     } catch (error: any) {
       console.error('Error updating pet:', error);
       console.error('Error details:', error.response?.data);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to update pet information: ${error.response?.data?.message || error.message}`,
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -416,8 +408,7 @@ export default function MyPetsContent() {
 
     try {
       await api.delete(`/pets/${petId}`);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: `${petName} has been deleted successfully`,
       });
       fetchPetsWithDetails(); // Refresh the list
@@ -434,10 +425,8 @@ export default function MyPetsContent() {
       
     } catch (error) {
       console.error('Error deleting pet:', error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete pet",
-        variant: "destructive",
       });
     }
   };
@@ -457,16 +446,13 @@ export default function MyPetsContent() {
       link.click();
       link.remove();
       
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: `Pet profile PDF downloaded successfully`,
       });
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to download PDF",
-        variant: "destructive",
       });
     }
   };
@@ -474,7 +460,7 @@ export default function MyPetsContent() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-          <Spinner size="lg" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
