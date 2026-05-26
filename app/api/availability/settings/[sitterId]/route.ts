@@ -26,10 +26,8 @@ interface AvailabilitySettings {
 // Mock data storage (replace with actual database)
 let availabilitySettings: { [key: string]: AvailabilitySettings } = {};
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     
@@ -76,10 +74,8 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     const body = await request.json();
@@ -123,10 +119,6 @@ export async function PUT(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
-  // POST method calls PUT for creating/updating
-  return PUT(request, { params });
+export async function POST(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  return PUT(request, props);
 }

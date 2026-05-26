@@ -17,8 +17,9 @@ let availabilitySlots: { [key: string]: AvailabilitySlot[] } = {};
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { sitterId: string; slotId: string } }
+  props: { params: Promise<{ sitterId: string; slotId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { sitterId, slotId } = params;
     const body = await request.json();
@@ -55,8 +56,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { sitterId: string; slotId: string } }
+  props: { params: Promise<{ sitterId: string; slotId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { sitterId, slotId } = params;
     
@@ -89,8 +91,9 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sitterId: string; slotId: string } }
+  props: { params: Promise<{ sitterId: string; slotId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { sitterId, slotId } = params;
     

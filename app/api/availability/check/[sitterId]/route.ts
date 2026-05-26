@@ -36,10 +36,8 @@ interface AvailabilityCheckDto {
 let availabilitySlots: { [key: string]: AvailabilitySlot[] } = {};
 let availabilitySettings: { [key: string]: AvailabilitySettings } = {};
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     const { searchParams } = new URL(request.url);

@@ -18,10 +18,8 @@ let availabilitySlots: { [key: string]: AvailabilitySlot[] } = {};
 // Generate unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     const { searchParams } = new URL(request.url);
@@ -48,10 +46,8 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     const body = await request.json();
@@ -95,10 +91,8 @@ export async function POST(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { sitterId: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ sitterId: string }> }) {
+  const params = await props.params;
   try {
     const { sitterId } = params;
     const body = await request.json();
