@@ -88,12 +88,27 @@ export default function PetsPage() {
           />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {petList.map((pet: { _id: string; name: string; type?: string; breed?: string; gender?: string; dateOfBirth?: string }) => (
+            {petList.map((pet: { _id: string; name: string; type?: string; breed?: string; gender?: string; dateOfBirth?: string; photo?: string }) => (
               <Card key={pet._id}>
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted">
-                      <PawPrint className="h-6 w-6 text-muted-foreground" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted overflow-hidden">
+                      {pet.photo ? (
+                        <img 
+                          src={pet.photo} 
+                          alt={pet.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            const target = e.currentTarget
+                            target.style.display = 'none'
+                            if (target.nextElementSibling) {
+                              target.nextElementSibling.classList.remove('hidden')
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <PawPrint className={`h-6 w-6 text-muted-foreground ${pet.photo ? 'hidden' : ''}`} />
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <h3 className="truncate text-base font-semibold">{pet.name}</h3>

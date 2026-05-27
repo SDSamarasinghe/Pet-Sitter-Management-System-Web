@@ -80,6 +80,7 @@ export type ExistingPet = {
   behaviorNotes?: string
   feedingSchedule?: string
   exerciseRequirements?: string
+  photo?: string
 }
 
 type PetFormProps = {
@@ -88,7 +89,7 @@ type PetFormProps = {
   onSuccess: () => void
 }
 
-const PET_TYPES = ['Cat', 'Dog', 'Rabbit', 'Bird', 'Guinea pig', 'Ferret', 'Other']
+const PET_TYPES = ['Cat(s)', 'Dog(s)', 'Rabbit(s)', 'Bird(s)', 'Guinea pig(s)', 'Ferret(s)', 'Other']
 
 export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
   const isEdit = !!pet
@@ -150,13 +151,29 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
         feedingSchedule: pet.feedingSchedule || '',
         exerciseRequirements: pet.exerciseRequirements || '',
       })
+      
+      // Use setTimeout to ensure form.reset() completes and Select component is ready
+      const timer = setTimeout(() => {
+        form.setValue('type', pet.type || '', { shouldValidate: false })
+        form.setValue('gender', pet.gender || '', { shouldValidate: false })
+      }, 50)
+      
+      // Load existing pet photo if no new photo is selected
+      if (pet.photo && !petImagePreview) {
+        setPetImagePreview(pet.photo)
+      }
+      
+      return () => clearTimeout(timer)
     }
-  }, [pet, form])
+  }, [pet, form, petImagePreview])
 
   const onSubmit = async (data: PetFormData) => {
     try {
+      console.log('Form data before submit:', data)
       if (isEdit) {
-        await api.put(`/pets/${pet?._id}`, data)
+        console.log('Sending update data:', data)
+        const response = await api.put(`/pets/${pet?._id}`, data)
+        console.log('Update response:', response)
         // Upload image if selected
         if (petImageFile) {
           const formData = new FormData()
@@ -183,7 +200,8 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
       setPetImagePreview('')
       if (fileInputRef.current) fileInputRef.current.value = ''
       onSuccess()
-    } catch {
+    } catch (error) {
+      console.error('Submit error:', error)
       toast.error(isEdit ? 'Failed to update pet' : 'Failed to add pet')
     }
   }
@@ -226,10 +244,13 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
                       src={petImagePreview} 
                       alt="Pet preview" 
                       className="w-24 h-24 object-cover rounded-lg shadow-md"
+                      onError={(e) => {
+                        console.error('Failed to load image:', e)
+                      }}
                     />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-600 text-center">Photo selected</p>
+                    <p className="text-xs text-gray-600 text-center">{petImageFile ? 'New photo selected' : 'Current photo'}</p>
                     <button
                       type="button"
                       onClick={() => {
@@ -282,9 +303,11 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
               <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value || ''} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {PET_TYPES.map((t) => (
@@ -306,9 +329,11 @@ export function PetForm({ pet, userId, onSuccess }: PetFormProps) {
                 <FormField control={form.control} name="gender" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || ''} onValueChange={field.onChange}>
                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Male">Male</SelectItem>
