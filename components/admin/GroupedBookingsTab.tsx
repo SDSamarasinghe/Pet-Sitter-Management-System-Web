@@ -105,6 +105,64 @@ export function GroupedBookingsTab() {
     }
   }
 
+  // Track which group row is mid-update so we can disable that select without flicker
+  const [updatingPaymentFor, setUpdatingPaymentFor] = useState<string | null>(null)
+  const [updatingStatusFor, setUpdatingStatusFor] = useState<string | null>(null)
+
+  const handleStatusSelectChange = async (group: BookingGroup, nextStatus: string) => {
+    if (!nextStatus || nextStatus === group.status) return
+    const rowKey = group.bookingGroupId || group.bookings[0]?._id || ''
+    setUpdatingStatusFor(rowKey)
+    try {
+      if (group.isGrouped && group.bookingGroupId) {
+        // Group endpoint — fires at most one email for the whole group (e.g. one
+        // rejection email covering all days), not one per day record.
+        await api.put(`/bookings/group/${group.bookingGroupId}/status`, { status: nextStatus })
+      } else {
+        const id = group.bookings[0]?._id
+        if (!id) throw new Error('No booking id')
+        await api.put(`/bookings/${id}`, { status: nextStatus })
+      }
+      toast.success(
+        group.isGrouped
+          ? `Booking status updated for ${group.dayCount} day(s)`
+          : 'Booking status updated',
+      )
+      await mutate()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update booking status')
+    } finally {
+      setUpdatingStatusFor(null)
+    }
+  }
+
+  const handlePaymentStatusChange = async (group: BookingGroup, nextPaymentStatus: string) => {
+    if (!nextPaymentStatus || nextPaymentStatus === group.paymentStatus) return
+    const rowKey = group.bookingGroupId || group.bookings[0]?._id || ''
+    setUpdatingPaymentFor(rowKey)
+    try {
+      if (group.isGrouped && group.bookingGroupId) {
+        await api.put(`/bookings/group/${group.bookingGroupId}/payment-status`, {
+          paymentStatus: nextPaymentStatus,
+        })
+      } else {
+        const id = group.bookings[0]?._id
+        if (!id) throw new Error('No booking id')
+        await api.put(`/bookings/${id}/payment-status`, { paymentStatus: nextPaymentStatus })
+      }
+      toast.success(
+        group.isGrouped
+          ? `Payment status updated for ${group.dayCount} day(s)`
+          : 'Payment status updated',
+      )
+      await mutate()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update payment status')
+    } finally {
+      setUpdatingPaymentFor(null)
+    }
+  }
+
   const columns: ColumnDef<BookingGroup, unknown>[] = useMemo(
     () => [
       {
@@ -159,6 +217,70 @@ export function GroupedBookingsTab() {
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
+        id: 'bookingStatus',
+        header: 'Booking Status',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const g = row.original
+          const rowKey = g.bookingGroupId || g.bookings[0]?._id || ''
+          const isUpdating = updatingStatusFor === rowKey
+          const isMixed = g.status === 'mixed'
+          return (
+            <Select
+              value={isMixed ? undefined : g.status}
+              onValueChange={(v) => handleStatusSelectChange(g, v)}
+              disabled={isUpdating}
+            >
+              <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectValue placeholder={isMixed ? 'Mixed' : 'Pending'} />
+              </SelectTrigger>
+              <SelectContent>
+                {['pending', 'confirmed', 'assigned', 'in_progress', 'completed', 'cancelled'].map(
+                  (s) => (
+                    <SelectItem key={s} value={s} className="text-xs capitalize">
+                      {s.replace('_', ' ')}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          )
+        },
+      },
+      {
+        id: 'paymentStatus',
+        header: 'Payment',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const g = row.original
+          const rowKey = g.bookingGroupId || g.bookings[0]?._id || ''
+          const isUpdating = updatingPaymentFor === rowKey
+          const isMixed = g.paymentStatus === 'mixed'
+          return (
+            <div className="flex items-center gap-2">
+              <Select
+                // When mixed, leave the value empty so the placeholder shows
+                value={isMixed ? undefined : g.paymentStatus}
+                onValueChange={(v) => handlePaymentStatusChange(g, v)}
+                disabled={isUpdating}
+              >
+                <SelectTrigger className="h-8 w-32 text-xs">
+                  <SelectValue placeholder={isMixed ? 'Mixed' : 'Pending'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {['pending', 'partial', 'paid', 'refunded'].map((s) => (
+                    <SelectItem key={s} value={s} className="text-xs capitalize">
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!isMixed && <StatusBadge status={g.paymentStatus} type="payment" />}
+            </div>
+          )
+        },
+      },
+      {
         id: 'actions',
         header: '',
         enableSorting: false,
@@ -191,7 +313,8 @@ export function GroupedBookingsTab() {
         },
       },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [updatingPaymentFor, updatingStatusFor],
   )
 
   return (
