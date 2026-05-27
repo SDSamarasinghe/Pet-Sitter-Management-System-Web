@@ -5,7 +5,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { useSitters } from '@/hooks/useData'
+import { usePaginatedSitters } from '@/hooks/useData'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -45,8 +45,17 @@ function sitterPhone(s: Sitter) {
 }
 
 export function SittersTab() {
-  const { data: sittersData, mutate } = useSitters()
-  const sitters: Sitter[] = Array.isArray(sittersData) ? sittersData : []
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+
+  const {
+    data: sittersData,
+    isLoading,
+    isValidating,
+    mutate,
+  } = usePaginatedSitters({ page, limit: pageSize, search })
+  const sitters: Sitter[] = sittersData?.data ?? []
 
   const [approveId, setApproveId] = useState<string | null>(null)
   const [rejectId, setRejectId] = useState<string | null>(null)
@@ -156,8 +165,25 @@ export function SittersTab() {
       <DataTable
         columns={columns}
         data={sitters}
-        searchPlaceholder="Search sitters by name, email, phone, or status..."
-        searchKey="email"
+        isLoading={isLoading}
+        searchPlaceholder="Search sitters by name, email, or phone..."
+        serverPagination={{
+          page,
+          pageSize,
+          total: sittersData?.total ?? 0,
+          totalPages: sittersData?.totalPages ?? 1,
+          search,
+          isValidating,
+          onPageChange: setPage,
+          onPageSizeChange: (s) => {
+            setPageSize(s)
+            setPage(1)
+          },
+          onSearchChange: (s) => {
+            setSearch(s)
+            setPage(1)
+          },
+        }}
       />
 
       {/* Approve Dialog */}

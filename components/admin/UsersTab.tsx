@@ -5,7 +5,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { useClients, useSitters } from '@/hooks/useData'
+import { usePaginatedClients, useSitters } from '@/hooks/useData'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -60,10 +60,20 @@ function FormStatusBadge({ status }: { status?: string }) {
 }
 
 export function UsersTab() {
-  const { data: clientsData, isLoading: loadingClients, mutate: mutateClients } = useClients()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+
+  const {
+    data: clientsData,
+    isLoading: loadingClients,
+    isValidating: validatingClients,
+    mutate: mutateClients,
+  } = usePaginatedClients({ page, limit: pageSize, search })
+
   const { data: sittersData } = useSitters()
 
-  const clients: User[] = Array.isArray(clientsData) ? clientsData : []
+  const clients: User[] = clientsData?.data ?? []
   const sitters: Sitter[] = Array.isArray(sittersData) ? sittersData : []
 
   const [approveId, setApproveId] = useState<string | null>(null)
@@ -180,7 +190,29 @@ export function UsersTab() {
 
   return (
     <>
-      <DataTable columns={columns} data={clients} isLoading={loadingClients} searchPlaceholder="Search users..." searchKey="email" />
+      <DataTable
+        columns={columns}
+        data={clients}
+        isLoading={loadingClients}
+        searchPlaceholder="Search users by name, email, or phone..."
+        serverPagination={{
+          page,
+          pageSize,
+          total: clientsData?.total ?? 0,
+          totalPages: clientsData?.totalPages ?? 1,
+          search,
+          isValidating: validatingClients,
+          onPageChange: setPage,
+          onPageSizeChange: (s) => {
+            setPageSize(s)
+            setPage(1)
+          },
+          onSearchChange: (s) => {
+            setSearch(s)
+            setPage(1)
+          },
+        }}
+      />
 
       <Dialog open={!!approveId} onOpenChange={(o) => !o && setApproveId(null)}>
         <DialogContent>

@@ -3,6 +3,45 @@ import api from '@/lib/api'
 
 const fetcher = (url: string) => api.get(url).then((r) => r.data)
 
+export type PaginatedParams = {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  formStatus?: string
+  from?: string
+  to?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+export type PaginatedResponse<T> = {
+  data: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+function toQueryString(params: PaginatedParams) {
+  const qs = new URLSearchParams()
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null || v === '') return
+    qs.set(k, String(v))
+  })
+  return qs.toString()
+}
+
+function usePaginatedFetch<T = any>(base: string, params: PaginatedParams) {
+  const qs = toQueryString({ page: 1, limit: 10, ...params })
+  const url = `${base}?${qs}`
+  const swr = useSWR<PaginatedResponse<T>>(url, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+  return swr
+}
+
 // ── User / Profile ─────────────────────────────────────
 export function useProfile() {
   return useSWR('/users/profile', fetcher)
@@ -39,6 +78,43 @@ export function useBookings(role: string, userId: string) {
 
 export function useBooking(id: string) {
   return useSWR(id ? `/bookings/${id}` : null, fetcher)
+}
+
+export function useBookingGroupDetail(id: string) {
+  return useSWR(id ? `/bookings/${id}/group-detail` : null, fetcher)
+}
+
+export function useGroupedBookings() {
+  return useSWR('/bookings/grouped', fetcher)
+}
+
+export function useUserGroupedBookings(userId: string) {
+  return useSWR(userId ? `/bookings/user/${userId}/grouped` : null, fetcher)
+}
+
+export function useSitterGroupedBookings(sitterId: string) {
+  return useSWR(sitterId ? `/bookings/sitter/${sitterId}/grouped` : null, fetcher)
+}
+
+// ── Paginated admin hooks ───────────────────────────────
+export function usePaginatedClients(params: PaginatedParams) {
+  return usePaginatedFetch('/users/admin/clients', params)
+}
+
+export function usePaginatedSitters(params: PaginatedParams) {
+  return usePaginatedFetch('/users/admin/sitters', params)
+}
+
+export function usePaginatedPets(params: PaginatedParams) {
+  return usePaginatedFetch('/pets', params)
+}
+
+export function usePaginatedBookings(params: PaginatedParams) {
+  return usePaginatedFetch('/bookings', params)
+}
+
+export function usePaginatedGroupedBookings(params: PaginatedParams) {
+  return usePaginatedFetch('/bookings/grouped', params)
 }
 
 // ── Pets ────────────────────────────────────────────────

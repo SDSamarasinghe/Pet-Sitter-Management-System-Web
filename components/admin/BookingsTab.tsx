@@ -1,12 +1,19 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { useBookings } from '@/hooks/useData'
+import { usePaginatedBookings } from '@/hooks/useData'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type PopulatedUser = { _id: string; firstName?: string; lastName?: string; email?: string }
 
@@ -38,8 +45,18 @@ function calcDuration(start?: string, end?: string) {
 }
 
 export function BookingsTab() {
-  const { data, isLoading } = useBookings('admin', '')
-  const bookings: Booking[] = Array.isArray(data) ? data : []
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<string>('all')
+
+  const { data, isLoading, isValidating } = usePaginatedBookings({
+    page,
+    limit: pageSize,
+    search,
+    status: status === 'all' ? undefined : status,
+  })
+  const bookings: Booking[] = data?.data ?? []
 
   const columns: ColumnDef<Booking, unknown>[] = useMemo(
     () => [
@@ -83,5 +100,54 @@ export function BookingsTab() {
     []
   )
 
-  return <DataTable columns={columns} data={bookings} isLoading={isLoading} searchPlaceholder="Search bookings..." searchKey="serviceType" />
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          value={status}
+          onValueChange={(v) => {
+            setStatus(v)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger className="h-9 w-44">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="assigned">Assigned</SelectItem>
+            <SelectItem value="in_progress">In progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={bookings}
+        isLoading={isLoading}
+        searchPlaceholder="Search by service, status, or payment..."
+        serverPagination={{
+          page,
+          pageSize,
+          total: data?.total ?? 0,
+          totalPages: data?.totalPages ?? 1,
+          search,
+          isValidating,
+          onPageChange: setPage,
+          onPageSizeChange: (s) => {
+            setPageSize(s)
+            setPage(1)
+          },
+          onSearchChange: (s) => {
+            setSearch(s)
+            setPage(1)
+          },
+        }}
+      />
+    </div>
+  )
 }

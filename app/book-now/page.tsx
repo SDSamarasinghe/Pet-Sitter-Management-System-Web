@@ -25,10 +25,10 @@ import Link from 'next/link'
 import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns'
 
 const SERVICES = [
-  { label: 'Pet Sitting 30min - CAD 28', value: 'Pet Sitting 30min', amount: 28 },
+  { label: 'Pet Sitting 30min - CAD 30', value: 'Pet Sitting 30min', amount: 30 },
   { label: 'Pet Sitting 60min - CAD 46', value: 'Pet Sitting 60min', amount: 46 },
-  { label: 'Pet Visit 30min - CAD 28', value: 'Pet Visit 30min', amount: 28 },
-  { label: 'Pet Walking 30min - CAD 28', value: 'Pet Walking 30min', amount: 28 },
+  { label: 'Pet Visit 30min - CAD 30', value: 'Pet Visit 30min', amount: 30 },
+  { label: 'Pet Walking 30min - CAD 30', value: 'Pet Walking 30min', amount: 30 },
   { label: 'Pet Walking 60min - CAD 46', value: 'Pet Walking 60min', amount: 46 },
   { label: 'Overnight Stay - CAD 85', value: 'Overnight Stay', amount: 85 },
 ]
@@ -37,6 +37,9 @@ const PET_TYPES = ['Cat(s)', 'Dog(s)', 'Rabbit(s)', 'Bird(s)', 'Guinea pig(s)', 
 
 const HOLIDAY_MONTH_DAYS = new Set(['01-01', '07-01', '12-25', '12-26'])
 
+const WEEKEND_SURCHARGE_PCT = 15
+const HOLIDAY_SURCHARGE_PCT = 25
+
 function isSameDayBooking(startDate: string, endDate: string) {
   return Boolean(startDate && endDate && startDate === endDate)
 }
@@ -44,6 +47,72 @@ function isSameDayBooking(startDate: string, endDate: string) {
 function isValidTimeRange(startDate: string, endDate: string, startTime: string, endTime: string) {
   if (!isSameDayBooking(startDate, endDate)) return true
   return startTime < endTime
+}
+
+function countBookingDays(startDate: string, endDate: string) {
+  if (!startDate || !endDate) return 1
+  try {
+    return Math.max(1, eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) }).length)
+  } catch {
+    return 1
+  }
+}
+
+/**
+ * Categorize each day in the booking range as weekday / weekend / holiday.
+ * A holiday takes precedence over weekend when both apply on the same date.
+ */
+function getDayBreakdown(startDate: string, endDate: string) {
+  if (!startDate || !endDate) {
+    return { total: 0, weekday: 0, weekend: 0, holiday: 0 }
+  }
+  try {
+    const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) })
+    let weekend = 0
+    let holiday = 0
+    for (const d of days) {
+      if (HOLIDAY_MONTH_DAYS.has(format(d, 'MM-dd'))) holiday += 1
+      else if (isWeekend(d)) weekend += 1
+    }
+    return {
+      total: days.length,
+      weekday: days.length - weekend - holiday,
+      weekend,
+      holiday,
+    }
+  } catch {
+    return { total: 0, weekday: 0, weekend: 0, holiday: 0 }
+  }
+}
+
+/**
+ * Compute the estimated cost breakdown including weekend / holiday surcharges.
+ */
+function calculateBookingCost(startDate: string, endDate: string, baseRate: number, pets: number) {
+  const breakdown = getDayBreakdown(startDate, endDate)
+  const safePets = Math.max(1, pets || 1)
+  const days = Math.max(1, breakdown.total)
+  const perDay = baseRate * safePets
+  const weekendPerDay = Math.round(perDay * (1 + WEEKEND_SURCHARGE_PCT / 100))
+  const holidayPerDay = Math.round(perDay * (1 + HOLIDAY_SURCHARGE_PCT / 100))
+  const weekdayCost = breakdown.weekday * perDay
+  const weekendCost = breakdown.weekend * weekendPerDay
+  const holidayCost = breakdown.holiday * holidayPerDay
+  // Fallback for empty range — still show 1 weekday-equivalent day
+  const total =
+    breakdown.total === 0 ? perDay : weekdayCost + weekendCost + holidayCost
+  return {
+    days,
+    pets: safePets,
+    perDay,
+    weekendPerDay,
+    holidayPerDay,
+    breakdown,
+    weekdayCost,
+    weekendCost,
+    holidayCost,
+    total,
+  }
 }
 
 function getBookingDateWarnings(startDate: string, endDate: string) {
@@ -396,25 +465,64 @@ function ClientBookingForm({ userId }: { userId: string }) {
           </div>
 
           {/* Cost Summary */}
-          {selectedService && (
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Service rate</span>
-                <span className="font-medium">CAD ${selectedService.amount}</span>
+          {selectedService && (() => {
+            const cost = calculateBookingCost(startDate, endDate, selectedService.amount, Number(numberOfPets))
+            return (
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service rate (per pet / day)</span>
+                  <span className="font-medium">CAD ${selectedService.amount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Number of pets</span>
+                  <span className="font-medium">{cost.pets}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Number of days</span>
+                  <span className="font-medium">{cost.days}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Cost per day (weekday)</span>
+                  <span className="font-medium">CAD ${cost.perDay}</span>
+                </div>
+
+                {cost.breakdown.weekday > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      Weekdays · {cost.breakdown.weekday} × CAD ${cost.perDay}
+                    </span>
+                    <span className="font-medium">CAD ${cost.weekdayCost}</span>
+                  </div>
+                )}
+                {cost.breakdown.weekend > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-700">
+                      Weekend days · {cost.breakdown.weekend} × CAD ${cost.weekendPerDay}
+                      <span className="ml-1 text-xs text-amber-600">(+{WEEKEND_SURCHARGE_PCT}%)</span>
+                    </span>
+                    <span className="font-medium text-amber-800">CAD ${cost.weekendCost}</span>
+                  </div>
+                )}
+                {cost.breakdown.holiday > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-rose-700">
+                      Holiday days · {cost.breakdown.holiday} × CAD ${cost.holidayPerDay}
+                      <span className="ml-1 text-xs text-rose-600">(+{HOLIDAY_SURCHARGE_PCT}%)</span>
+                    </span>
+                    <span className="font-medium text-rose-800">CAD ${cost.holidayCost}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-primary/20 pt-2 flex justify-between">
+                  <span className="font-semibold text-gray-900">Estimated Total</span>
+                  <span className="font-bold text-primary text-lg">CAD ${cost.total}</span>
+                </div>
+                <p className="text-xs text-gray-500 pt-1">
+                  Final cost may vary based on service duration. Weekend rate: +{WEEKEND_SURCHARGE_PCT}%, Holiday rate: +{HOLIDAY_SURCHARGE_PCT}%.
+                </p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Number of pets</span>
-                <span className="font-medium">{numberOfPets}</span>
-              </div>
-              <div className="border-t border-primary/20 pt-2 flex justify-between">
-                <span className="font-semibold text-gray-900">Estimated Total</span>
-                <span className="font-bold text-primary text-lg">
-                  CAD ${selectedService.amount * Number(numberOfPets)}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 pt-1">Final cost may vary based on service duration</p>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-6 border-t">
@@ -723,24 +831,64 @@ function AdminBookingForm() {
           </div>
 
           {/* Cost Summary */}
-          {selectedService && (
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Service rate</span>
-                <span className="font-medium">CAD ${selectedService.amount}</span>
+          {selectedService && (() => {
+            const cost = calculateBookingCost(startDate, endDate, selectedService.amount, Number(numberOfPets))
+            return (
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service rate (per pet / day)</span>
+                  <span className="font-medium">CAD ${selectedService.amount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Number of pets</span>
+                  <span className="font-medium">{cost.pets}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Number of days</span>
+                  <span className="font-medium">{cost.days}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Cost per day (weekday)</span>
+                  <span className="font-medium">CAD ${cost.perDay}</span>
+                </div>
+
+                {cost.breakdown.weekday > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      Weekdays · {cost.breakdown.weekday} × CAD ${cost.perDay}
+                    </span>
+                    <span className="font-medium">CAD ${cost.weekdayCost}</span>
+                  </div>
+                )}
+                {cost.breakdown.weekend > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-700">
+                      Weekend days · {cost.breakdown.weekend} × CAD ${cost.weekendPerDay}
+                      <span className="ml-1 text-xs text-amber-600">(+{WEEKEND_SURCHARGE_PCT}%)</span>
+                    </span>
+                    <span className="font-medium text-amber-800">CAD ${cost.weekendCost}</span>
+                  </div>
+                )}
+                {cost.breakdown.holiday > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-rose-700">
+                      Holiday days · {cost.breakdown.holiday} × CAD ${cost.holidayPerDay}
+                      <span className="ml-1 text-xs text-rose-600">(+{HOLIDAY_SURCHARGE_PCT}%)</span>
+                    </span>
+                    <span className="font-medium text-rose-800">CAD ${cost.holidayCost}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-primary/20 pt-2 flex justify-between">
+                  <span className="font-semibold text-gray-900">Total</span>
+                  <span className="font-bold text-primary text-lg">CAD ${cost.total}</span>
+                </div>
+                <p className="text-xs text-gray-500 pt-1">
+                  Weekend rate: +{WEEKEND_SURCHARGE_PCT}%, Holiday rate: +{HOLIDAY_SURCHARGE_PCT}%.
+                </p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Number of pets</span>
-                <span className="font-medium">{numberOfPets}</span>
-              </div>
-              <div className="border-t border-primary/20 pt-2 flex justify-between">
-                <span className="font-semibold text-gray-900">Total</span>
-                <span className="font-bold text-primary text-lg">
-                  CAD ${selectedService.amount * Number(numberOfPets)}
-                </span>
-              </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-6 border-t">

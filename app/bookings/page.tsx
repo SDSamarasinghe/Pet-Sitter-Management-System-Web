@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Calendar, MoreHorizontal, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { Calendar, CalendarDays, MoreHorizontal, ChevronUp, ChevronDown, X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PageShell } from '@/components/layout/PageShell'
 import { DataTable } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { useBookings } from '@/hooks/useData'
+import { useBookings, useUserGroupedBookings, useSitterGroupedBookings } from '@/hooks/useData'
+import { Badge } from '@/components/ui/badge'
 import { getUserFromToken } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,11 @@ type Booking = {
   paymentStatus?: string
   totalAmount?: number
   createdAt?: string
+  // Group-row fields (only present when fetched via the grouped endpoint)
+  bookingGroupId?: string | null
+  isGrouped?: boolean
+  dayCount?: number
+  bookings?: Array<{ _id: string }>
 }
 
 function displayName(u?: PopulatedUser | string) {
@@ -76,8 +82,20 @@ export default function BookingsPage() {
     if (decoded) setUser({ userId: decoded.userId, role: decoded.role })
   }, [])
 
-  const { data: bookings, isLoading, mutate } = useBookings(user?.role || '', user?.userId || '')
+  // Admins keep the per-day list (they have a dedicated Grouped tab in /admin).
+  // Clients and sitters get the grouped list so multi-day bookings collapse into a single row.
+  const adminFlat = useBookings(user?.role === 'admin' ? 'admin' : '', user?.role === 'admin' ? '' : '')
+  const clientGrouped = useUserGroupedBookings(user?.role === 'client' ? user.userId : '')
+  const sitterGrouped = useSitterGroupedBookings(user?.role === 'sitter' ? user.userId : '')
+
+  const active =
+    user?.role === 'admin' ? adminFlat
+    : user?.role === 'sitter' ? sitterGrouped
+    : clientGrouped
+
+  const { data: bookings, isLoading, mutate } = active
   const bookingList: Booking[] = Array.isArray(bookings) ? bookings : []
+  const isGroupedView = user?.role !== 'admin'
 
   const filtered = useMemo(() => {
     let result = bookingList
@@ -186,40 +204,77 @@ export default function BookingsPage() {
       })
     }
 
+    cols.push({
+      accessorKey: 'serviceType',
+      header: 'Service Type',
+      cell: ({ row }) => row.original.serviceType || 'Pet Sitting',
+    })
+
+    if (isGroupedView) {
+      cols.push(
+        {
+          id: 'dateRange',
+          header: 'Dates',
+          cell: ({ row }) => {
+            const b = row.original
+            const start = b.startDate ? new Date(b.startDate).toLocaleDateString() : '—'
+            const end = b.endDate ? new Date(b.endDate).toLocaleDateString() : start
+            const same = start === end
+            return (
+              <span className="inline-flex items-center gap-1.5 text-sm">
+                <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                {same ? start : `${start} → ${end}`}
+              </span>
+            )
+          },
+        },
+        {
+          id: 'dayCount',
+          header: 'Days',
+          cell: ({ row }) => {
+            const days = row.original.dayCount ?? 1
+            return (
+              <Badge variant={row.original.isGrouped ? 'default' : 'outline'}>
+                {days} {days === 1 ? 'day' : 'days'}
+              </Badge>
+            )
+          },
+        },
+      )
+    } else {
+      cols.push(
+        {
+          accessorKey: 'startDate',
+          header: 'Start Date',
+          cell: ({ row }) =>
+            row.original.startDate
+              ? new Date(row.original.startDate).toLocaleString('en-US', {
+                  month: 'short', day: '2-digit', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
+                })
+              : '—',
+        },
+        {
+          accessorKey: 'endDate',
+          header: 'End Date',
+          cell: ({ row }) =>
+            row.original.endDate
+              ? new Date(row.original.endDate).toLocaleString('en-US', {
+                  month: 'short', day: '2-digit', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
+                })
+              : '—',
+        },
+        {
+          id: 'duration',
+          header: 'Duration',
+          enableSorting: false,
+          cell: ({ row }) => calcDuration(row.original.startDate, row.original.endDate),
+        },
+      )
+    }
+
     cols.push(
-      {
-        accessorKey: 'serviceType',
-        header: 'Service Type',
-        cell: ({ row }) => row.original.serviceType || 'Pet Sitting',
-      },
-      {
-        accessorKey: 'startDate',
-        header: 'Start Date',
-        cell: ({ row }) =>
-          row.original.startDate
-            ? new Date(row.original.startDate).toLocaleString('en-US', {
-                month: 'short', day: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit',
-              })
-            : '—',
-      },
-      {
-        accessorKey: 'endDate',
-        header: 'End Date',
-        cell: ({ row }) =>
-          row.original.endDate
-            ? new Date(row.original.endDate).toLocaleString('en-US', {
-                month: 'short', day: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit',
-              })
-            : '—',
-      },
-      {
-        id: 'duration',
-        header: 'Duration',
-        enableSorting: false,
-        cell: ({ row }) => calcDuration(row.original.startDate, row.original.endDate),
-      },
       {
         accessorKey: 'totalAmount',
         header: 'Amount',
@@ -296,25 +351,31 @@ export default function BookingsPage() {
         id: 'actions',
         header: '',
         enableSorting: false,
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/bookings/${row.original._id}`}>View Detail</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        cell: ({ row }) => {
+          const b = row.original
+          // For grouped rows we link to the first day; for flat rows we use _id directly.
+          const detailId = b._id || b.bookings?.[0]?._id
+          if (!detailId) return null
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/bookings/${detailId}`}>View Detail</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        },
       })
     }
 
     return cols
-  }, [user?.role])
+  }, [user?.role, isGroupedView])
 
   if (!user) return null
 

@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersTab } from '@/components/admin/UsersTab'
 import { SittersTab } from '@/components/admin/SittersTab'
 import { BookingsTab } from '@/components/admin/BookingsTab'
+import { GroupedBookingsTab } from '@/components/admin/GroupedBookingsTab'
 import { PetsTab } from '@/components/admin/PetsTab'
 
 export default function AdminPage() {
@@ -17,6 +18,7 @@ export default function AdminPage() {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="sitters">Sitters</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="grouped-bookings">Grouped Bookings</TabsTrigger>
             <TabsTrigger value="pets">Pets</TabsTrigger>
           </TabsList>
           <TabsContent value="users">
@@ -27,6 +29,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="bookings">
             <BookingsTab />
+          </TabsContent>
+          <TabsContent value="grouped-bookings">
+            <GroupedBookingsTab />
           </TabsContent>
           <TabsContent value="pets">
             <PetsTab />

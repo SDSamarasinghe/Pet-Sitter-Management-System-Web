@@ -71,8 +71,8 @@ export default function LoginPage() {
           <Image
             src="/Petsitter-logo.png"
             alt="Whiskarz"
-            width={64}
-            height={64}
+            width={200}
+            height={200}
             className="mx-auto"
             priority
           />

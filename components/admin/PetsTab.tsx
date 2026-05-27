@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import api from '@/lib/api'
-import { useAllPets } from '@/hooks/useData'
+import { usePaginatedPets } from '@/hooks/useData'
 
 type Pet = {
   _id: string
@@ -28,8 +28,16 @@ function ownerDisplay(u: Pet['userId']) {
 }
 
 export function PetsTab() {
-  const { data, isLoading, mutate } = useAllPets()
-  const pets: Pet[] = Array.isArray(data) ? data : []
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+
+  const { data, isLoading, isValidating, mutate } = usePaginatedPets({
+    page,
+    limit: pageSize,
+    search,
+  })
+  const pets: Pet[] = data?.data ?? []
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -91,7 +99,29 @@ export function PetsTab() {
 
   return (
     <>
-      <DataTable columns={columns} data={pets} isLoading={isLoading} searchPlaceholder="Search pets by name, type, breed, age, or owner..." searchKey="name" />
+      <DataTable
+        columns={columns}
+        data={pets}
+        isLoading={isLoading}
+        searchPlaceholder="Search pets by name, type, or breed..."
+        serverPagination={{
+          page,
+          pageSize,
+          total: data?.total ?? 0,
+          totalPages: data?.totalPages ?? 1,
+          search,
+          isValidating,
+          onPageChange: setPage,
+          onPageSizeChange: (s) => {
+            setPageSize(s)
+            setPage(1)
+          },
+          onSearchChange: (s) => {
+            setSearch(s)
+            setPage(1)
+          },
+        }}
+      />
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
