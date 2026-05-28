@@ -133,9 +133,21 @@ export function useReports(sitterId?: string) {
 }
 
 // ── Invoices ────────────────────────────────────────────
-export function useInvoices(userId?: string) {
-  const endpoint = userId ? `/invoices/user/${userId}` : '/invoices'
-  return useSWR(endpoint, fetcher)
+/**
+ * Derived invoices (one per booking-group). Pass userId to scope to a client,
+ * or omit for the admin-wide list.
+ */
+export function useInvoices(userId?: string, params?: PaginatedParams) {
+  const base = userId ? `/invoices/user/${userId}` : '/invoices'
+  const qs = toQueryString({ page: 1, limit: 10, ...(params ?? {}) })
+  return useSWR<PaginatedResponse<any>>(`${base}?${qs}`, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+}
+
+export function useInvoiceDetail(id: string) {
+  return useSWR(id ? `/invoices/derived/${id}` : null, fetcher)
 }
 
 // ── Availability ────────────────────────────────────────

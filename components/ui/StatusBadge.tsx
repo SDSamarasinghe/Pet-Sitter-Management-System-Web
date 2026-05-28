@@ -26,6 +26,11 @@ const paymentStyles: Record<string, string> = {
   partial: 'bg-orange-100 text-orange-700 border-orange-700/20',
   paid: 'bg-success-100 text-success-500 border-success-500/20',
   refunded: 'bg-secondary text-secondary-foreground',
+  // Derived-invoice statuses
+  due: 'bg-warning-100 text-warning-500 border-warning-500/20',
+  overdue: 'bg-danger-100 text-danger-500 border-danger-500/20',
+  cancelled: 'bg-secondary text-secondary-foreground',
+  mixed: 'bg-slate-100 text-slate-700 border-slate-300',
 }
 
 const styleMap = {

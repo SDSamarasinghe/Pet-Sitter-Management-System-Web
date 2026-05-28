@@ -6,6 +6,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { ClientDashboard } from '@/components/dashboard/ClientDashboard'
 import { SitterDashboard } from '@/components/dashboard/SitterDashboard'
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard'
+import { WelcomeWizard } from '@/components/onboarding/WelcomeWizard'
 import { getUserFromToken } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +33,16 @@ export default function DashboardPage() {
         {user.role === 'sitter' && <SitterDashboard userId={user.userId} />}
         {user.role === 'client' && <ClientDashboard userId={user.userId} />}
       </PageShell>
+
+      {/* First-login welcome tour — shown once per user via localStorage gate.
+          Admins skip this; they have their own admin panel. */}
+      {(user.role === 'client' || user.role === 'sitter') && (
+        <WelcomeWizard
+          userId={user.userId}
+          role={user.role}
+          firstName={user.firstName}
+        />
+      )}
     </AppLayout>
   )
 }

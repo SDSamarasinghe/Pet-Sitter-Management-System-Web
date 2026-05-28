@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { FileText, MoreHorizontal, ChevronUp, ChevronDown, X, Eye, Trash2 } from 'lucide-react'
+import { FileText, MoreHorizontal, Eye, Download, CalendarDays } from 'lucide-react'
+import Link from 'next/link'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PageShell } from '@/components/layout/PageShell'
 import { DataTable } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { StatCard } from '@/components/ui/StatCard'
 import { useInvoices } from '@/hooks/useData'
 import { getUserFromToken } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -26,21 +25,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import api from '@/lib/api'
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
-type PopulatedUser = { _id: string; firstName?: string; lastName?: string; email?: string }
+type PopulatedUser = { _id?: string; firstName?: string; lastName?: string; email?: string }
 
-type Invoice = {
+type DerivedInvoice = {
   _id: string
   invoiceNumber: string
+  bookingGroupId: string | null
+  isGrouped: boolean
   clientId?: PopulatedUser | string
+  sitterId?: PopulatedUser | string
+  serviceType?: string
   amount: number
   status: string
+  paymentStatus: string
+  bookingStatus: string
+  startDate?: string
+  endDate?: string
   dueDate?: string
   paidDate?: string
-  type?: string
+  dayCount: number
   createdAt?: string
 }
 
@@ -50,273 +55,224 @@ function displayName(u?: PopulatedUser | string) {
   return `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || '—'
 }
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'paid':
-      return 'bg-green-100 text-green-800'
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'overdue':
-      return 'bg-red-100 text-red-800'
-    case 'cancelled':
-      return 'bg-gray-100 text-gray-800'
-    default:
-      return 'bg-blue-100 text-blue-800'
-  }
+function formatRange(start?: string, end?: string) {
+  if (!start) return '—'
+  const s = new Date(start).toLocaleDateString()
+  if (!end) return s
+  const e = new Date(end).toLocaleDateString()
+  return s === e ? s : `${s} → ${e}`
 }
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'partial', label: 'Partial' },
+  { value: 'due', label: 'Due' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'refunded', label: 'Refunded' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
 export default function InvoicesPage() {
   const [user, setUser] = useState<{ userId: string; role: string } | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const decoded = getUserFromToken()
     if (decoded) setUser({ userId: decoded.userId, role: decoded.role })
   }, [])
 
-  const { data: invoices, isLoading, mutate } = useInvoices(user?.role === 'admin' ? undefined : user?.userId)
-  const invoiceList: Invoice[] = Array.isArray(invoices) ? invoices : []
+  // Admin sees all invoices; clients/sitters see their own
+  const scopedUserId = user?.role === 'admin' ? undefined : user?.userId
+  const { data, isLoading, isValidating } = useInvoices(scopedUserId, {
+    page,
+    limit: pageSize,
+    search,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+  })
 
-  const filtered = useMemo(() => {
-    let result = invoiceList
+  const invoices: DerivedInvoice[] = data?.data ?? []
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter((inv) => inv.status === statusFilter)
+  const stats = useMemo(() => {
+    const acc = { total: 0, paid: 0, due: 0, overdue: 0 }
+    for (const inv of invoices) {
+      acc.total += inv.amount || 0
+      if (inv.status === 'paid') acc.paid += inv.amount || 0
+      if (inv.status === 'due') acc.due += inv.amount || 0
+      if (inv.status === 'overdue') acc.overdue += inv.amount || 0
     }
+    return acc
+  }, [invoices])
 
-    // Apply date range filter
-    if (fromDate || toDate) {
-      result = result.filter((inv) => {
-        const invoiceDate = inv.dueDate ? parseISO(inv.dueDate) : null
-        if (!invoiceDate) return false
-
-        if (fromDate && toDate) {
-          const from = startOfDay(parseISO(fromDate))
-          const to = endOfDay(parseISO(toDate))
-          return isWithinInterval(invoiceDate, { start: from, end: to })
-        } else if (fromDate) {
-          return invoiceDate >= startOfDay(parseISO(fromDate))
-        } else if (toDate) {
-          return invoiceDate <= endOfDay(parseISO(toDate))
-        }
-        return true
-      })
-    }
-
-    // Sort by date
-    result.sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
-    })
-
-    return result
-  }, [invoiceList, statusFilter, fromDate, toDate, sortOrder])
-
-  const columns: ColumnDef<Invoice>[] = [
-    {
-      accessorKey: 'invoiceNumber',
-      header: ({ column }) => (
-        <button
-          className="flex items-center gap-1 hover:text-foreground/80"
-          onClick={() => column.toggleSorting()}
-        >
-          Invoice #
-          {column.getIsSorted() === 'asc' && <ChevronUp className="h-3 w-3" />}
-          {column.getIsSorted() === 'desc' && <ChevronDown className="h-3 w-3" />}
-        </button>
-      ),
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.invoiceNumber}</span>,
-    },
-    {
-      accessorKey: 'clientId',
-      header: 'Client',
-      cell: ({ row }) => displayName(row.original.clientId),
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Amount',
-      cell: ({ row }) => `$${row.original.amount?.toFixed(2) || '0.00'}`,
-    },
-    {
-      accessorKey: 'type',
-      header: 'Type',
-      cell: ({ row }) => {
-        const type = row.original.type || 'service'
-        return (
-          <span className="capitalize text-xs px-2 py-1 bg-slate-100 text-slate-700 rounded">
-            {type.replace('_', ' ')}
-          </span>
-        )
+  const columns: ColumnDef<DerivedInvoice>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'invoiceNumber',
+        header: 'Invoice #',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-medium">{row.original.invoiceNumber}</span>
+        ),
       },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
-    },
-    {
-      accessorKey: 'dueDate',
-      header: 'Due Date',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.dueDate ? format(parseISO(row.original.dueDate), 'MMM dd, yyyy') : '—'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'paidDate',
-      header: 'Paid Date',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {row.original.paidDate ? format(parseISO(row.original.paidDate), 'MMM dd, yyyy') : '—'}
-        </span>
-      ),
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => window.location.href = `/invoices/${row.original._id}`}>
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            {user?.role === 'admin' && (
-              <>
-                <DropdownMenuItem onClick={() => setDeleteId(row.original._id)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ]
+      {
+        id: 'client',
+        header: 'Client',
+        cell: ({ row }) => displayName(row.original.clientId),
+      },
+      {
+        accessorKey: 'serviceType',
+        header: 'Service',
+        cell: ({ row }) => row.original.serviceType || 'Pet Sitting',
+      },
+      {
+        id: 'range',
+        header: 'Service Dates',
+        cell: ({ row }) => (
+          <span className="inline-flex items-center gap-1.5 text-sm">
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+            {formatRange(row.original.startDate, row.original.endDate)}
+          </span>
+        ),
+      },
+      {
+        id: 'dayCount',
+        header: 'Days',
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.dayCount} {row.original.dayCount === 1 ? 'day' : 'days'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'amount',
+        header: 'Amount',
+        cell: ({ row }) => (
+          <span className="font-semibold text-green-600">
+            ${(row.original.amount ?? 0).toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => <StatusBadge status={row.original.status} type="payment" />,
+      },
+      {
+        accessorKey: 'dueDate',
+        header: 'Due',
+        cell: ({ row }) =>
+          row.original.dueDate
+            ? format(parseISO(row.original.dueDate), 'MMM dd, yyyy')
+            : '—',
+      },
+      {
+        id: 'actions',
+        header: '',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/invoices/${row.original._id}`}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/invoices/${row.original._id}?print=1`}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+    ],
+    [],
+  )
 
-  const handleDelete = async () => {
-    if (!deleteId) return
-    setDeleting(true)
-    try {
-      await api.delete(`/invoices/${deleteId}`)
-      toast.success('Invoice deleted')
-      setDeleteId(null)
-      mutate()
-    } catch {
-      toast.error('Failed to delete invoice')
-    } finally {
-      setDeleting(false)
-    }
-  }
+  if (!user) return null
 
   return (
     <AppLayout>
-      <PageShell
-        title="Invoices"
-        description="View and manage all invoices"
-      >
-        <div className="space-y-4">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-            <div className="w-full sm:w-auto">
-              <label className="text-sm font-medium">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full sm:w-auto">
-              <label className="text-sm font-medium">From</label>
-              <Input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="w-full sm:w-[180px]"
-              />
-            </div>
-
-            <div className="w-full sm:w-auto">
-              <label className="text-sm font-medium">To</label>
-              <Input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="w-full sm:w-[180px]"
-              />
-            </div>
-
-            {(statusFilter !== 'all' || fromDate || toDate) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setStatusFilter('all')
-                  setFromDate('')
-                  setToDate('')
-                }}
-                className="w-full sm:w-auto"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Clear Filters
-              </Button>
-            )}
-          </div>
-
-          {/* Data Table or Empty State */}
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading invoices...</p>
-              </div>
-            </div>
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={FileText}
-              title="No invoices yet"
-              description={statusFilter !== 'all' || fromDate || toDate ? 'No invoices match your filters.' : 'No invoices found.'}
-              action={statusFilter !== 'all' || fromDate || toDate ? { label: 'Clear Filters', onClick: () => {
-                setStatusFilter('all')
-                setFromDate('')
-                setToDate('')
-              }} : undefined}
-            />
-          ) : (
-            <DataTable columns={columns} data={filtered} />
-          )}
+      <PageShell title="Invoices" description="Every booking generates an invoice. Status reflects the booking's payment state.">
+        {/* Summary cards */}
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Total invoices"
+            value={String(data?.total ?? 0)}
+            icon={FileText}
+          />
+          <StatCard
+            label="Total billed (page)"
+            value={`$${stats.total.toFixed(2)}`}
+            icon={FileText}
+          />
+          <StatCard
+            label="Paid (page)"
+            value={`$${stats.paid.toFixed(2)}`}
+            icon={FileText}
+            variant="success"
+          />
+          <StatCard
+            label="Due + Overdue (page)"
+            value={`$${(stats.due + stats.overdue).toFixed(2)}`}
+            icon={FileText}
+            variant="warning"
+          />
         </div>
 
-        {/* Delete Confirmation */}
-        <ConfirmDialog
-          open={!!deleteId}
-          onOpenChange={() => setDeleteId(null)}
-          title="Delete invoice?"
-          description="This action cannot be undone. The invoice will be permanently removed."
-          onConfirm={handleDelete}
-          confirmLabel="Delete"
-          loading={deleting}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => {
+              setStatusFilter(v)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="h-9 w-44">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={invoices}
+          isLoading={isLoading}
+          searchPlaceholder="Search by invoice #, client, or service..."
+          serverPagination={{
+            page,
+            pageSize,
+            total: data?.total ?? 0,
+            totalPages: data?.totalPages ?? 1,
+            search,
+            isValidating,
+            onPageChange: setPage,
+            onPageSizeChange: (s) => {
+              setPageSize(s)
+              setPage(1)
+            },
+            onSearchChange: (s) => {
+              setSearch(s)
+              setPage(1)
+            },
+          }}
         />
       </PageShell>
     </AppLayout>
