@@ -63,6 +63,7 @@ const navItemsByRole: Record<string, NavItem[]> = {
   admin: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Admin Panel', href: '/admin', icon: Shield },
+    { label: 'New Booking', href: '/book-now', icon: CalendarPlus },
     { label: 'Bookings', href: '/bookings', icon: Calendar },
     { label: 'Activity Log', href: '/activity-log', icon: Activity },
     { label: 'Reports', href: '/reports', icon: FileText },
